@@ -293,29 +293,49 @@ alter table public.culture_evidence_items enable row level security;
 alter table public.culture_trend_attributes enable row level security;
 alter table public.culture_relations enable row level security;
 
+drop policy if exists "users read own culture trends" on public.culture_trends;
 create policy "users read own culture trends" on public.culture_trends for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "users insert own culture trends" on public.culture_trends;
 create policy "users insert own culture trends" on public.culture_trends for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "users update own culture trends" on public.culture_trends;
 create policy "users update own culture trends" on public.culture_trends for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "users delete own culture trends" on public.culture_trends;
 create policy "users delete own culture trends" on public.culture_trends for delete to authenticated using ((select auth.uid()) = user_id);
 
+drop policy if exists "users read own culture versions" on public.culture_analysis_versions;
 create policy "users read own culture versions" on public.culture_analysis_versions for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "users insert own culture versions" on public.culture_analysis_versions;
 create policy "users insert own culture versions" on public.culture_analysis_versions for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "users update own culture versions" on public.culture_analysis_versions;
 create policy "users update own culture versions" on public.culture_analysis_versions for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "users delete own culture versions" on public.culture_analysis_versions;
 create policy "users delete own culture versions" on public.culture_analysis_versions for delete to authenticated using ((select auth.uid()) = user_id);
 
+drop policy if exists "users read own culture evidence" on public.culture_evidence_items;
 create policy "users read own culture evidence" on public.culture_evidence_items for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "users insert own culture evidence" on public.culture_evidence_items;
 create policy "users insert own culture evidence" on public.culture_evidence_items for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "users update own culture evidence" on public.culture_evidence_items;
 create policy "users update own culture evidence" on public.culture_evidence_items for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "users delete own culture evidence" on public.culture_evidence_items;
 create policy "users delete own culture evidence" on public.culture_evidence_items for delete to authenticated using ((select auth.uid()) = user_id);
 
+drop policy if exists "users read own culture attributes" on public.culture_trend_attributes;
 create policy "users read own culture attributes" on public.culture_trend_attributes for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "users insert own culture attributes" on public.culture_trend_attributes;
 create policy "users insert own culture attributes" on public.culture_trend_attributes for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "users update own culture attributes" on public.culture_trend_attributes;
 create policy "users update own culture attributes" on public.culture_trend_attributes for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "users delete own culture attributes" on public.culture_trend_attributes;
 create policy "users delete own culture attributes" on public.culture_trend_attributes for delete to authenticated using ((select auth.uid()) = user_id);
 
+drop policy if exists "users read own culture relations" on public.culture_relations;
 create policy "users read own culture relations" on public.culture_relations for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "users insert own culture relations" on public.culture_relations;
 create policy "users insert own culture relations" on public.culture_relations for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "users update own culture relations" on public.culture_relations;
 create policy "users update own culture relations" on public.culture_relations for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "users delete own culture relations" on public.culture_relations;
 create policy "users delete own culture relations" on public.culture_relations for delete to authenticated using ((select auth.uid()) = user_id);
 
 revoke all on table public.culture_trends from anon, authenticated;

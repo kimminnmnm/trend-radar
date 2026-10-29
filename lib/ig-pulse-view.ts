@@ -32,3 +32,27 @@ export function nextTrackList(current: string[], report: IgPulseReport, limit = 
   const seen = new Set<string>();
   return [...current, ...measured].filter((tag) => { const k = key(tag); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, limit);
 }
+
+/** 보드에 함께 보여줄 범위: 가장 최근 스캔 기준 24시간 안의 스캔들 */
+export const BOARD_WINDOW_HOURS = 24;
+export type DismissedTag = { tag: string; at: string };
+
+/**
+ * 최근 스캔들을 합쳐 태그별 가장 최근 측정을 보여준다. 추적 태그만 다시 재도 앞서 웹 검색으로 찾은 후보가 남는다.
+ * 사용자가 추적에서 뺀 태그는 뺀 시각 이전의 측정을 숨긴다(이후 웹 검색이 다시 찾으면 다시 보인다).
+ */
+export function boardItems(reports: IgPulseReport[], dismissed: DismissedTag[]) {
+  const newest = Math.max(...reports.map((report) => new Date(report.generatedAt).getTime()));
+  const hiddenUntil = new Map(dismissed.map((entry) => [key(entry.tag), new Date(entry.at).getTime()]));
+  const latest = new Map<string, IgPulseItem>();
+  for (const report of reports) {
+    if (newest - new Date(report.generatedAt).getTime() > BOARD_WINDOW_HOURS * 36e5) continue;
+    for (const item of report.items) {
+      const k = key(item.tag);
+      if (!item.found || new Date(item.collectedAt).getTime() <= (hiddenUntil.get(k) ?? -Infinity)) continue;
+      const seen = latest.get(k);
+      if (!seen || new Date(item.collectedAt) > new Date(seen.collectedAt)) latest.set(k, item);
+    }
+  }
+  return [...latest.values()].sort((a, b) => (b.perHour ?? -1) - (a.perHour ?? -1));
+}

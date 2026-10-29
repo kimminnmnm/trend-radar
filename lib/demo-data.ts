@@ -2,14 +2,14 @@ import type { Evidence, Trend } from "./types";
 import { isLiveTrendId, makeLiveTrend, safeDecode } from "./live-trend";
 
 export const trends: Trend[] = [
-  { id: "heisei-retro", name: "헤이세이 레트로", en: "Heisei Retro", category: "Subculture", summary: "2000년대 일본의 디지털 감각을 오늘의 자기표현 방식으로 다시 편집하는 문화 신호", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["향수", "디지털 꾸미기", "수집"], accent: "#000080" },
-  { id: "vocaloid", name: "보컬로이드", en: "Vocaloid", category: "Subculture", summary: "창작자와 팬이 함께 세계관을 확장하는 참여형 디지털 음악 문화", signal: "DEMO ARCHIVE", status: "Verified Signal", tags: ["팬 창작", "가상 정체성", "커뮤니티"], accent: "#008080" },
-  { id: "balletcore", name: "발레코어", en: "Balletcore", category: "Fashion", summary: "무대 의상의 섬세함을 일상복과 웰니스 미학으로 번역한 스타일", signal: "WATCH", status: "Creative Hypothesis", tags: ["리본", "루틴", "우아함"], accent: "#a00050" },
-  { id: "digital-camera", name: "디지털카메라", en: "Compact Digital Camera", category: "Lifestyle", summary: "완벽한 스마트폰 이미지 대신 불완전한 기록감을 선택하는 촬영 행동", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["저해상도", "기록", "물성"], accent: "#0000c0" },
-  { id: "character-custom", name: "캐릭터 커스터마이징", en: "Character Customization", category: "Lifestyle", summary: "소유한 캐릭터를 취향과 정체성의 작은 인터페이스로 바꾸는 행동", signal: "WATCH", status: "Creative Hypothesis", tags: ["개인화", "꾸미기", "자기표현"], accent: "#806000" },
-  { id: "analog-log", name: "아날로그 기록", en: "Analog Logging", category: "Lifestyle", summary: "빠른 디지털 소비에 맞서 손으로 남기는 과정 자체를 향유하는 문화", signal: "DEMO ARCHIVE", status: "Verified Signal", tags: ["느림", "루틴", "아카이빙"], accent: "#804000" },
-  { id: "retro-game", name: "레트로 게임 문화", en: "Retro Gaming", category: "Entertainment", summary: "과거의 제한적 그래픽과 플레이 규칙을 새롭게 경험하는 놀이 문화", signal: "WATCH", status: "Supported Hypothesis", tags: ["픽셀", "재발견", "커뮤니티"], accent: "#007070" },
-  { id: "kidult", name: "키덜트 문화", en: "Kidult Culture", category: "Lifestyle", summary: "성인 소비자가 놀이와 수집을 정체성 관리 방식으로 활용하는 현상", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["수집", "놀이", "정서적 안전"], accent: "#600080" },
+  { id: "heisei-retro", name: "헤이세이 레트로", en: "Heisei Retro", category: "Subculture", summary: "2000년대 일본의 디지털 감각을 오늘의 자기표현 방식으로 다시 편집하는 문화 신호", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["향수", "디지털 꾸미기", "수집"], accent: "#1f50c8" },
+  { id: "vocaloid", name: "보컬로이드", en: "Vocaloid", category: "Subculture", summary: "창작자와 팬이 함께 세계관을 확장하는 참여형 디지털 음악 문화", signal: "DEMO ARCHIVE", status: "Verified Signal", tags: ["팬 창작", "가상 정체성", "커뮤니티"], accent: "#2a8f4a" },
+  { id: "balletcore", name: "발레코어", en: "Balletcore", category: "Fashion", summary: "무대 의상의 섬세함을 일상복과 웰니스 미학으로 번역한 스타일", signal: "WATCH", status: "Creative Hypothesis", tags: ["리본", "루틴", "우아함"], accent: "#c2185b" },
+  { id: "digital-camera", name: "디지털카메라", en: "Compact Digital Camera", category: "Lifestyle", summary: "완벽한 스마트폰 이미지 대신 불완전한 기록감을 선택하는 촬영 행동", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["저해상도", "기록", "물성"], accent: "#2563eb" },
+  { id: "character-custom", name: "캐릭터 커스터마이징", en: "Character Customization", category: "Lifestyle", summary: "소유한 캐릭터를 취향과 정체성의 작은 인터페이스로 바꾸는 행동", signal: "WATCH", status: "Creative Hypothesis", tags: ["개인화", "꾸미기", "자기표현"], accent: "#c27c0e" },
+  { id: "analog-log", name: "아날로그 기록", en: "Analog Logging", category: "Lifestyle", summary: "빠른 디지털 소비에 맞서 손으로 남기는 과정 자체를 향유하는 문화", signal: "DEMO ARCHIVE", status: "Verified Signal", tags: ["느림", "루틴", "아카이빙"], accent: "#a0522d" },
+  { id: "retro-game", name: "레트로 게임 문화", en: "Retro Gaming", category: "Entertainment", summary: "과거의 제한적 그래픽과 플레이 규칙을 새롭게 경험하는 놀이 문화", signal: "WATCH", status: "Supported Hypothesis", tags: ["픽셀", "재발견", "커뮤니티"], accent: "#1b8a7a" },
+  { id: "kidult", name: "키덜트 문화", en: "Kidult Culture", category: "Lifestyle", summary: "성인 소비자가 놀이와 수집을 정체성 관리 방식으로 활용하는 현상", signal: "DEMO SIGNAL", status: "Supported Hypothesis", tags: ["수집", "놀이", "정서적 안전"], accent: "#6b3fa0" },
 ];
 
 export const interestSeries = [

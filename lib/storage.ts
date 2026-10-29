@@ -1,3 +1,4 @@
+import type { DismissedTag } from "./ig-pulse-view";
 import type { IgPulseReport, LiveAnalysisSnapshot, NowTrendReport, SavedCollision, SavedItem, SavedLabReview, WatchCandidate } from "./types";
 import { isLiveTrendId, liveTrendId } from "./live-trend";
 
@@ -74,3 +75,7 @@ export function saveIgPulseReport(report: IgPulseReport) { return write(IG_PULSE
 /** 다음 스캔에서 다시 측정할 해시태그. 이미 조회한 태그라 주간 한도를 쓰지 않는다. */
 export function getIgTrackedTags(): string[] { return read<string>(IG_TRACK_KEY); }
 export function saveIgTrackedTags(tags: string[]) { return write(IG_TRACK_KEY, [...new Set(tags)].slice(0, 10)); }
+const IG_DISMISSED_KEY = "trend-radar-ig-dismissed";
+/** 추적에서 뺀 태그와 뺀 시각. 그 이전 측정은 보드에서 숨긴다. */
+export function getIgDismissed(): DismissedTag[] { return read<DismissedTag>(IG_DISMISSED_KEY); }
+export function saveIgDismissed(items: DismissedTag[]) { return write(IG_DISMISSED_KEY, items.slice(0, 50)); }

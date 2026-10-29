@@ -1,57 +1,55 @@
-# Design System — Windows 3.1
+# Design System — Retro OS × Frutiger Aero
 
-TREND RADAR는 "1990년대 초 데스크톱 GUI에서 문화 신호를 관측하는 프로그램" 콘셉트를 씁니다. 흰 창, 회색 프레임, 남색 타이틀바, 16색 VGA 팔레트가 기본입니다. 모든 토큰은 `app/globals.css`의 `:root`에 있습니다. 특정 제품의 로고·상표는 쓰지 않습니다.
+TREND RADAR는 **레트로 데스크톱 OS**(창 · 타이틀바 · 탐색기 사이드바 · 시작 버튼 작업 표시줄)에 **Frutiger Aero**(맑은 하늘 · 초록 언덕 · 물방울 · 반투명 유리 · 광택 컨트롤)를 섞은 스타일입니다. 시원하고 밝은 인상을 주되, **가독성이 우선**입니다. 토큰은 모두 `app/globals.css`의 `:root`에 있습니다.
+
+특정 제품의 로고 · 상표 · 배경 사진은 쓰지 않습니다. 하늘, 언덕, 물방울은 CSS 그라데이션으로 직접 그립니다.
+
+## 가독성 원칙
+
+- 본문 글꼴은 **Pretendard 14px**(줄간격 1.6)입니다. 픽셀 폰트는 쓰지 않습니다.
+- 보조 텍스트는 최소 **11px**입니다. 배지, 라벨, 표는 12px를 권장합니다.
+- 창과 패널 바탕은 **거의 불투명한 흰 유리**(`rgba(255,255,255,.9)` + blur)입니다. 배경 하늘이 비쳐도 글자 대비가 유지됩니다.
+- 하늘 배경 위에 글자를 바로 놓지 않습니다. 반드시 반투명 흰 바탕을 깝니다(`.provenance`, `.section-heading p`, `.map-legend` 참고).
 
 ## Tokens
 
 | 토큰 | 값 | 용도 |
 |---|---|---|
-| `--bg` | `#e3e3e3` | 데스크톱 배경(4px 디더 패턴) |
-| `--surface` / `--well` | `#ffffff` | 창 본문, 입력칸 |
-| `--raised` / `--frame` | `#c0c0c0` | 버튼, 칩, 창 프레임 |
-| `--title` / `--select` | `#000080` | 타이틀바, 섹션 헤더 바, 선택 항목(흰 글자) |
-| `--accent` / `--mint` | `#008080` | 상승, LIVE, 데이터 출처 |
-| `--blue` | `#0000a8` | 링크, 근거 ID |
-| `--pink` | `#a00000` | 하락, 오류 |
-| `--yellow` | `#806000` | 경고, DEMO, Creative Hypothesis |
-| `--text` / `--muted` | `#000000` / `#505050` | 본문 / 보조 |
-| `--bevel-hi` / `--bevel-lo` / `--bevel-dk` | `#ffffff` / `#808080` / `#000000` | 베벨 밝은 면 / 어두운 면 / 외곽선 |
-
-여러 항목을 색으로 구분할 때(DNA 6차원, 차트 선, 그래프 엣지, 데모 트렌드)는 VGA 계열 `#000080 #008080 #a00000 #806000 #800080 #a00050 #0000c0 #804000`에서 고릅니다.
+| 배경(`body::before`) | 하늘 `#1f8cf2 → #e9f8ff` + 햇빛 번짐 + 초록 언덕 | 고정 데스크톱 |
+| 배경(`body::after`) | 물방울 5개 (radial-gradient) | 장식 |
+| `--surface` | `rgba(255,255,255,.9)` | 창 · 패널 (유리, `--glass` blur) |
+| `--title-grad` | 광택 + `#43a8ff → #0b5fc9` | 타이틀바 |
+| `--bar-grad` | 광택 + `#3fb0ff → #0e67cf` | 섹션 헤더 바, 메뉴 그룹 헤더, 작업 표시줄 |
+| `--lime-grad` | 광택 + `#a6e84d → #3d9f16` | 주요 버튼, LIVE 배지, 시작 버튼, 진행률 |
+| `--gloss` | 위 50% 흰 반사광 | 광택 레이어 (다른 그라데이션 위에 겹침) |
+| `--title` / `--blue` | `#0d5bb8` / `#1366c9` | 제목, 링크, 근거 ID |
+| `--accent` | `#2b9a1c` | 상승, 강조 |
+| `--pink` / `--yellow` | `#d33a3a` / `#d07a00` | 하락 · 오류 / 경고 · DEMO |
+| `--text` / `--muted` | `#14233a` / `#4f6079` | 본문 / 보조 |
 
 ## Typography
 
-- **Display**: `Pixelify Sans` 700 (영문 제목·점수). 한글은 Galmuri11로 대체됩니다.
-- **Body**: `Galmuri11` (13px). **Small**: `Galmuri9` (라벨·배지·표·시간).
-- 타이틀바 글자는 본문 폰트 굵게, 가운데 정렬입니다.
+- **Display**: `Trebuchet MS` 700. 한글은 Pretendard로 대체됩니다. 페이지 제목, 타이틀바, 점수에 씁니다.
+- **Body**: `Pretendard`(대체 글꼴: Segoe UI, Tahoma, 맑은 고딕).
+- 제목 강조(`h1 em`)는 라임 그린 이탤릭입니다.
 
-## Window chrome
+## Components
 
-- 창 = 1px 검은 선 + 3px 회색 프레임 + 1px 검은 선(`--win-frame`). `.panel`과 `.window`가 같은 프레임을 씁니다.
-- 타이틀바: 왼쪽 컨트롤 박스(회색 사각형 + 흰 막대), 가운데 제목, 오른쪽 `WinButtons`(▼ ▲). 버튼은 장식이며 `aria-hidden`입니다.
-- `PageHeader`는 창, `SectionHeading`은 남색 헤더 바입니다.
-- 사이드바는 `Program Manager` 창입니다. 메뉴 그룹 제목은 남색 그룹 바, 선택 항목은 남색 배경 + 흰 글자, 하단은 오목한 칸으로 된 상태 표시줄입니다.
-- 트렌드 카드는 상단에 트렌드 색 타이틀 띠와 컨트롤 박스를 가집니다.
-
-## Shape & depth
-
-- 모든 요소는 `border-radius: 0`, 그림자(번짐·드롭)는 쓰지 않습니다.
-- 버튼: 회색 + 1px 검은 외곽선 + 볼록 베벨. 기본 행동 버튼(`.primary`)은 외곽선 2px + 굵은 글자. 누르면 베벨이 사라지고 글자가 1px 이동합니다.
-- 비활성: 회색 글자 + 흰 각인 그림자.
-- 입력칸: 흰 바탕 + 검은 외곽선 + 안쪽 회색 선. 포커스는 점선 윤곽입니다.
-- 진행률은 `.progress-seg`, 스크롤바는 디더 트랙 + 볼록 손잡이입니다.
-- 차트는 계단형(`stepAfter`), 그래프 엣지는 직각(`step`), 애니메이션은 `steps()`만 씁니다. `prefers-reduced-motion`이면 끕니다.
+- **창**: 둥근 12px 유리 창 + 광택 파란 타이틀바 + `WinButtons`(▁ □ ✕, 닫기는 빨강). 장식이므로 `aria-hidden`입니다.
+- **사이드바**: 유리 탐색기 창입니다. 메뉴 그룹은 광택 헤더 + 흰 유리 목록이고, 선택 항목은 광택 파랑입니다. 하단은 라임 시작 버튼이 있는 작업 표시줄입니다.
+- **버튼**: 광택 알약(`border-radius:999px`)입니다. 기본은 흰→하늘색 유리, 주요 행동(`.primary`)은 라임 그린입니다.
+- **배지 · 상태 · 태그 · 근거 ID**: 광택 알약입니다.
+- **입력칸**: 흰 바탕, 둥근 8px. 포커스하면 하늘색 링이 생깁니다.
+- **해시태그 추적 줄**: 칩, 입력칸, 추가 버튼을 **모두 높이 32px · 글자 13px**로 맞춥니다.
+- **차트**: 부드러운 곡선(`monotone`), 그래프 엣지는 둥근 꺾임(`smoothstep`)입니다.
+- `prefers-reduced-motion`이면 애니메이션과 전환을 끕니다.
 
 ## Data status
 
-`DataBadge`: `LIVE ANALYSIS`(청록 바탕 흰 글자, 깜빡임) · `CACHED`/`SAVED ANALYSIS`(남색) · `DEMO`(올리브) · `ERROR`(적색 바탕 흰 글자) · `NOT ANALYZED`/`NOT AVAILABLE`(회색). API가 연결돼 있다는 이유만으로 LIVE를 표시하지 않습니다.
+`DataBadge`: `LIVE ANALYSIS`(라임 광택, 깜빡임) · `CACHED`/`SAVED ANALYSIS`(파랑) · `DEMO`(주황) · `ERROR`(빨강 광택) · `NOT ANALYZED`/`NOT AVAILABLE`(회색). API가 연결돼 있다는 이유만으로 LIVE를 표시하지 않습니다.
 
-`StatusPill`: Verified Signal(청록) · Supported Hypothesis(남색) · Creative Hypothesis(올리브) · Insufficient Evidence(회색).
-
-## Signature component — HISCORE.EXE
-
-Overview의 2030 스코어보드는 `HISCORE.EXE — 2030 NOW` 창입니다. 빈 상태는 `INSERT COIN` / `PRESS START`, 1위는 오목한 점수창(`#01`), 나머지는 계단형 스파크라인과 순위표입니다. 순위 숫자 뒤에는 항상 방법론(`HOW THIS SCORE WORKS`)을 둡니다.
+`StatusPill`: Verified Signal(초록) · Supported Hypothesis(파랑) · Creative Hypothesis(주황) · Insufficient Evidence(회색).
 
 ## 컴포넌트 색상 메모
 
-컴포넌트 내부 styled-jsx의 하드코딩 색은 스크립트로 일괄 변환했습니다(따뜻한 회색 → 무채색, 청록 → 남색, 명도 유지). 새 스타일에는 하드코딩 대신 위 토큰을 쓰세요.
+컴포넌트 내부 styled-jsx의 하드코딩 색과 글자 크기는 스크립트로 일괄 변환했습니다(7~9px → 11px, VGA 색 → 파랑·초록 계열, 무채색 회색 → 하늘빛 흰색). 새 스타일에는 하드코딩 대신 위 토큰을 쓰세요.

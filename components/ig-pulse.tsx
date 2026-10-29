@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, LoaderCircle, Play, Plus, RotateCcw, X } from "lucide-react";
-import { getIgPulseReports, getIgTrackedTags, saveIgPulseReport, saveIgTrackedTags } from "@/lib/storage";
+import { getIgDismissed, getIgPulseReports, getIgTrackedTags, saveIgDismissed, saveIgPulseReport, saveIgTrackedTags } from "@/lib/storage";
 import { useStored } from "@/lib/use-stored";
 import { liveTrendId, trendPath } from "@/lib/live-trend";
-import { comparePulse, MIN_COMPARE_GAP_HOURS, nextTrackList, type PulseComparison } from "@/lib/ig-pulse-view";
+import { boardItems, BOARD_WINDOW_HOURS, comparePulse, MIN_COMPARE_GAP_HOURS, nextTrackList, type PulseComparison } from "@/lib/ig-pulse-view";
 import type { DataStatus, IgPulseItem, IgPulseReport } from "@/lib/types";
 import { DataBadge, WinButtons, formatDateTime } from "./ui";
 
 const domain = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
 const originLabel: Record<IgPulseItem["origin"], string> = { tracked: "추적", manual: "직접", discovered: "발견" };
 const rate = (value: number | null) => value === null ? "—" : value >= 10 ? String(Math.round(value)) : value.toFixed(1);
+/** 이전 스캔에서 가져온 행이 최신 스캔보다 몇 시간 전에 측정됐는지 */
+const ageHours = (item: IgPulseItem, latest: IgPulseReport) => Math.floor((new Date(latest.generatedAt).getTime() - new Date(item.collectedAt).getTime()) / 36e5);
 const cleanTag = (value: string) => value.replace(/^#/, "").replace(/\s+/g, "");
 const validTag = (value: string) => value.length > 0 && value.length <= 60 && /^[\p{L}\p{N}_]+$/u.test(value);
 
@@ -34,24 +36,27 @@ function VolumeCell({ item }: { item: IgPulseItem }) {
 export function IgPulse() {
   const reports = useStored(getIgPulseReports);
   const tracked = useStored(getIgTrackedTags) ?? [];
+  const dismissedStored = useStored(getIgDismissed);
+  const dismissed = useMemo(() => dismissedStored ?? [], [dismissedStored]);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
   const [fresh, setFresh] = useState<{ report: IgPulseReport; cached: boolean } | null>(null);
   const [discover, setDiscover] = useState(true);
   const [draft, setDraft] = useState("");
-  const [sort, setSort] = useState<"auto" | "rate" | "change">("auto");
   const report = fresh?.report ?? reports?.[0] ?? null;
-  const history = useMemo(() => (reports ?? []).filter((saved) => saved.generatedAt !== report?.generatedAt), [reports, report]);
+  // 방금 받은 결과가 저장소 갱신보다 먼저 렌더될 수 있어 함께 합친다.
+  const all = useMemo(() => fresh && !(reports ?? []).some((saved) => saved.generatedAt === fresh.report.generatedAt) ? [fresh.report, ...(reports ?? [])] : reports ?? [], [fresh, reports]);
   const measured = useMemo(() => new Set((reports ?? []).flatMap((saved) => saved.items.filter((item) => item.found).map((item) => item.tag.toLocaleLowerCase()))), [reports]);
-  const rows = useMemo(() => {
-    if (!report) return [];
-    const withChange = report.items.filter((item) => item.found).map((item) => ({ item, comparison: comparePulse(item, history) }));
-    const hasChange = withChange.some((row) => row.comparison.kind === "change");
-    const mode = sort === "auto" ? (hasChange ? "change" : "rate") : sort;
-    const changeOf = (row: typeof withChange[number]) => row.comparison.kind === "change" ? row.comparison.changePct : -Infinity;
-    return mode === "change" ? [...withChange].sort((a, b) => changeOf(b) - changeOf(a)) : withChange;
-  }, [report, history, sort]);
-  const activeSort = sort === "auto" ? (rows.some((row) => row.comparison.kind === "change") ? "change" : "rate") : sort;
+  const rows = useMemo(() => all.length ? boardItems(all, dismissed).map((item) => ({ item, comparison: comparePulse(item, all) })) : [], [all, dismissed]);
+  // 오르는 순: 전일 대비 비교가 가능한 태그만, 변화율 높은 순
+  const rising = useMemo(() => rows.flatMap((row) => row.comparison.kind === "change" ? [{ ...row, change: row.comparison }] : []).sort((a, b) => b.change.changePct - a.change.changePct), [rows]);
+  // 아직 기준선뿐인 태그가 처음 비교 가능해지는 시각(각 태그 첫 측정 + 20시간)
+  const nextCompareAt = useMemo(() => {
+    const firstSeen = new Map<string, number>();
+    all.forEach((saved) => saved.items.forEach((item) => { const k = item.tag.toLocaleLowerCase(); const t = new Date(item.collectedAt).getTime(); if (t < (firstSeen.get(k) ?? Infinity)) firstSeen.set(k, t); }));
+    const times = rows.filter((row) => row.comparison.kind === "baseline").map((row) => (firstSeen.get(row.item.tag.toLocaleLowerCase()) ?? Infinity) + MIN_COMPARE_GAP_HOURS * 36e5).filter(Number.isFinite);
+    return times.length ? new Date(Math.min(...times)) : null;
+  }, [all, rows]);
   const notFound = report?.items.filter((item) => !item.found) ?? [];
   const status: DataStatus = state === "loading" ? "LOADING" : state === "error" && !report ? "ERROR" : fresh ? (fresh.cached ? "CACHED" : "LIVE") : report ? "SAVED" : "NOT ANALYZED";
   const quota = report?.quota;
@@ -61,7 +66,14 @@ export function IgPulse() {
     const tag = cleanTag(draft);
     if (!validTag(tag)) { setError("해시태그는 # 없이 문자, 숫자, 밑줄만 입력하세요."); setState("error"); return; }
     saveIgTrackedTags([tag, ...tracked]);
+    saveIgDismissed(dismissed.filter((entry) => entry.tag.toLocaleLowerCase() !== tag.toLocaleLowerCase()));
     setDraft(""); setError(""); setState("idle");
+  };
+
+  // 추적에서 빼면 지금까지의 측정도 보드에서 숨긴다.
+  const removeTag = (tag: string) => {
+    saveIgTrackedTags(tracked.filter((item) => item !== tag));
+    saveIgDismissed([{ tag, at: new Date().toISOString() }, ...dismissed.filter((entry) => entry.tag.toLocaleLowerCase() !== tag.toLocaleLowerCase())]);
   };
 
   const scan = async () => {
@@ -95,7 +107,7 @@ export function IgPulse() {
 
     <div className="track">
       <span className="track-label">추적 중 {tracked.length}/10</span>
-      {tracked.map((tag) => <span key={tag} className={`chip ${measured.has(tag.toLocaleLowerCase()) ? "" : "pending"}`} title={measured.has(tag.toLocaleLowerCase()) ? "재측정은 주간 한도를 쓰지 않습니다" : "다음 스캔에서 처음 조회합니다(주간 한도 1개 사용)"}>#{tag}<button type="button" aria-label={`${tag} 추적 해제`} onClick={() => saveIgTrackedTags(tracked.filter((item) => item !== tag))}><X/></button></span>)}
+      {tracked.map((tag) => <span key={tag} className={`chip ${measured.has(tag.toLocaleLowerCase()) ? "" : "pending"}`} title={measured.has(tag.toLocaleLowerCase()) ? "재측정은 주간 한도를 쓰지 않습니다" : "다음 스캔에서 처음 조회합니다(주간 한도 1개 사용)"}>#{tag}<button type="button" aria-label={`${tag} 추적 해제`} onClick={() => removeTag(tag)}><X/></button></span>)}
       <form onSubmit={addTag} className="add"><input aria-label="추적할 해시태그" placeholder="#치이카와" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={61}/><button className="button" type="submit" disabled={!draft.trim() || tracked.length >= 10}><Plus/>추가</button></form>
       {quota && <span className="quota" title={`Meta 7일 고유 해시태그 한도. ${quota.reserve}개는 수동 검색용 예비`}>주간 한도 <span className="progress-seg" aria-hidden><i style={{ width: `${Math.min(100, (quota.usedAfter / quota.limit) * 100)}%` }}/></span>{quota.usedAfter}/{quota.limit}</span>}
     </div>
@@ -105,21 +117,34 @@ export function IgPulse() {
     {!report && state !== "loading" && <div className="pulse-empty"><p className="insert">NO SIGNAL</p><p>아직 측정한 해시태그가 없습니다. START를 누르면 웹에서 화제인 대상을 찾아 실제 Instagram 게시 속도를 잽니다. 직접 추적할 태그를 먼저 추가해도 됩니다.</p></div>}
 
     {report && <>
-      <div className="board-tools"><div className="chip-select" role="group" aria-label="정렬"><button type="button" aria-pressed={activeSort === "change"} onClick={() => setSort("change")}>전일 대비 순</button><button type="button" aria-pressed={activeSort === "rate"} onClick={() => setSort("rate")}>활동량 순</button></div><span>{activeSort === "change" ? `${MIN_COMPARE_GAP_HOURS}시간 이상 간격의 같은 방식 측정끼리 비교` : "시간당 게시물 수 · 첫 측정은 '기준선'"}</span></div>
-      {rows.length ? <ol className="board">{rows.map(({ item, comparison }, index) => <li key={item.tag}>
-        <span className="rk">{String(index + 1).padStart(2, "0")}</span>
-        <div className="kw"><b>#{item.tag}</b><small>{originLabel[item.origin]}{item.category ? ` · ${item.category}` : ""}{item.keyword && item.keyword.replace(/\s+/g, "") !== item.tag ? ` · ${item.keyword}` : ""}</small></div>
-        <span className="rate" title={item.rateBasis === "24h-full" ? "24시간 평균" : `최근 ${item.spanHours ?? "?"}시간 표본 기준`}><b>{rate(item.perHour)}</b>/h{item.rateBasis === "recent-sample" && <i>*</i>}</span>
-        <VolumeCell item={item}/>
-        <ChangeCell comparison={comparison}/>
-        <span className="links">{item.samplePosts[0] && <a href={item.samplePosts[0].permalink} target="_blank" rel="noreferrer" title="가장 최근 게시물">최근 게시물<ExternalLink/></a>}{item.sources.slice(0, 1).map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" title={item.summary}>{domain(source.url)}</a>)}</span>
-        <Link className="go" href={trendPath(liveTrendId(item.keyword ?? item.tag), "why")} aria-label={`${item.keyword ?? item.tag} WHY 분석`}>▶</Link>
-      </li>)}</ol> : <p className="dropped">측정된 해시태그가 없습니다.</p>}
+      <div className="boards">
+        <section className="col" aria-label="전일 대비 오르는 해시태그">
+          <header className="col-head"><b>▲ 오르는 순</b><span>전일 대비 · {MIN_COMPARE_GAP_HOURS}시간 이상 간격의 같은 방식 측정끼리 비교</span></header>
+          {rising.length ? <ol className="board rising">{rising.map(({ item, comparison, change }, index) => <li key={item.tag}>
+            <span className="rk">{String(index + 1).padStart(2, "0")}</span>
+            <div className="kw"><b>#{item.tag}</b><small>{rate(change.previous.perHour)}/h → {rate(item.perHour)}/h · {Math.round((new Date(item.collectedAt).getTime() - new Date(change.previous.collectedAt).getTime()) / 36e5)}시간 간격</small></div>
+            <ChangeCell comparison={comparison}/>
+            <Link className="go" href={trendPath(liveTrendId(item.keyword ?? item.tag), "why")} aria-label={`${item.keyword ?? item.tag} WHY 분석`}>▶</Link>
+          </li>)}</ol> : <div className="col-empty" data-testid="rising-empty"><p>아직 비교할 측정이 없습니다.</p><p>같은 태그를 {MIN_COMPARE_GAP_HOURS}시간 이상 지나 다시 재면 여기에 오르는 순서대로 표시됩니다.{nextCompareAt && <> <b>{formatDateTime(nextCompareAt.toISOString())} 이후 RESCAN하면 비교됩니다.</b></>}</p></div>}
+          {rising.length > 0 && rows.length > rising.length && <p className="col-note">기준선만 있는 태그 {rows.length - rising.length}개는 다음 측정부터 비교됩니다.</p>}
+        </section>
+        <section className="col" aria-label="많이 올라오는 해시태그">
+          <header className="col-head"><b>● 많이 올라오는 순</b><span>시간당 게시물 수 · 최근 {BOARD_WINDOW_HOURS}시간 스캔 합산</span></header>
+          {rows.length ? <ol className="board activity">{rows.map(({ item }, index) => <li key={item.tag}>
+            <span className="rk">{String(index + 1).padStart(2, "0")}</span>
+            <div className="kw"><b>#{item.tag}</b><small>{originLabel[item.origin]}{item.category ? ` · ${item.category}` : ""}{item.keyword && item.keyword.replace(/\s+/g, "") !== item.tag ? ` · ${item.keyword}` : ""}{report && ageHours(item, report) >= 1 && <em> · {ageHours(item, report)}시간 전 측정</em>}</small>
+              <span className="links">{item.samplePosts[0] && <a href={item.samplePosts[0].permalink} target="_blank" rel="noreferrer" title="가장 최근 게시물">최근 게시물<ExternalLink/></a>}{item.sources.slice(0, 1).map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" title={item.summary}>{domain(source.url)}</a>)}</span></div>
+            <span className="rate" title={item.rateBasis === "24h-full" ? "24시간 평균" : `최근 ${item.spanHours ?? "?"}시간 표본 기준`}><b>{rate(item.perHour)}</b>/h{item.rateBasis === "recent-sample" && <i>*</i>}</span>
+            <VolumeCell item={item}/>
+            <Link className="go" href={trendPath(liveTrendId(item.keyword ?? item.tag), "why")} aria-label={`${item.keyword ?? item.tag} WHY 분석`}>▶</Link>
+          </li>)}</ol> : <p className="col-empty">측정된 해시태그가 없습니다.</p>}
+        </section>
+      </div>
       {notFound.length > 0 && <p className="dropped">Instagram에 해시태그가 없음: {notFound.map((item) => `#${item.tag}`).join(", ")}</p>}
       {report.deferred.length > 0 && <p className="dropped">보류(다음 스캔): {report.deferred.map((item) => `#${item.tag}`).join(", ")} — {report.deferred[0].reason}</p>}
       {report.failed.length > 0 && <p className="dropped">측정 실패: {report.failed.map((item) => `#${item.tag}`).join(", ")}</p>}
       <details className="method"><summary>HOW THIS IS MEASURED · 측정 {report.items.length}개 · 웹 출처 {report.searchedSources}개 · 출처 미검증 제외 {report.droppedUnverified}개</summary><ul>{report.methodology.map((line) => <li key={line}>{line}</li>)}<li>* 표시: 게시물이 많아 최근 일부만 받은 태그의 표본 속도 · {report.model ?? "웹 검색 없음"} · {formatDateTime(report.generatedAt)}</li></ul></details>
     </>}
-    <style jsx>{`.pulse{padding:0;overflow:hidden;margin-bottom:28px}.pulse-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:22px 24px;border-bottom:1px solid var(--line)}.pulse-head small{font-size:10px;color:var(--pink);letter-spacing:.1em}.pulse-head h2{font-family:var(--font-display);font-size:clamp(20px,2.6vw,30px);margin:10px 0;color:var(--title)}.pulse-head p{font-size:12px;color:var(--muted);margin:0;max-width:640px;line-height:1.7}.pulse-head p b{color:var(--text)}.pulse-actions{display:grid;justify-items:end;gap:8px;flex:0 0 auto}.pulse-actions .button :global(svg){width:14px}.toggle{display:flex;gap:6px;align-items:center;font-size:11px}.cost{font-size:9px;color:var(--muted)}.track{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line);background:#f6f6f6}.track-label{font-size:10px;color:var(--muted);margin-right:4px}.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 2px 2px 7px;border:1px solid #000;background:#fff}.chip.pending{border-style:dashed;color:var(--muted)}.chip button{border:0;background:none;padding:0 2px;cursor:pointer;display:grid}.chip button :global(svg){width:11px;height:11px}.add{display:flex;gap:4px;margin-left:auto}.add input{width:130px;padding:4px 7px;font-size:12px;box-shadow:inset 1px 1px 0 var(--bevel-lo)}.add .button{min-height:26px;padding:0 9px;font-size:11px}.add .button :global(svg){width:12px}.quota{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);width:100%;justify-content:flex-end}.quota .progress-seg{display:inline-block;width:120px;height:12px;padding:1px}.pulse-error{display:flex;gap:10px;align-items:center;margin:14px 24px 0;padding:10px 12px;border:1px solid #000;background:#fff4f4;color:var(--pink);font-size:11px}.pulse-error :global(svg){width:16px;flex:0 0 auto}.pulse-error p{margin:0}.pulse-empty{min-height:150px;display:grid;place-content:center;justify-items:center;text-align:center;gap:6px;padding:26px}.pulse-empty p{font-size:11px;color:var(--muted);max-width:540px;line-height:1.7;margin:0}.insert{font-family:var(--font-display);font-size:16px!important;color:var(--title)!important;animation:blink 1s steps(1) infinite}.board-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 24px;flex-wrap:wrap}.board-tools>span{font-size:9px;color:var(--muted)}.board{list-style:none;margin:0;padding:0 24px 10px}.board li{display:grid;grid-template-columns:34px minmax(0,1.4fr) 84px 92px 84px minmax(0,1fr) 28px;gap:12px;align-items:center;padding:10px 0;border-top:1px dashed var(--border)}.board li:nth-child(-n+3) .rk{color:var(--pink)}.rk{font-family:var(--font-display);font-size:13px;color:var(--muted)}.kw{min-width:0}.kw b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kw small{font-size:9px;color:var(--muted)}.rate{font-size:10px;color:var(--muted);text-align:right}.rate b{font-family:var(--font-display);font-size:18px;color:var(--title);margin-right:2px}.rate i{color:var(--pink);font-style:normal}.board :global(.vol){font-size:10px;text-align:right}.board :global(.chg){font-size:12px;text-align:right}.board :global(.chg.base){font-size:10px;color:var(--muted)}.board :global(.chg.up){color:var(--accent)}.board :global(.chg.down){color:var(--pink)}.board :global(.chg.flat){color:var(--blue)}.links{display:flex;gap:8px;flex-wrap:wrap;min-width:0}.links a{display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--blue);text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}.links a :global(svg){width:9px}.go{font-size:12px;color:#000;text-align:center;border:1px solid #000;background:var(--raised);padding:3px 0;box-shadow:inset -1px -1px 0 var(--bevel-lo),inset 1px 1px 0 #fff}.go:hover{background:var(--select);color:#fff}.dropped{font-size:10px;color:var(--muted);padding:0 24px;margin:4px 0 10px}.method{margin:4px 24px 22px;border:1px dashed var(--border);padding:10px 12px}.method summary{font-size:10px;color:var(--title);cursor:pointer}.method ul{margin:10px 0 0;padding-left:16px;font-size:10px;color:#404040;line-height:1.8}@media(max-width:900px){.board li{grid-template-columns:28px minmax(0,1fr) 70px 72px 24px}.board li :global(.vol),.board li .links{display:none}}@media(max-width:600px){.pulse-head{flex-direction:column;align-items:stretch}.pulse-actions{justify-items:start}.add{margin-left:0;width:100%}.add input{flex:1}.quota{justify-content:flex-start}}`}</style>
+    <style jsx>{`.pulse{padding:0;overflow:hidden;margin-bottom:28px}.pulse-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:22px 24px;border-bottom:1px solid var(--line)}.pulse-head small{font-size:12px;color:var(--pink);letter-spacing:.1em}.pulse-head h2{font-family:var(--font-display);font-size:clamp(20px,2.6vw,30px);margin:10px 0;color:var(--title)}.pulse-head p{font-size:13px;color:var(--muted);margin:0;max-width:640px;line-height:1.7}.pulse-head p b{color:var(--text)}.pulse-actions{display:grid;justify-items:end;gap:8px;flex:0 0 auto}.pulse-actions .button :global(svg){width:14px}.toggle{display:flex;gap:6px;align-items:center;font-size:12px}.cost{font-size:11px;color:var(--muted)}.track{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--line);background:rgba(226,243,255,.55)}.track-label{font-size:13px;font-weight:700;color:var(--title);margin-right:4px}.chip{display:inline-flex;align-items:center;gap:6px;height:32px;font-size:13px;font-weight:600;padding:0 6px 0 13px;border:1px solid #8fc4ee;border-radius:999px;background:linear-gradient(180deg,#fff 0%,#e2f2ff 100%);box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(20,90,170,.15)}.chip.pending{border-style:dashed;color:var(--muted);background:#fff}.chip button{border:0;background:rgba(20,90,170,.1);width:20px;height:20px;border-radius:50%;padding:0;cursor:pointer;display:grid;place-items:center;color:#1d5fae}.chip button:hover{background:#e0533a;color:#fff}.chip button :global(svg){width:12px;height:12px}.add{display:flex;gap:6px;margin-left:auto;align-items:center}.add input{width:170px;height:32px;padding:0 14px;font-size:13px;border-radius:999px}.add .button{height:32px;min-height:32px;padding:0 15px;font-size:13px}.add .button :global(svg){width:14px}.quota{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);width:100%;justify-content:flex-end}.quota .progress-seg{display:inline-block;width:140px;height:14px;padding:2px}.pulse-error{display:flex;gap:10px;align-items:center;margin:14px 24px 0;padding:10px 12px;border:1px solid #7f9db9;background:#fff4f4;color:var(--pink);font-size:12px}.pulse-error :global(svg){width:16px;flex:0 0 auto}.pulse-error p{margin:0}.pulse-empty{min-height:150px;display:grid;place-content:center;justify-items:center;text-align:center;gap:6px;padding:26px}.pulse-empty p{font-size:12px;color:var(--muted);max-width:540px;line-height:1.7;margin:0}.insert{font-family:var(--font-display);font-size:16px!important;color:var(--title)!important;animation:blink 1s steps(1) infinite}.boards{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}.col{min-width:0;padding:0 0 8px}.col+.col{border-left:1px solid var(--line)}.col-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:14px 20px 8px}.col-head b{font-size:13px;color:var(--title)}.col-head span{font-size:11px;color:var(--muted)}.col-empty{margin:6px 20px 12px;padding:16px;border:1px dashed var(--border);background:#fafafa;font-size:12px;color:var(--muted);line-height:1.7}.col-empty p{margin:0}.col-empty b{color:var(--text);font-weight:400}.col-note{font-size:11px;color:var(--muted);padding:0 20px;margin:6px 0 0}.board{list-style:none;margin:0;padding:0 20px}.board li{display:grid;gap:10px;align-items:center;padding:9px 0;border-top:1px dashed var(--border)}.rising li{grid-template-columns:28px minmax(0,1fr) 84px 26px}.activity li{grid-template-columns:28px minmax(0,1fr) 66px 78px 26px}.rising :global(.chg){font-size:15px}.board li:nth-child(-n+3) .rk{color:var(--pink)}.rk{font-family:var(--font-display);font-size:13px;color:var(--muted)}.kw{min-width:0}.kw b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kw small{font-size:11px;color:var(--muted)}.kw small em{font-style:normal;color:var(--yellow)}.rate{font-size:12px;color:var(--muted);text-align:right}.rate b{font-family:var(--font-display);font-size:18px;color:var(--title);margin-right:2px}.rate i{color:var(--pink);font-style:normal}.board :global(.vol){font-size:12px;text-align:right}.board :global(.chg){font-size:13px;text-align:right}.board :global(.chg.base){font-size:12px;color:var(--muted)}.board :global(.chg.up){color:var(--accent)}.board :global(.chg.down){color:var(--pink)}.board :global(.chg.flat){color:var(--blue)}.links{display:flex;gap:8px;flex-wrap:wrap;min-width:0;margin-top:3px}.links a{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--blue);text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}.links a :global(svg){width:9px}.go{font-size:13px;color:#000;text-align:center;border:1px solid #7f9db9;background:var(--raised);padding:3px 0;box-shadow:inset -1px -1px 0 var(--bevel-lo),inset 1px 1px 0 #fff}.go:hover{background:var(--select);color:#fff}.dropped{font-size:12px;color:var(--muted);padding:0 24px;margin:4px 0 10px}.method{margin:4px 24px 22px;border:1px dashed var(--border);padding:10px 12px}.method summary{font-size:12px;color:var(--title);cursor:pointer}.method ul{margin:10px 0 0;padding-left:16px;font-size:12px;color:#404040;line-height:1.8}@media(max-width:1100px){.boards{grid-template-columns:1fr}.col+.col{border-left:0;border-top:1px solid var(--line)}}@media(max-width:600px){.activity li{grid-template-columns:24px minmax(0,1fr) 60px 24px}.activity li :global(.vol){display:none}.rising li{grid-template-columns:24px minmax(0,1fr) 70px 24px}.board{padding:0 14px}.col-head{padding:12px 14px 6px}.col-empty{margin:6px 14px 10px}}@media(max-width:600px){.pulse-head{flex-direction:column;align-items:stretch}.pulse-actions{justify-items:start}.add{margin-left:0;width:100%}.add input{flex:1}.quota{justify-content:flex-start}}`}</style>
   </section>;
 }

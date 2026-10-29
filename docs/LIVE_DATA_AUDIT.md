@@ -42,7 +42,7 @@ Codex 인계 시점의 코드를 진단한 결과와 이번 작업 후 상태를
 
 ## 4. 남은 문제 (우선순위 순)
 
-1. **Supabase 마이그레이션 적용 필요** — `supabase/migrations/202610280001`, `0002`, `0003`을 Supabase SQL Editor에서 순서대로 실행해야 클라우드 저장이 동작합니다. 적용 전까지는 브라우저(localStorage)에만 저장됩니다.
+1. ~~Supabase 마이그레이션 적용 필요~~ — 2026-10-29 `0001`~`0003` 적용 완료(실측: 비로그인 요청이 PGRST205 대신 42501 권한 거절로 바뀜). 권한 강화 후에는 anon 요청이 항상 거절되므로, 연동 상태 API는 42501을 "테이블 있음"으로 판정하도록 고쳤습니다.
 2. Collision·Lab 결과는 아직 브라우저에만 저장됩니다(`saved_items` 확장 컬럼은 0003에 준비됨).
 3. 뉴스·블로그 등 텍스트 근거 수집기가 없어 기원(origin) 분석은 대부분 "검증 필요"로 남습니다. NAVER 검색 API를 쓰려면 openapi.naver.com용 별도 키가 필요합니다.
 4. Instagram 근거는 캡션 텍스트뿐이라 Aesthetic 차원은 대부분 Insufficient Evidence입니다.

@@ -10,7 +10,11 @@ async function supabaseTablesReady(): Promise<boolean | null> {
   if (!url || !key) return null;
   try {
     const response = await fetch(`${new URL(url).origin}/rest/v1/trend_analyses?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store", signal: AbortSignal.timeout(8_000) });
-    return response.ok;
+    if (response.ok) return true;
+    // 권한 강화(0002) 후에는 비로그인 anon 요청이 42501(권한 없음)로 거절된다. 이는 테이블이 존재한다는 뜻이다.
+    // 테이블이 없을 때만 PGRST205가 온다.
+    const body = await response.json().catch(() => ({})) as { code?: string };
+    return body.code === "42501";
   } catch {
     return false;
   }

@@ -38,12 +38,13 @@ test.describe("Overview Instagram hashtag pulse", () => {
     const board = page.getByTestId("ig-pulse");
     await expect(board.getByText("SAVED ANALYSIS")).toBeVisible();
     const found = fixture.first.items.filter((item) => item.found);
-    await expect(board.locator(".board li")).toHaveCount(found.length);
-    const top = board.locator(".board li").first();
+    await expect(board.locator(".activity li")).toHaveCount(found.length);
+    const top = board.locator(".activity li").first();
     await expect(top.locator(".kw b")).toHaveText("#치이카와");
     // 일부만 받은 태그는 24시간 수를 '이상'으로 표시한다.
     await expect(top.locator(".vol")).toHaveText("24h 300+개");
-    await expect(top.locator(".chg")).toHaveText("기준선");
+    // 첫 측정뿐이라 오르는 순 칸은 비어 있고 다음 비교 시각을 안내한다.
+    await expect(board.getByTestId("rising-empty")).toContainText("이후 RESCAN하면 비교됩니다");
     await expect(board.getByText(/보류\(다음 스캔\)/)).toBeVisible();
     await expect(board.getByText(/측정 실패/)).toBeVisible();
     expect(calls).toEqual([]);
@@ -53,14 +54,15 @@ test.describe("Overview Instagram hashtag pulse", () => {
     // 첫 측정을 하루 전으로 옮겨 비교 대상으로 만든다(시각만 이동, 수치는 실제 측정값).
     await seed(page, [fixture.second, shiftHours(fixture.first, -24)]);
     const board = page.getByTestId("ig-pulse");
-    const row = (tag: string) => board.locator(".board li", { has: page.locator(".kw b", { hasText: `#${tag}` }) });
-    await expect(board.getByRole("button", { name: "전일 대비 순" })).toHaveAttribute("aria-pressed", "true");
-    await expect(row("치이카와").locator(".chg")).toHaveText("■ 0%");
-    // 아이브는 첫 측정에서 실패해 이전 값이 없다.
-    await expect(row("아이브").locator(".chg")).toHaveText("기준선");
+    const row = (list: string, tag: string) => board.locator(`.${list} li`, { has: page.locator(".kw b", { hasText: `#${tag}` }) });
+    await expect(row("rising", "치이카와").locator(".chg")).toHaveText("■ 0%");
+    // 아이브는 첫 측정에서 실패해 이전 값이 없으므로 오르는 순에는 없고 활동량 순에만 있다.
+    await expect(row("rising", "아이브")).toHaveCount(0);
+    await expect(row("activity", "아이브")).toHaveCount(1);
 
     await seed(page, [fixture.second, fixture.first]);
-    await expect(row("치이카와").locator(".chg")).toHaveText("기준선");
+    await expect(board.locator(".rising li")).toHaveCount(0);
+    await expect(board.getByTestId("rising-empty")).toBeVisible();
   });
 
   test("scan re-measures tracked tags, adds new ones, and keeps only active tags in tracking", async ({ page }) => {
@@ -81,6 +83,24 @@ test.describe("Overview Instagram hashtag pulse", () => {
     expect(sent!.discover).toBe(true);
     const tracked = await page.evaluate(() => JSON.parse(localStorage.getItem("trend-radar-ig-track") ?? "[]"));
     expect(tracked).toEqual(["새태그", "치이카와", "아이브"]);
+  });
+
+  test("track-only rescan keeps earlier web candidates; removing a tracked tag hides it from the board", async ({ page }) => {
+    // second는 추적 태그만 다시 잰 스캔, first는 웹 검색 후보가 포함된 스캔
+    await seed(page, [fixture.second, fixture.first], ["치이카와", "아이브"]);
+    const board = page.getByTestId("ig-pulse");
+    const tags = () => board.locator(".activity li .kw b");
+    await expect(tags()).toHaveCount(5);
+    await expect(board.locator(".activity li .kw b", { hasText: "#조조타운인무신사" })).toBeVisible();
+
+    await board.getByRole("button", { name: "치이카와 추적 해제" }).click();
+    await expect(tags()).toHaveCount(4);
+    await expect(board.locator(".activity li .kw b", { hasText: "#치이카와" })).toHaveCount(0);
+    await expect(board.locator(".activity li .kw b", { hasText: "#조조타운인무신사" })).toBeVisible();
+
+    await board.getByLabel("추적할 해시태그").fill("치이카와");
+    await board.getByRole("button", { name: "추가" }).click();
+    await expect(board.locator(".activity li .kw b", { hasText: "#치이카와" })).toBeVisible();
   });
 
   test("scan API rejects invalid input", async ({ request }) => {

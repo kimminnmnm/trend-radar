@@ -78,8 +78,8 @@ export function buildCultureEdges(snapshots: LiveAnalysisSnapshot[], collisions:
 }
 
 export const edgeStyles: Record<GraphEdgeType, { stroke: string; dash?: string; animated?: boolean }> = {
-  "Shared Cultural Attribute": { stroke: "#000080" },
-  "Observed Connection": { stroke: "#008080", animated: true },
-  "Semantic Similarity": { stroke: "#0000ff", dash: "5 4" },
-  "Hypothesized Connection": { stroke: "#a06000", dash: "2 5" },
+  "Shared Cultural Attribute": { stroke: "#1f50c8" },
+  "Observed Connection": { stroke: "#2a8f4a", animated: true },
+  "Semantic Similarity": { stroke: "#2b6be0", dash: "5 4" },
+  "Hypothesized Connection": { stroke: "#c27c0e", dash: "2 5" },
 };

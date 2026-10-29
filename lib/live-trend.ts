@@ -17,7 +17,7 @@ export function safeDecode(value: string) {
 }
 
 export function makeLiveTrend(id: string, name = keywordFromLiveId(id)): Trend {
-  return { id, name, en: "LIVE KEYWORD", category: "Live", summary: "NAVER DataLab·Instagram 실데이터와 OpenAI 해석으로 분석하는 사용자 지정 키워드입니다.", signal: "LIVE", status: "Supported Hypothesis", tags: [], accent: "#008080" };
+  return { id, name, en: "LIVE KEYWORD", category: "Live", summary: "NAVER DataLab·Instagram 실데이터와 OpenAI 해석으로 분석하는 사용자 지정 키워드입니다.", signal: "LIVE", status: "Supported Hypothesis", tags: [], accent: "#2a8f4a" };
 }
 
 export function trendPath(id: string, view: "why" | "dna") { return `/trends/${encodeURIComponent(id)}/${view}`; }

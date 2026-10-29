@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button className="icon-button" onClick={() => setOpen(!open)} aria-label="메뉴 열기">{open ? <X /> : <Menu />}</button>
       </header>
       <aside className={`sidebar ${open ? "open" : ""}`}>
-        <div className="titlebar"><span>Program Manager</span><WinButtons /></div>
+        <div className="titlebar"><span>Trend Explorer</span><WinButtons /></div>
         <div className="sidebar-body">
         <div className="brand">
           <div className="brand-mark"><span /><span /><span /></div>

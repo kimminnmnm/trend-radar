@@ -3,8 +3,8 @@ import { z } from "zod";
 import { evidenceItemSchema, seriesStatsSchema, trendAnalysisSchema } from "@/lib/schemas";
 import { analyzeDnaWithOpenAI, TREND_DNA_PROMPT_VERSION } from "@/lib/openai-dna";
 import { hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
-import { clientKeyFrom } from "@/lib/rate-limit";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
 
 export const dynamic = "force-dynamic";
 
@@ -23,11 +23,13 @@ export async function POST(request: Request) {
   try { body = await readJsonBody(request); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return invalidRequest(parsed.error.issues);
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
   const { trend, why, evidence, signalStats, force } = parsed.data;
   if (!why.origin && !why.triggers) return NextResponse.json({ error: "WHY_REQUIRED", message: "LIVE WHY 결과가 있어야 DNA를 분석할 수 있습니다." }, { status: 422, headers: noStore });
   const cacheKey = hashKey({ v: TREND_DNA_PROMPT_VERSION, trend, why, evidence: evidence.map((item) => item.id) });
   try {
-    const { value, cached } = await runGuarded(clientKeyFrom(request), cacheKey, DNA_CACHE_TTL_MS, () => analyzeDnaWithOpenAI({ trend, why, evidence, stats: signalStats }), { bypassCache: force });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, DNA_CACHE_TTL_MS, () => analyzeDnaWithOpenAI({ trend, why, evidence, stats: signalStats }), { bypassCache: force });
     return NextResponse.json({ mode: "live", cached, ...value }, { headers: noStore });
   } catch (error) {
     return errorResponse(error, "DNA 분석에 실패했습니다.");

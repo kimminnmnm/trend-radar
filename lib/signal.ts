@@ -53,7 +53,7 @@ export function enforceStatus(status: AnalysisStatus, ids: string[], counter: { 
   return status;
 }
 
-export type ValidationLog = { removedEvidenceIds: string[]; downgraded: number; droppedTimeline?: number };
+export type ValidationLog = { removedEvidenceIds: string[]; downgraded: number; droppedTimeline?: number; droppedContext?: number };
 
 export function evidenceLookup(evidence: EvidenceItem[] | undefined) {
   return new Map((evidence ?? []).map((item) => [item.id, item]));

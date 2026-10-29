@@ -66,7 +66,7 @@ test.describe("Overview Instagram hashtag pulse", () => {
   });
 
   test("scan re-measures tracked tags, adds new ones, and keeps only active tags in tracking", async ({ page }) => {
-    let sent: { track: string[]; add: string[]; discover: boolean } | null = null;
+    let sent: { track: string[]; add: string[]; discover: boolean; allowNew: boolean } | null = null;
     await page.route("**/api/trends/instagram", async (route) => {
       sent = route.request().postDataJSON();
       await route.fulfill({ json: { mode: "live", cached: false, report: fixture.second } });
@@ -76,11 +76,14 @@ test.describe("Overview Instagram hashtag pulse", () => {
     await board.getByLabel("추적할 해시태그").fill("#새 태그");
     await board.getByRole("button", { name: "추가" }).click();
     await expect(board.locator(".chip.pending")).toHaveText(/#새태그/);
+    await expect(board.getByLabel("신규 해시태그 검색 승인")).not.toBeChecked();
+    await board.getByLabel("신규 해시태그 검색 승인").check();
     await board.getByRole("button", { name: /RESCAN/ }).click();
     await expect(board.getByText("LIVE ANALYSIS")).toBeVisible();
     expect(sent!.track).toEqual(["치이카와"]);
     expect(sent!.add).toEqual(["새태그"]);
-    expect(sent!.discover).toBe(true);
+    expect(sent!.discover).toBe(false);
+    expect(sent!.allowNew).toBe(true);
     const tracked = await page.evaluate(() => JSON.parse(localStorage.getItem("trend-radar-ig-track") ?? "[]"));
     expect(tracked).toEqual(["새태그", "치이카와", "아이브"]);
   });

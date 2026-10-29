@@ -8,7 +8,7 @@ export type AnalysisStatus = z.infer<typeof analysisStatusSchema>;
 /** 서버가 실제 API 응답으로만 만드는 근거 원장 항목. AI는 이 목록을 만들 수 없고 ID로 참조만 한다. */
 export const evidenceItemSchema = z.object({
   id: z.string().min(1).max(40),
-  kind: z.enum(["naver_series", "instagram_media"]),
+  kind: z.enum(["naver_series", "instagram_media", "youtube_video", "web_source"]),
   title: z.string().max(200),
   source: z.string().max(120),
   url: z.string().max(500).optional(),
@@ -32,6 +32,15 @@ export const seriesStatsSchema = z.object({
 });
 export type SeriesStats = z.infer<typeof seriesStatsSchema>;
 
+/** WHY의 배경·사건·확산 콘텐츠·브랜드 사례. 웹 출처(WEB-xx)로 보강하며, 이전 버전 보고서에는 없다. */
+export const whyContextSchema = z.object({
+  background: z.object({ summary: z.string(), status: analysisStatusSchema, evidenceIds: z.array(z.string()) }),
+  events: z.array(z.object({ date: z.string(), label: z.string(), evidenceIds: z.array(z.string()) })),
+  spreadContents: z.array(z.object({ title: z.string(), explanation: z.string(), status: analysisStatusSchema, evidenceIds: z.array(z.string()) })),
+  brandCases: z.array(z.object({ brand: z.string(), summary: z.string(), date: z.string(), evidenceIds: z.array(z.string()) })),
+});
+export type WhyContext = z.infer<typeof whyContextSchema>;
+
 export const trendAnalysisSchema = z.object({
   trend: z.string().min(1),
   origin: z.object({ summary: z.string(), evidenceIds: z.array(z.string()) }),
@@ -40,6 +49,7 @@ export const trendAnalysisSchema = z.object({
   motivations: z.array(z.object({ label: z.string(), explanation: z.string(), status: analysisStatusSchema, evidenceIds: z.array(z.string()).default([]) })),
   futureScenarios: z.array(z.object({ title: z.string(), explanation: z.string(), status: z.literal("Creative Hypothesis") })),
   missingEvidence: z.array(z.string()),
+  context: whyContextSchema.optional(),
 });
 export type TrendAnalysis = z.infer<typeof trendAnalysisSchema>;
 

@@ -28,7 +28,7 @@ test.describe("live pipeline with recorded data", () => {
     const calls = forbidPaidCalls(page);
     await page.goto(`${RUNNING}/why`);
     await expect(page.getByText("SAVED ANALYSIS").first()).toBeVisible();
-    await expect(page.getByText("EVIDENCE LEDGER · 서버가 API 응답으로 생성")).toBeVisible();
+    await expect(page.getByText(/EVIDENCE LEDGER · 서버가 API 응답/)).toBeVisible();
     await expect(page.locator(".evidence-ledger article").filter({ hasText: "IG-01" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Re-analyze/ })).toBeVisible();
     await expect(page.getByText("CURRENT INTERPRETATION")).toHaveCount(0);
@@ -63,8 +63,10 @@ test.describe("live pipeline with recorded data", () => {
     await expect(page.getByRole("button", { name: "LIVE GRAPH · 2" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".react-flow__node")).toHaveCount(2);
     await expect(page.locator(".react-flow__edge").first()).toBeAttached();
+    await page.locator(".react-flow__node").filter({ hasText: "러닝" }).click();
     await page.locator(".connections button").first().click();
-    await expect(page.getByText("SELECTED EDGE")).toBeVisible();
+    await expect(page.getByText("SELECTED EDGE · RELATION")).toBeVisible();
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "DEMO GRAPH" }).click();
     await expect(page.locator(".react-flow__node")).toHaveCount(8);
   });

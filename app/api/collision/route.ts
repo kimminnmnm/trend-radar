@@ -3,8 +3,8 @@ import { z } from "zod";
 import { trendContextSchema } from "@/lib/schemas";
 import { analyzeCollision, COLLISION_PROMPT_VERSION } from "@/lib/openai-insight";
 import { hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
-import { clientKeyFrom } from "@/lib/rate-limit";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +19,12 @@ export async function POST(request: Request) {
   try { body = await readJsonBody(request, 400_000); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return invalidRequest(parsed.error.issues);
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
   const { trends, similarities, force } = parsed.data;
   const cacheKey = hashKey({ v: COLLISION_PROMPT_VERSION, trends: trends.map((trend) => [trend.key, trend.analyzedAt, trend.dna.dominantPattern.title]) });
   try {
-    const { value, cached } = await runGuarded(clientKeyFrom(request), cacheKey, 24 * 60 * 60 * 1000, () => analyzeCollision(trends, similarities), { bypassCache: force });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, 24 * 60 * 60 * 1000, () => analyzeCollision(trends, similarities), { bypassCache: force });
     return NextResponse.json({ mode: "live", cached, analyzedAt: new Date().toISOString(), promptVersion: COLLISION_PROMPT_VERSION, ...value }, { headers: noStore });
   } catch (error) {
     return errorResponse(error, "Collision 분석에 실패했습니다.");

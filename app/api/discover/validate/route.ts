@@ -3,8 +3,9 @@ import { z } from "zod";
 import { collectNaverTrend } from "@/lib/naver";
 import { computeSeriesStats } from "@/lib/signal";
 import { readJsonBody } from "@/lib/ai-guard";
-import { clientKeyFrom, createRateLimiter } from "@/lib/rate-limit";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,13 @@ const requestSchema = z.object({ keywords: z.array(z.string().trim().min(1).max(
  * 후보 키워드를 하나의 NAVER 요청으로 묶어 같은 척도에서만 비교한다. AI 호출 없음.
  */
 export async function POST(request: Request) {
-  if (!limiter(clientKeyFrom(request)).allowed) return NextResponse.json({ error: "LOCAL_RATE_LIMIT", message: "검증 요청이 너무 많습니다. 1분 후 다시 시도하세요." }, { status: 429, headers: noStore });
   let body: unknown;
   try { body = await readJsonBody(request, 5_000); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return invalidRequest(parsed.error.issues);
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
+  if (!limiter(access.clientKey).allowed) return NextResponse.json({ error: "LOCAL_RATE_LIMIT", message: "검증 요청이 너무 많습니다. 1분 후 다시 시도하세요." }, { status: 429, headers: noStore });
   const [first, ...rest] = [...new Set(parsed.data.keywords)];
   try {
     const naver = await collectNaverTrend(first, rest, parsed.data.periodMonths);

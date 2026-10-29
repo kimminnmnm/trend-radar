@@ -12,6 +12,7 @@ Codex 인계 시점의 코드를 진단한 결과와 이번 작업 후 상태를
 | NAVER Developers `openapi.naver.com/v1/datalab/search` | 401 (errorCode 024) | 같은 키로는 인증 실패. 과거 인증 오류의 원인으로 추정. 코드에서는 사용하지 않음 |
 | OpenAI Responses API (`gpt-6-luna`) | 정상 | Structured Outputs strict JSON Schema |
 | OpenAI Embeddings (`text-embedding-3-small`, 256차원) | 정상 | DNA 임베딩 |
+| YouTube Data API v3 `search.list` → `videos.list` | 정상 | 2026-10-29 `러닝` 1회 실측: 영상 10개·YT 근거 10개, 같은 요청 6시간 캐시 적중 |
 | Meta Graph `me`, `me/accounts`, `me/permissions` | 정상 | 페이지 1개, IG 프로페셔널 계정 연결 |
 | Meta `ig_hashtag_search` → `recent_media`, `top_media` | 정상 | 반환 필드: id, caption, media_type, permalink, timestamp, like_count, comments_count. 7일간 고유 해시태그 30개 제한 |
 | Supabase REST `trend_analyses`, `saved_items` | 404 PGRST205 | **마이그레이션 미적용**. 클라우드 저장은 동작하지 않고 localStorage로 폴백 |
@@ -20,7 +21,7 @@ Codex 인계 시점의 코드를 진단한 결과와 이번 작업 후 상태를
 
 | 페이지 | 기능 | 인계 시 데이터 출처 | 현재 데이터 출처 | 실제 API | 데모 사용 | 저장 위치 | 남은 문제 |
 |---|---|---|---|---|---|---|---|
-| `/trends/[id]/why` | TREND WHY | NAVER + OpenAI (근거는 `NAVER-01` 하나, 근거 ID 검증 없음) | NAVER 시계열 + Instagram 게시물 근거 원장 + OpenAI. 서버가 근거 ID 검증, 근거 없는 타임라인 제외, 진행 중 구간 제외 | ✅ | 데모 트렌드 페이지 하단만 (DEMO 배지) | localStorage, 로그인 시 Supabase | 외부 기사·뉴스 근거 없음 |
+| `/trends/[id]/why` | TREND WHY | NAVER + OpenAI (근거는 `NAVER-01` 하나, 근거 ID 검증 없음) | NAVER 시계열 + Instagram 게시물 + YouTube 공개 영상 + 웹 출처 근거 원장 + OpenAI. 서버가 근거 ID 검증, 근거 없는 타임라인 제외 | ✅ | 데모 트렌드 페이지 하단만 (DEMO 배지) | localStorage, 로그인 시 Supabase | YouTube는 최근 30일 최대 10개 검색 표본 |
 | `/trends/[id]/dna` | TREND DNA | `demo-data.ts` 고정값 | LIVE WHY + 근거 원장 → OpenAI DNA (6차원, 속성별 근거·상태·한계) + 임베딩 | ✅ | 데모 트렌드 페이지만 | 해당 LIVE 스냅샷 | 이미지 자체 분석 없음(Aesthetic 근거 약함) |
 | `/discover` | DISCOVER | 데모 8개 | LIVE 키워드 분석 진입, 분석된 LIVE 트렌드, Instagram 공동 해시태그 후보, NAVER 배치 검증 | ✅ (NAVER) | 별도 DEMO 섹션 | watchlist(localStorage) | 자동 급상승 발굴 API 없음 |
 | `/culture-map` | CULTURE MAP | 하드코딩 노드·엣지 | LIVE 스냅샷 노드 + 공통 속성/관찰 연결/임베딩 유사/Collision 가설 엣지 (모든 엣지에 근거) | 간접 | DEMO GRAPH 탭 | 계산(저장 불필요) | 트렌드 수가 적으면 그래프가 단순함 |
@@ -75,7 +76,51 @@ Codex 인계 시점의 코드를 진단한 결과와 이번 작업 후 상태를
 
 한도 관리: Meta는 7일간 고유 해시태그 30개까지만 조회를 허용합니다. `recently_searched_hashtags`로 이미 조회한 태그를 확인해 재측정은 한도를 쓰지 않으며(실측: 재측정 4개 후 13→13), 새 태그는 스캔당 4개, 예비 6개를 남깁니다. 실패한 조회도 한도를 쓸 수 있어 시도 시점에 세고, 스캔 후 실제 사용량을 다시 읽어 표시합니다.
 
+2026-10-29 보호 강화: 자동 신규 검색을 기본 비활성화하고, 사용자가 `신규 해시태그 검색 승인`을 켠 경우에만 새 태그를 `ig_hashtag_search`에 전달합니다. 기존 태그는 `recently_searched_hashtags`의 ID를 재사용해 게시물만 갱신합니다. 실측 사용량은 23/30(남음 7)이었습니다. Meta 응답은 검색 시각을 제공하지 않으므로 기존 23개의 정확한 슬롯 반환 시각은 알 수 없고, 이후 앱에서 승인한 신규 검색만 로컬 감사 기록에 검색 시각과 7일 후 반환 예정 시각을 남깁니다.
+
 알려진 한계:
 - 전일 대비 비교 이력은 브라우저(localStorage)에만 저장됩니다. 다른 기기에서는 이력이 없습니다.
 - 게시물이 많은 태그의 속도는 최근 몇 시간 표본이라 측정 시각(낮·밤)의 영향을 받습니다.
 - 첫 실측에서 웹 검색 후보가 행사·캠페인용 긴 태그로 치우쳐 프롬프트를 고쳤습니다(`ig-pulse-v2`). v2의 후보 품질은 아직 실측하지 않았습니다.
+
+## 7. 안정화 점검 (2026-10-29)
+
+### 7-1. 기능별 데이터 성격
+
+| 기능 | 실제 데이터 | AI 추론 | DEMO | 이번 점검의 실측 |
+|---|---|---|---|---|
+| NAVER 검색 관심도 | NAVER API HUB 상대 지수 | — | 별도 탭 | ✅ WHY 실호출로 확인 |
+| Instagram 게시물 | Meta recent/top_media 캡션·링크 | — | — | ✅ 장기 토큰으로 확인(#러닝, 한도 미사용) |
+| TREND WHY | NAVER + Instagram + **웹 출처(WEB-xx, 신규)** 근거 원장 | 원인·동기·확산 콘텐츠·시나리오 | 데모 트렌드 페이지 하단 | ✅ `why-live-v3` 실호출 1회: 웹 출처 5개(미검증 제외 0) |
+| TREND DNA | WHY 원장 인용 | 6차원 속성·상태 | 데모 트렌드 | 2026-10-28 실측(이번에 재호출 안 함) |
+| Culture Map | 저장된 분석에서 계산(API 호출 없음) | 공통 속성(DNA)·가설 연결(Collision) | DEMO GRAPH 탭 | 저장 데이터로 E2E 확인 |
+| Collision · Lab · Studio | 원장·DNA 입력, Studio 참고 자료는 서버 원장 | 결과 전체가 AI 해석 | DEMO EXAMPLE 탭 | 2026-10-28 실측 |
+
+- WHY에서 **데이터 관찰**(검색 추이·타임라인), **출처 보도**(사건·브랜드 사례), **AI 가설**(원인·동기·확산 콘텐츠·시나리오)을 라벨로 구분합니다.
+- 서버 규칙: 사건·브랜드 사례는 WEB 근거가 없으면 제외, 확산 콘텐츠는 `Verified Signal` → `Supported Hypothesis`로 하향(원인 주장이므로).
+- WEB 요약은 AI가 출처를 요약한 것이므로 원장에 "원문 확인 필요"를 표시합니다. 날짜는 출처에 있을 때만 넣습니다.
+
+### 7-2. 저장 기능
+
+| 항목 | 동작 | 확인 |
+|---|---|---|
+| 새로고침 | localStorage에서 복원, API 재호출 없음 | ✅ E2E(WHY·DNA·Studio·해시태그) |
+| Supabase 마이그레이션 | 0001~0003 적용 | ✅ anon 요청이 PGRST205 → 42501(권한 거절)로 바뀜 |
+| 로그인 후 클라우드 저장 | WHY·DNA·기획안 → Supabase(RLS) | ⚠️ 실제 계정 로그인으로는 미검증 |
+| 로그아웃 | 클라우드 데이터는 계정에 남음. **이 브라우저의 로컬 데이터도 남음** | 로그아웃 시 안내 + "이 브라우저 데이터 지우기" 버튼 추가 |
+| 미동기화 | Collision · Lab · 해시태그/2030 스캔 이력은 브라우저에만 저장 | 남은 과제 |
+
+### 7-3. API 비용 · 보안
+
+발견한 문제와 조치:
+
+1. **인증 없이 고비용 API 호출 가능**(analyze·dna·collision·lab·studio·trends/now·trends/instagram·meta/hashtag·discover/validate) → `lib/api-access.ts` 접근 제어 추가. `PAID_API_ACCESS`=`open`(개발 기본) / `auth`(배포 기본) / `allowlist`. 입력 검증(400) → 접근 확인(401/403) → 외부 호출 순서.
+2. **요청 한도 우회**: `x-forwarded-for` 첫 값을 클라이언트 키로 사용해 헤더 위조로 분당 한도를 우회 가능 → 로그인 사용자는 Supabase 사용자 ID를 키로 사용(토큰은 Supabase Auth 서버로 검증, 5분 캐시).
+3. **WHY가 OpenAI 보호 전에 NAVER·Meta를 호출**: 반복 요청으로 Meta 주간 해시태그 한도(30개) 소진 가능 → 외부 호출 전용 분당 한도(`EXTERNAL_RATE_PER_MINUTE`, 기본 10) 추가, 새 해시태그는 주간 한도가 남았을 때만 조회(`META_HASHTAG_WEEKLY_LIMIT`).
+4. **웹 검색이 포함된 WHY는 OpenAI 2회** → 일일 예산에서 2회로 계산.
+
+남은 위험:
+
+- 요청 한도·캐시·일일 상한이 **서버 메모리 기반**이라 재시작 시 초기화되고, 서버리스 다중 인스턴스에서는 인스턴스마다 따로 셉니다. 공개 배포 시 Supabase 테이블이나 Redis(Upstash 등) 기반 공유 카운터가 필요합니다.
+- `auth` 모드에서도 **누구나 Supabase 계정을 만들 수 있어** 비용 남용을 완전히 막지 못합니다. 포트폴리오 공개 배포는 `allowlist`(본인 이메일만) 권장.
+- 사용자별 일일 상한은 없습니다(프로세스 전체 상한만 있음).

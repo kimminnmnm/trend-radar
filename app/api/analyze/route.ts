@@ -4,12 +4,15 @@ import { collectNaverTrend } from "@/lib/naver";
 import { analyzeTrendWithOpenAI, TREND_WHY_PROMPT_VERSION } from "@/lib/openai-analysis";
 import { searchInstagramHashtag, MetaGraphError } from "@/lib/meta";
 import { instagramEvidence, naverEvidence, toHashtag } from "@/lib/evidence-ledger";
+import { collectWebEvidence, type WebCollection } from "@/lib/web-evidence";
 import { computeSeriesStats } from "@/lib/signal";
-import { hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
-import { clientKeyFrom } from "@/lib/rate-limit";
+import { assertExternalRate, hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
 import type { EvidenceItem } from "@/lib/schemas";
 import type { InstagramCollection } from "@/lib/types";
+import type { YouTubeEvidenceCollection } from "@/lib/types";
+import { collectYouTubeEvidence } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +21,9 @@ const requestSchema = z.object({
   keywords: z.array(z.string().trim().min(1).max(100)).max(5).optional(),
   periodMonths: z.union([z.literal(1), z.literal(3), z.literal(12)]).default(12),
   includeInstagram: z.boolean().default(true),
+  includeYouTube: z.boolean().default(true),
+  /** 뉴스·공개 자료 웹 검색으로 배경·사건·확산 콘텐츠·브랜드 사례 근거 보강(OpenAI 웹 검색 1회 추가) */
+  includeWeb: z.boolean().default(true),
   force: z.boolean().default(false),
 });
 
@@ -28,7 +34,11 @@ export async function POST(request: Request) {
   try { body = await readJsonBody(request); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return invalidRequest(parsed.error.issues);
-  const { trend, keywords, periodMonths, includeInstagram, force } = parsed.data;
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
+  const { trend, keywords, periodMonths, includeInstagram, includeYouTube, includeWeb, force } = parsed.data;
+
+  try { assertExternalRate(access.clientKey); } catch (error) { return errorResponse(error); }
 
   let naver;
   try { naver = await collectNaverTrend(trend, keywords, periodMonths); }
@@ -49,11 +59,35 @@ export async function POST(request: Request) {
     }
   }
 
-  const cacheKey = hashKey({ v: TREND_WHY_PROMPT_VERSION, trend, periodMonths, series: naver.series, evidence: evidence.map((item) => [item.id, item.excerpt]) });
+  let youtube: YouTubeEvidenceCollection = { status: "skipped", query: trend, videos: [], hourlyDistribution: [], message: "YouTube 수집을 선택하지 않았습니다." };
+  if (includeYouTube) {
+    try {
+      const result = await collectYouTubeEvidence(trend, { force });
+      evidence.push(...result.evidence);
+      youtube = result.collection;
+    } catch (error) {
+      youtube = { status: "error", query: trend, videos: [], hourlyDistribution: [], message: error instanceof Error ? error.message : "YouTube 수집에 실패했습니다." };
+    }
+  }
+
+  const cacheKey = hashKey({ v: TREND_WHY_PROMPT_VERSION, trend, periodMonths, includeWeb, includeYouTube, series: naver.series, evidence: evidence.map((item) => [item.id, item.excerpt]) });
+  // 웹 출처 수집과 분석을 한 번의 보호 단위로 묶는다. 웹 검색 실패는 분석을 막지 않는다.
+  const analyze = async () => {
+    let webItems: EvidenceItem[] = [];
+    let web: WebCollection = { status: "skipped", count: 0, searchedSources: 0, droppedUnverified: 0, message: "웹 출처 수집을 선택하지 않았습니다." };
+    if (includeWeb) {
+      try { ({ items: webItems, web } = await collectWebEvidence(trend)); }
+      catch (error) { web = { status: "error", count: 0, searchedSources: 0, droppedUnverified: 0, message: error instanceof Error ? error.message.slice(0, 200) : "웹 출처 수집에 실패했습니다." }; }
+    }
+    const result = await analyzeTrendWithOpenAI(trend, naver, [...evidence, ...webItems], signalStats);
+    return { ...result, webItems, web };
+  };
   try {
-    const { value, cached } = await runGuarded(clientKeyFrom(request), cacheKey, WHY_CACHE_TTL_MS, () => analyzeTrendWithOpenAI(trend, naver, evidence, signalStats), { bypassCache: force });
-    return NextResponse.json({ mode: "live", cached, provenance: { sources: ["NAVER DataLab", ...(instagram.count ? ["Instagram Graph API"] : []), "OpenAI"], demo: false }, naver, signalStats, evidence, instagram, ...value }, { headers: noStore });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, WHY_CACHE_TTL_MS, analyze, { bypassCache: force, cost: includeWeb ? 2 : 1 });
+    const { webItems, ...analysis } = value;
+    const sources = ["NAVER DataLab", ...(instagram.count ? ["Instagram Graph API"] : []), ...(youtube.status === "live" || youtube.status === "cached" ? ["YouTube Data API v3"] : []), ...(webItems.length ? ["Web sources (OpenAI web search)"] : []), "OpenAI"];
+    return NextResponse.json({ mode: "live", cached, provenance: { sources, demo: false }, naver, signalStats, instagram, youtube, ...analysis, evidence: [...evidence, ...webItems] }, { headers: noStore });
   } catch (error) {
-    return errorResponse(error, "OpenAI 분석에 실패했습니다.", { naver, signalStats, evidence, instagram });
+    return errorResponse(error, "OpenAI 분석에 실패했습니다.", { naver, signalStats, evidence, instagram, youtube });
   }
 }

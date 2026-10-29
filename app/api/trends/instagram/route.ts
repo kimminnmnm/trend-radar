@@ -2,15 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { IG_PULSE_PROMPT_VERSION, MAX_TAGS_PER_SCAN, scanIgPulse } from "@/lib/ig-pulse";
 import { hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
-import { clientKeyFrom } from "@/lib/rate-limit";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
 
 export const dynamic = "force-dynamic";
 
 const tag = z.string().trim().min(1).max(60);
 const requestSchema = z.object({
   force: z.boolean().default(false),
-  discover: z.boolean().default(true),
+  discover: z.boolean().default(false),
+  allowNew: z.boolean().default(false),
   track: z.array(tag).max(MAX_TAGS_PER_SCAN).default([]),
   add: z.array(tag).max(3).default([]),
 });
@@ -22,10 +23,12 @@ export async function POST(request: Request) {
   try { body = await readJsonBody(request, 4_000); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body ?? {});
   if (!parsed.success) return invalidRequest(parsed.error.issues);
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
   const { force, ...input } = parsed.data;
-  const cacheKey = hashKey({ v: IG_PULSE_PROMPT_VERSION, day: new Date().toISOString().slice(0, 10), discover: input.discover, track: [...input.track].sort(), add: [...input.add].sort() });
+  const cacheKey = hashKey({ v: IG_PULSE_PROMPT_VERSION, day: new Date().toISOString().slice(0, 10), discover: input.discover, allowNew: input.allowNew, track: [...input.track].sort(), add: [...input.add].sort() });
   try {
-    const { value, cached } = await runGuarded(clientKeyFrom(request), cacheKey, PULSE_CACHE_TTL_MS, () => scanIgPulse(input), { bypassCache: force });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, PULSE_CACHE_TTL_MS, () => scanIgPulse(input), { bypassCache: force });
     return NextResponse.json({ mode: "live", cached, report: value }, { headers: noStore });
   } catch (error) {
     if (error instanceof Error && !("status" in error)) return NextResponse.json({ error: "IG_PULSE_FAILED", message: error.message }, { status: 502, headers: noStore });

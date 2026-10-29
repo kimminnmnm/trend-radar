@@ -4,9 +4,9 @@
 
 **한국 2030의 트렌드를 실제 데이터로 찾아내고, 왜 뜨는지(WHY)와 무엇으로 이루어졌는지(DNA)를 분석해 콘텐츠 기획까지 이어주는 문화 인텔리전스 도구**입니다.
 
-NAVER 검색 트렌드, Instagram 해시태그, OpenAI 분석을 함께 쓰고, 모든 결과에 **어디서 온 데이터인지**를 표시합니다. 데모 데이터를 실제 데이터처럼 보여주지 않는 것이 이 프로젝트의 기본 원칙입니다.
+NAVER 검색 트렌드, Instagram 해시태그, YouTube 공개 영상, OpenAI 분석을 함께 쓰고, 모든 결과에 **어디서 온 데이터인지**를 표시합니다. 데모 데이터를 실제 데이터처럼 보여주지 않는 것이 이 프로젝트의 기본 원칙입니다.
 
-> 화면은 Windows 3.1 스타일(흰 창 · 회색 프레임 · 남색 타이틀바)의 레트로 디자인입니다. 규칙은 [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)에 있습니다.
+> 화면은 Y2K 레트로 데스크톱 감성의 **Y2K Pixel Desktop** 디자인입니다(하늘·픽셀 잔디 배경, 검은 외곽선 창, 파란 타이틀바, 스티커 그림자, 형광 노랑·초록 포인트, 픽셀 제목 글꼴). 규칙은 [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)에 있습니다.
 
 ---
 
@@ -34,10 +34,10 @@ NAVER 검색 트렌드, Instagram 해시태그, OpenAI 분석을 함께 쓰고, 
 |---|---|---|---|
 | **지금 뜨는 해시태그** | Overview | Instagram 해시태그의 최근 게시 속도(시간당 게시물 수)와 전일 대비 변화 측정 | Instagram Graph API, OpenAI 웹 검색 |
 | **2030 HIGH SCORE** | Overview | 웹에서 찾은 2030 트렌드 후보를 NAVER 19–39세 검색 관심도로 검증해 상승률 순위 제공 | OpenAI 웹 검색, NAVER DataLab |
-| **TREND WHY** | `/trends/[id]/why` | 트렌드가 왜 뜨는지 근거와 함께 분석 | NAVER 시계열, Instagram 게시물, OpenAI |
+| **TREND WHY** | `/trends/[id]/why` | 트렌드가 왜 뜨는지 근거와 함께 분석 | NAVER 시계열, Instagram 게시물, YouTube 공개 영상, OpenAI |
 | **TREND DNA** | `/trends/[id]/dna` | 트렌드를 6개 차원(Aesthetic · Emotion · Behavior · Object · Culture · Audience)으로 분해 | WHY 결과, OpenAI, 임베딩 |
 | **DISCOVER** | `/discover` | 키워드를 직접 분석하거나 Instagram 공동 해시태그로 후보 발굴 | NAVER, Instagram |
-| **CULTURE MAP** | `/culture-map` | 분석한 트렌드 사이의 연결을 그래프로 표시(연결 4종) | 저장된 분석 결과 |
+| **CULTURE MAP** | `/culture-map` | 분석한 트렌드 사이의 관계를 계산해 그래프로 표시. 연결선을 누르면 왜 연결됐는지·관계 점수·근거 확인 | 저장된 WHY·DNA·임베딩·근거 원장 |
 | **COLLISION** | `/collision` | 트렌드 2~4개를 섞어 새로운 기획 아이디어 도출 | DNA 결과, OpenAI |
 | **TREND LAB** | `/lab` | 브랜드 브리프에 트렌드를 적용할 수 있는지 항목별 검토 | 분석 결과, OpenAI |
 | **CONTENT STUDIO** | `/studio` | 분석 결과로 콘텐츠 기획안 작성 | WHY · DNA · Collision · Lab |
@@ -116,6 +116,17 @@ npm run start
 - Meta 앱 심사 중에는 `META_PUBLIC_CONTENT_ACCESS=pending`을 유지하고, 승인되면 `approved`로 바꾼 뒤 서버를 재시작하세요.
 - 토큰은 만료됩니다. 만료되면 화면에 "토큰이 만료" 오류가 뜨니, 새로 발급해 `.env.local`에 넣고 서버를 재시작하세요.
 
+### YouTube Data API v3 (WHY 영상 근거)
+
+| 변수 | 설명 |
+|---|---|
+| `YOUTUBE_API_KEY` | Google Cloud에서 YouTube Data API v3를 활성화한 서버용 API 키 |
+| `YOUTUBE_DAILY_SEARCH_LIMIT` | 앱 프로세스의 일일 `search.list` 실행 상한(기본 20, 캐시 적중 제외) |
+
+키는 서버에서만 사용합니다. WHY 분석은 최근 30일 관련 공개 영상 최대 10개를 수집하고, 제목·게시일·공개 조회수·한국 시간대별 게시 분포를 `YT-xx` 근거로 연결합니다. 검색 결과는 6시간 캐시합니다.
+
+> Google Trends API는 Alpha 접근 승인 전입니다. 현재 앱은 Google Trends를 연결된 것으로 표시하지 않으며 비공식 스크래핑을 사용하지 않습니다.
+
 ### Supabase (선택: 클라우드 저장 · 로그인)
 
 | 변수 | 설명 |
@@ -127,6 +138,18 @@ npm run start
 
 Supabase 없이도 모든 기능이 동작하며, 결과는 브라우저에 저장됩니다. 자세한 내용은 [8. 저장 위치와 Supabase](#8-저장-위치와-supabase)를 보세요.
 
+### 비용 API 접근 제어 (배포 전 필수)
+
+| 변수 | 설명 |
+|---|---|
+| `PAID_API_ACCESS` | `open`(누구나) · `auth`(Supabase 로그인 사용자) · `allowlist`(지정 이메일만). 비워 두면 `npm run dev`는 `open`, `npm run start`는 `auth` |
+| `PAID_API_ALLOWED_EMAILS` | `allowlist` 모드에서 실제 분석을 허용할 이메일(쉼표 구분) |
+| `EXTERNAL_RATE_PER_MINUTE` | OpenAI 전에 NAVER·Meta를 부르는 요청의 분당 상한(기본 10) |
+
+- 실제 분석 버튼(WHY·DNA·Collision·Lab·Studio·해시태그·2030 스캔·Instagram 검색)은 로그인 토큰을 붙여 호출합니다. 권한이 없으면 저장된 결과와 DEMO만 볼 수 있습니다.
+- **공개 배포에는 `allowlist`를 쓰세요.** Supabase는 누구나 가입할 수 있어 `auth`만으로는 비용 남용을 막지 못합니다.
+- 요청 한도와 캐시는 서버 메모리 기반이라, 여러 인스턴스로 배포하면 인스턴스마다 따로 셉니다.
+
 ### 연결 상태 확인
 
 앱의 **Settings** 화면에서 각 API가 설정됐는지, Supabase 테이블이 준비됐는지, 오늘 OpenAI를 몇 번 호출했는지 확인할 수 있습니다.
@@ -135,14 +158,16 @@ Supabase 없이도 모든 기능이 동작하며, 결과는 브라우저에 저�
 
 ## 4. 화면별 사용법
 
+처음이라면 Overview의 **WELCOME.EXE 안내**와 모든 화면 상단의 **진행 막대**(① 찾기 → ② 왜 뜨나 → ③ DNA 분해 → ④ 섞어 보기 → ⑤ 기획안)를 따라가세요. 진행 막대는 지금 분석 중인 트렌드와 다음 단계 버튼을 보여 주고, DEMO 트렌드를 보고 있으면 실제 데이터가 아니라고 알려 줍니다. 안내를 닫은 뒤에는 사이드바 **사용 가이드**로 다시 열 수 있습니다.
+
 ### 4-1. Overview — 지금 뜨는 해시태그 (INSTA.EXE)
 
 Instagram 해시태그가 **지금 얼마나 활발하게 올라오는지** 측정합니다.
 
 **처음 사용할 때**
 
-1. **START**를 누릅니다.
-2. 웹 검색으로 지금 2030 사이에서 화제인 대상(캐릭터, 디저트, 팝업, 아이돌 등)을 찾아 해시태그로 바꾸고, 각 태그의 최근 게시물을 직접 세어 측정합니다. (약 1~2분)
+1. 추적 중인 기존 해시태그가 있으면 **START**를 누릅니다. 기본 동작은 Meta가 이미 검색한 해시태그 ID의 게시물만 갱신하며 신규 한도를 쓰지 않습니다.
+2. 새 해시태그를 검색할 때만 **신규 해시태그 검색 승인**을 켭니다. 웹 후보까지 필요하면 승인 후 **승인 범위에서 웹 후보도 찾기**를 별도로 켭니다. (약 1~2분)
 3. 결과는 두 칸으로 나뉘어 표시됩니다.
 
 | 칸 | 기준 | 무엇을 알 수 있나 |
@@ -170,7 +195,9 @@ Instagram 해시태그가 **지금 얼마나 활발하게 올라오는지** 측�
 - 보드는 **최근 24시간 동안의 스캔을 합쳐서** 태그마다 가장 최근 측정을 보여줍니다. 그래서 웹 검색을 끄고 추적 태그만 다시 재도, 앞서 웹 검색으로 찾은 후보가 함께 보입니다. 이전 스캔에서 가져온 행에는 `N시간 전 측정`이 표시됩니다.
 - 새 태그는 한 번 스캔에 **최대 3개**까지 측정하고, 나머지는 다음 스캔에서 측정합니다.
 - **추가** 버튼이 회색으로 눌리지 않으면, 입력칸이 비어 있거나 이미 10개를 추적 중인 것입니다.
-- 내 태그만 재고 싶으면 **"웹 검색으로 새 후보 찾기"** 체크를 끄세요. OpenAI 비용이 들지 않고, 주간 한도도 아낄 수 있습니다.
+- 기존 태그만 재고 싶으면 신규 검색 승인을 끈 기본 상태로 두세요. OpenAI 비용이 들지 않고, 고유 해시태그 한도도 추가로 쓰지 않습니다.
+- 자동 신규 검색은 기본적으로 꺼져 있습니다. 점선 태그는 승인을 켜지 않으면 보류되며, 검색 전에 예상 신규 사용량이 표시됩니다.
+- 주간 한도 상세를 펼치면 Meta API가 반환한 최근 고유 해시태그 목록을 볼 수 있습니다. Meta는 과거 검색 시각을 제공하지 않으므로, 앱에서 새로 검색한 항목만 검색 시각과 7일 후 반환 예정 시각을 기록합니다.
 - 측정된 태그 중 **시간당 1개 이상** 올라오는 태그는 자동으로 추적 목록에 들어갑니다.
 
 **표 읽는 법**
@@ -199,8 +226,9 @@ Instagram 해시태그가 **지금 얼마나 활발하게 올라오는지** 측�
 ### 4-3. TREND WHY — 왜 뜨는가
 
 1. **Discover**에서 키워드를 입력해 분석을 시작하거나, Overview 순위의 **▶ / WHY 분석**을 누릅니다.
-2. 비교 키워드를 고르고 분석을 실행하면, NAVER 시계열과 Instagram 게시물을 근거로 모은 뒤 OpenAI가 원인 가설을 만듭니다.
-3. 각 주장 옆의 근거 ID(`NAVER-01`, `IG-03`)를 누르면 원본(게시물 링크 등)을 볼 수 있습니다.
+2. 비교 키워드를 고르고 분석을 실행하면, NAVER 시계열·Instagram 게시물·YouTube 공개 영상·**뉴스 등 공개 자료(웹 출처)**를 근거로 모은 뒤 OpenAI가 원인 가설을 만듭니다. YouTube와 웹 출처 수집은 각각 끌 수 있습니다.
+3. **CONTEXT** 영역에 배경, 실제 문화적 사건, 브랜드 활용 사례(출처와 날짜), 확산에 영향을 줬을 수 있는 콘텐츠가 나옵니다. 각 영역에는 성격 라벨이 붙습니다: `데이터 관찰` · `출처 보도` · `AI 가설`.
+4. 각 주장 옆의 근거 ID(`NAVER-01`, `IG-03`, `WEB-02`)를 누르면 원본(게시물·기사 링크)을 볼 수 있습니다. WEB 요약은 AI가 출처를 요약한 것이므로 원문을 확인하세요.
 
 상태 표시:
 
@@ -221,14 +249,32 @@ WHY 분석이 끝난 트렌드에서 **Analyze DNA**를 누르면 6개 차원으
 
 ### 4-6. CULTURE MAP
 
-분석한 트렌드가 노드가 되고, 다음 4종류의 연결이 선으로 그려집니다. 연결선을 누르면 근거가 나옵니다.
+LIVE 분석한 트렌드가 노드가 되고, 관계 엔진(`lib/cultural-relationship-engine.ts`)이 두 트렌드마다 관계를 계산합니다. **설명할 수 있는 신호가 하나도 없으면 선을 그리지 않습니다.** 같은 두 트렌드 사이의 여러 신호는 선 하나로 묶이고, 가장 강한 근거 유형의 모양으로 그려집니다.
 
-| 연결 | 의미 |
-|---|---|
-| Shared Cultural Attribute | DNA 속성이 겹침 |
-| Observed Connection | 실제 게시물에서 함께 언급됨 |
-| Semantic Similarity | 임베딩 의미 유사도 0.45 이상 (함께 확산된다는 증거는 아님) |
-| Hypothesized Connection | Collision에서 나온 가설 |
+| 선 모양 | 관계 유형 | 의미 | 검증 상태 |
+|---|---|---|---|
+| 굵은 초록 실선 | 관찰된 연결 `observed_connection` | 수집한 게시물·자료에서 상대 트렌드 이름이 실제로 언급됨(자기 분석의 수집 키워드는 제외) | Verified Signal (수집 표본 안에서만) |
+| 파란 실선 | 공통 속성 `shared_attribute` | 두 DNA가 근거가 있는 같은 표준 속성을 가짐. 다른 표현은 검토된 동의어 규칙(`lib/culture-alias-rules.ts`)으로만 묶음 | Supported Hypothesis |
+| 파란 점선 | 의미 유사 `semantic_similarity` | DNA 임베딩 코사인 유사도가 보정 기준 이상: `max(0.65, 내 트렌드 쌍들의 평균 + 표준편차)`. 범례에 현재 기준이 표시됨 | Creative Hypothesis |
+| 흐린 주황 점선 | AI 가설 `creative_hypothesis` | 저장된 Collision에서 AI가 제안한 연결 | Creative Hypothesis |
+
+**사용법**
+
+1. **검색**: 트렌드 이름·키워드·DNA 속성을 한글/영문으로 입력하면 일치하는 노드가 노랗게 강조되고 목록이 뜹니다. 목록에서 고르면(또는 Enter) 그 노드로 화면이 이동하고 상세 패널이 열립니다.
+2. **필터**: 카테고리는 여러 개 고를 수 있습니다. LIVE 분석에는 처음에 분류가 없으므로(미분류) 노드 상세 패널에서 직접 지정합니다. 지정한 분류는 "사용자 지정"으로 표시되고 관계 계산에는 쓰지 않습니다. **최소 관계 점수** 슬라이더로 기준 미만의 선을 숨깁니다. 필터는 화면에서만 숨기며 저장된 데이터는 지우지 않습니다.
+3. **노드 클릭**: DNA 요약, 6개 차원 속성(근거 연결 / AI 가설 구분), 분석 시각, 데이터 출처 수, 관련 트렌드, WHY·DNA 바로가기가 나옵니다.
+4. **연결선 클릭**: 관계 유형, 관계 점수(0~100)와 구성 요소, 공통 속성, 서로 다른 속성, 연결 이유, 근거(원문 링크·출처·날짜), AI 가설 여부가 나옵니다. 근거가 없는 관계에는 "이 관계는 AI가 제안한 문화적 연결 가설이며, 실제 확산 관계가 확인된 것은 아닙니다."가 표시됩니다.
+5. **Collision으로 보내기**: 노드 패널의 "Collision 비교에 추가"를 두 번 누르거나, 연결선 패널의 "이 두 트렌드로 Collision 준비"를 누른 뒤 **Explore Collision**을 누릅니다. `/collision?trend=<trendId>&trend=<trendId>`로 이동하고, Collision 화면이 저장된 실제 DNA로 그 조합을 미리 선택합니다. 이동만으로는 OpenAI를 호출하지 않습니다.
+6. **관계 평가·숨기기**: 연결선 패널에서 4개 항목(이해도·설득력·아이디어 발견·기획 활용도)을 1~5점으로 평가하고, 부적절한 연결은 지도에서 숨길 수 있습니다(데이터는 지우지 않으며 "숨긴 관계 보기"로 되돌림). 평가는 "평가 내보내기 (JSON)"로 받을 수 있습니다.
+7. **보기 조작**: Fit view / Reset view, 확대·축소 버튼, 드래그로 노드 이동. 모바일에서는 상세 정보가 아래에서 올라오는 시트로 열리고(닫기 버튼 또는 Esc), 필터는 "필터" 버튼으로 펼칩니다.
+
+**관계 점수(Relationship Score)** = 0.45 × 공통 속성 일치(Jaccard) + 0.30 × DNA 임베딩 의미 유사 + 0.25 × 수집 자료 교차 언급. 알고리즘 기반 유사성 지표이며 **트렌드가 실제로 연결되거나 함께 유행할 확률이 아닙니다.** 그래프 위치도 유사도의 증거가 아닙니다. 자세한 내용은 [docs/CULTURE_MAP_ARCHITECTURE.md](docs/CULTURE_MAP_ARCHITECTURE.md)를 보세요.
+
+**자동 반영(PHASE 5)**: 트렌드의 DNA 분석이 끝나면 별도 입력 없이 표준 메타데이터 버전이 기록되고, 기존 트렌드와의 관계가 계산되어 지도에 노드와 선이 추가됩니다. DNA를 다시 분석하면 새 버전(v2, v3…)이 생기고 이전 버전은 보존됩니다(노드 패널에서 확인). 이 과정은 유료 API를 호출하지 않습니다. 로그인한 상태에서 Supabase 마이그레이션 `202610290005_culture_knowledge.sql`이 적용돼 있으면 메타데이터와 관계가 Supabase에도 저장됩니다.
+
+**Culture Map 테이블 적용**: Supabase SQL Editor에서 `supabase/migrations/202610290005_culture_knowledge.sql`을 실행하세요. 이 마이그레이션은 로컬 Postgres에서 저장·버전·중복 방지·사용자 간 격리(RLS)를 검증했지만, 원격 프로젝트에는 아직 적용되지 않았습니다.
+
+DEMO GRAPH는 미리 작성한 예시입니다. 노드에 주황 줄무늬가 있고, 관계 점수·근거가 없으며 Collision 선택 대상이 아닙니다.
 
 ### 4-7. COLLISION → LAB → STUDIO
 
@@ -299,6 +345,7 @@ API가 연결돼 있다는 이유만으로 LIVE를 표시하지 않습니다. �
 - **Instagram 전체 게시물 수는 알 수 없습니다.** Graph API가 해시태그의 총 게시물 수를 주지 않습니다(`media_count` 요청이 거절됨). 앱의 숫자는 최근 24시간 게시물을 직접 센 값이며, 좋아요 · 댓글 · 조회수도 만들어 넣지 않습니다.
 - **게시물이 많은 태그의 속도는 표본입니다.** 300개까지만 받으므로 최근 몇 시간의 속도이고, 낮과 밤에 따라 달라집니다.
 - **NAVER 수치는 상대 지수**(0~100)이지 실제 검색 횟수가 아닙니다.
+- **YouTube 결과는 최근 30일 최대 10개 검색 표본**입니다. 전체 YouTube 트렌드를 대표하지 않으며, 높은 조회수나 게시 시각 집중이 트렌드의 원인이라는 뜻도 아닙니다.
 - **2030 순위는 수집한 후보 안에서의 상대 비교**입니다. 한국 2030 전체의 공식 순위가 아닙니다.
 - **NAVER 순위는 계절 영향을 받습니다.** 3개월 비교라 가을 옷처럼 계절 상품이 상승으로 보일 수 있습니다. 전년 동기 비교는 아직 없습니다.
 - **트렌드 후보는 웹 검색에 의존합니다.** 검색 도구가 실제로 연 URL을 인용한 후보만 남기지만, 어떤 후보가 잡히는지는 검색 결과에 따라 달라집니다.
@@ -321,6 +368,7 @@ API가 연결돼 있다는 이유만으로 LIVE를 표시하지 않습니다. �
 1. `supabase/migrations/202610280001_live_analysis.sql`
 2. `supabase/migrations/202610280002_harden_grants.sql`
 3. `supabase/migrations/202610280003_live_dna_pipeline.sql`
+4. `supabase/migrations/202610290004_youtube_evidence.sql`
 
 실행 전에는 클라우드 저장이 동작하지 않고, 자동으로 브라우저 저장으로 대신합니다. 브라우저 데이터를 지우면 저장 결과도 사라집니다.
 
@@ -332,7 +380,7 @@ API가 연결돼 있다는 이유만으로 LIVE를 표시하지 않습니다. �
 app/                    Next.js App Router 페이지와 API 라우트
   api/                  서버 API (아래 10번 참고)
   trends/[id]/why|dna   트렌드별 WHY · DNA 페이지
-  globals.css           디자인 토큰과 공통 스타일 (Windows 3.1 스타일)
+  globals.css           디자인 토큰과 공통 스타일 (Y2K Pixel Desktop)
 components/             화면 컴포넌트
   overview.tsx          Overview
   ig-pulse.tsx          지금 뜨는 해시태그 보드
@@ -371,7 +419,9 @@ docs/                   설계 · 감사 · 디자인 문서
 
 | 경로 | 용도 |
 |---|---|
-| `/api/trends/instagram` | 해시태그 게시 속도 스캔 `{ force, discover, track[], add[] }` |
+| `/api/trends/instagram` | 해시태그 게시 속도 스캔 `{ force, discover, allowNew, track[], add[] }` |
+| `/api/meta/quota` | 최근 7일 고유 해시태그 목록과 Meta 실측 사용량 조회(신규 검색 없음) |
+| `/api/youtube/search` | 키워드 관련 최근 공개 영상·통계·시간대별 게시 분포 조회 |
 | `/api/trends/now` | 2030 HIGH SCORE 스캔 `{ force }` |
 | `/api/analyze` | TREND WHY 분석 |
 | `/api/dna` | TREND DNA 분석 |
@@ -422,7 +472,12 @@ npm run test:e2e    # Playwright E2E (데스크톱 + 모바일)
 | 문서 | 내용 |
 |---|---|
 | [docs/LIVE_DATA_AUDIT.md](docs/LIVE_DATA_AUDIT.md) | 외부 API 실측 결과, 기능별 데이터 출처, 알려진 한계 |
-| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Windows 3.1 디자인 토큰과 컴포넌트 규칙 |
+| [docs/CULTURE_MAP_ARCHITECTURE.md](docs/CULTURE_MAP_ARCHITECTURE.md) | Culture Map 메타데이터·DB·관계 엔진·지도 화면 구조 |
+| [docs/CULTURE_MAP_VALIDATION.md](docs/CULTURE_MAP_VALIDATION.md) | Culture Map 검증 결과와 미검증 항목 |
+| [docs/CULTURE_MAP_PHASE4_REPORT.md](docs/CULTURE_MAP_PHASE4_REPORT.md) | PHASE 4 인터랙티브 지도 개발 보고 |
+| [docs/CULTURE_MAP_PHASE5_REPORT.md](docs/CULTURE_MAP_PHASE5_REPORT.md) | PHASE 5 분석→지도 자동 반영 파이프라인 보고 |
+| [docs/CULTURE_MAP_PHASE6_REPORT.md](docs/CULTURE_MAP_PHASE6_REPORT.md) | PHASE 6 실측 8개 트렌드 관계 검증과 수정 |
+| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Y2K Pixel Desktop 디자인 토큰과 컴포넌트 규칙 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 시스템 구조 |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | 제품 개요 |
 | [docs/STATUS.md](docs/STATUS.md) | 진행 상황 |

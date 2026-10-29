@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { scanTrendNow, TREND_NOW_PROMPT_VERSION } from "@/lib/trend-now";
 import { hashKey, readJsonBody, runGuarded } from "@/lib/ai-guard";
-import { clientKeyFrom } from "@/lib/rate-limit";
 import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
+import { requirePaidAccess } from "@/lib/api-access";
+import { koreaDateKey } from "@/lib/korea-date";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,12 @@ export async function POST(request: Request) {
   try { body = await readJsonBody(request, 1_000); } catch (error) { return errorResponse(error); }
   const parsed = requestSchema.safeParse(body ?? {});
   if (!parsed.success) return invalidRequest(parsed.error.issues);
-  const cacheKey = hashKey({ v: TREND_NOW_PROMPT_VERSION, day: new Date().toISOString().slice(0, 10) });
+  let access;
+  try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
+  // 서비스 대상이 한국이므로 UTC가 아니라 KST 자정에 새 일일 스캔으로 전환한다.
+  const cacheKey = hashKey({ v: TREND_NOW_PROMPT_VERSION, day: koreaDateKey() });
   try {
-    const { value, cached } = await runGuarded(clientKeyFrom(request), cacheKey, NOW_CACHE_TTL_MS, scanTrendNow, { bypassCache: parsed.data.force });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, NOW_CACHE_TTL_MS, scanTrendNow, { bypassCache: parsed.data.force });
     return NextResponse.json({ mode: "live", cached, report: value }, { headers: noStore });
   } catch (error) {
     if (error instanceof Error && !("status" in error)) return NextResponse.json({ error: "TREND_NOW_FAILED", message: error.message }, { status: 502, headers: noStore });

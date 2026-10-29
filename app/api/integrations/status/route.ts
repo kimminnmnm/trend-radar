@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiUsageToday } from "@/lib/ai-guard";
+import { youtubeUsageToday } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export async function GET() {
     {
       openai: { configured: Boolean(process.env.OPENAI_API_KEY?.trim()), usage: aiUsageToday() },
       naver: { configured: Boolean(process.env.NAVER_CLIENT_ID?.trim() && process.env.NAVER_CLIENT_SECRET?.trim()) },
+      youtube: { configured: Boolean(process.env.YOUTUBE_API_KEY?.trim()), usage: youtubeUsageToday() },
+      googleTrends: { configured: false, implemented: false, status: "alpha_approval_required" },
       supabase: { configured: supabaseConfigured, implemented: true, tablesReady: supabaseConfigured ? await supabaseTablesReady() : null },
     },
     { headers: { "Cache-Control": "no-store" } },

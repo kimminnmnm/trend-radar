@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice">
+  <!-- TREND RADAR 배경: 하늘·구름·무지개·들판·데이지. 직접 그린 일러스트(외부 이미지·상표 없음). -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5fb8ef"/>
+      <stop offset=".45" stop-color="#9ed8f7"/>
+      <stop offset=".7" stop-color="#d9f1fd"/>
+      <stop offset="1" stop-color="#f4fbff"/>
+    </linearGradient>
+    <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c4ec7a"/><stop offset="1" stop-color="#9fd94f"/>
+    </linearGradient>
+    <linearGradient id="hillNear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b3e35c"/><stop offset=".6" stop-color="#86c93a"/><stop offset="1" stop-color="#6cb52a"/>
+    </linearGradient>
+    <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fd84b"/><stop offset="1" stop-color="#5fa823"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".12" cy=".08" r=".35">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".3" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <g id="cloud">
+      <ellipse cx="0" cy="18" rx="88" ry="30" fill="#fff"/>
+      <circle cx="-38" cy="4" r="30" fill="#fff"/>
+      <circle cx="8" cy="-10" r="40" fill="#fff"/>
+      <circle cx="50" cy="6" r="28" fill="#fff"/>
+      <ellipse cx="0" cy="34" rx="80" ry="12" fill="#d6ecfa" opacity=".7"/>
+    </g>
+    <g id="daisy">
+      <g fill="#fff" stroke="#e3ecd2" stroke-width="1">
+        <ellipse cx="0" cy="-13" rx="5" ry="12"/><ellipse cx="0" cy="13" rx="5" ry="12"/>
+        <ellipse cx="-13" cy="0" rx="12" ry="5"/><ellipse cx="13" cy="0" rx="12" ry="5"/>
+        <ellipse cx="-9" cy="-9" rx="5" ry="11" transform="rotate(-45 -9 -9)"/><ellipse cx="9" cy="9" rx="5" ry="11" transform="rotate(-45 9 9)"/>
+        <ellipse cx="9" cy="-9" rx="5" ry="11" transform="rotate(45 9 -9)"/><ellipse cx="-9" cy="9" rx="5" ry="11" transform="rotate(45 -9 9)"/>
+      </g>
+      <circle r="7" fill="#ffc928"/><circle r="4" cx="-1.5" cy="-1.5" fill="#ffe27a"/>
+    </g>
+    <g id="daisyPink">
+      <use href="#daisy"/><circle r="17" fill="#ffc2dc" opacity=".35"/>
+    </g>
+    <g id="tree">
+      <rect x="-4" y="10" width="8" height="40" rx="3" fill="#8a6a3c"/>
+      <circle r="32" fill="#7cc23a"/><circle cx="-10" cy="-10" r="16" fill="#9ed85a" opacity=".8"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <rect width="1600" height="1000" fill="url(#sun)"/>
+
+  <!-- 파스텔 무지개 -->
+  <g fill="none" stroke-width="14" opacity=".55" transform="translate(330 760)">
+    <path d="M-330 0 A330 330 0 0 1 330 0" stroke="#ffb3b3"/>
+    <path d="M-316 0 A316 316 0 0 1 316 0" stroke="#ffd59e"/>
+    <path d="M-302 0 A302 302 0 0 1 302 0" stroke="#fff3a6"/>
+    <path d="M-288 0 A288 288 0 0 1 288 0" stroke="#c9f2a8"/>
+    <path d="M-274 0 A274 274 0 0 1 274 0" stroke="#b4e2ff"/>
+    <path d="M-260 0 A260 260 0 0 1 260 0" stroke="#d9c6ff"/>
+  </g>
+
+  <!-- 구름 -->
+  <use href="#cloud" transform="translate(240 150) scale(1.1)"/>
+  <use href="#cloud" transform="translate(760 110) scale(.7)"/>
+  <use href="#cloud" transform="translate(1180 230) scale(1.25)"/>
+  <use href="#cloud" transform="translate(1520 120) scale(.8)"/>
+  <use href="#cloud" transform="translate(80 330) scale(.6)"/>
+
+  <!-- 들판 -->
+  <path d="M0 640 C 260 560 520 600 760 640 S 1260 560 1600 610 L1600 1000 L0 1000Z" fill="url(#hillFar)"/>
+  <use href="#tree" transform="translate(470 600) scale(.8)"/>
+  <use href="#tree" transform="translate(640 590)"/>
+  <use href="#tree" transform="translate(1190 585) scale(.9)"/>
+  <use href="#tree" transform="translate(1420 600) scale(.65)"/>
+  <path d="M0 720 C 300 650 700 690 1000 720 S 1400 680 1600 700 L1600 1000 L0 1000Z" fill="url(#hillNear)"/>
+  <!-- 오솔길 -->
+  <path d="M1040 700 C 960 760 1180 800 1080 870 S 900 960 980 1000 L1110 1000 C 1050 950 1230 900 1170 860 S 1080 760 1080 702Z" fill="#f4f1d6" opacity=".9"/>
+  <path d="M0 830 C 260 780 560 800 820 850 S 1300 820 1600 840 L1600 1000 L0 1000Z" fill="url(#hillFront)"/>
+
+  <!-- 데이지: 앞쪽 양옆에 모아 본문을 가리지 않게 -->
+  <g>
+    <use href="#daisy" transform="translate(60 870) scale(1.5)"/>
+    <use href="#daisy" transform="translate(150 920) scale(1.8)"/>
+    <use href="#daisyPink" transform="translate(240 880) scale(1.2)"/>
+    <use href="#daisy" transform="translate(110 970) scale(1.4)"/>
+    <use href="#daisy" transform="translate(320 950) scale(1.1)"/>
+    <use href="#daisy" transform="translate(30 790) scale(.9)"/>
+    <use href="#daisy" transform="translate(410 900) scale(.8)"/>
+    <use href="#daisy" transform="translate(1310 880) scale(1)"/>
+    <use href="#daisyPink" transform="translate(1390 930) scale(1.3)"/>
+    <use href="#daisy" transform="translate(1480 870) scale(1.5)"/>
+    <use href="#daisy" transform="translate(1560 950) scale(1.7)"/>
+    <use href="#daisy" transform="translate(1230 950) scale(.9)"/>
+    <use href="#daisy" transform="translate(1530 790) scale(.8)"/>
+    <use href="#daisy" transform="translate(1440 760) scale(.6)"/>
+    <use href="#daisy" transform="translate(1340 800) scale(.6)"/>
+  </g>
+</svg>

@@ -17,7 +17,7 @@ export function DataBadge({ status, detail }: { status: DataStatus; detail?: str
 }
 
 /** 창 타이틀바 오른쪽의 최소화·최대화·닫기 장식. 동작 없는 시각 요소다. */
-export function WinButtons() { return <span className="win-buttons" aria-hidden><i>_</i><i>□</i><i className="close">✕</i></span>; }
+export function WinButtons() { return <span className="win-buttons" aria-hidden><i>_</i><i>□</i><i className="close">×</i></span>; }
 
 export function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: React.ReactNode; description: string; action?: React.ReactNode }) {
   return <header className="page-header window"><div className="titlebar"><Eyebrow>{eyebrow}</Eyebrow><WinButtons /></div><div className="window-body"><div><h1>{title}</h1><p>{description}</p></div>{action}</div></header>;

@@ -20,6 +20,7 @@ export type HashtagSearchResult = {
   warnings: string[];
   cache: { hit: boolean; ttlSeconds: number };
   metrics: { postCount: null; growthRate: null; reason: string };
+  quota: { searchKind: "refresh" | "new"; usedNewSlot: boolean };
 };
 
 const hashtagCache = new Map<string, { expiresAt: number; value: HashtagSearchResult }>();
@@ -141,7 +142,29 @@ function writeCache(cacheKey: string, value: HashtagSearchResult) {
   hashtagCache.set(cacheKey, { value, expiresAt: Date.now() + HASHTAG_CACHE_TTL_MS });
 }
 
-export async function searchInstagramHashtag(query: string): Promise<HashtagSearchResult> {
+export type RecentlySearchedHashtag = { id: string; name: string };
+const recentTags = { at: 0, accountId: "", tags: [] as RecentlySearchedHashtag[] };
+
+async function recentHashtags(accountId: string, force = false) {
+  if (!force && recentTags.accountId === accountId && Date.now() - recentTags.at <= HASHTAG_CACHE_TTL_MS) return recentTags.tags;
+  const response = await graphFetch<{ data: Array<{ id: string; name?: string }> }>(`${accountId}/recently_searched_hashtags`, { fields: "id,name", limit: "30" });
+  const tags = response.data.flatMap((item) => item.name ? [{ id: item.id, name: item.name.toLocaleLowerCase() }] : []);
+  Object.assign(recentTags, { at: Date.now(), accountId, tags });
+  return tags;
+}
+
+/** 새 해시태그는 주간 한도(30개)가 남았을 때만 조회한다. 이미 조회한 태그는 한도를 쓰지 않으므로 통과. */
+async function assertHashtagBudget(accountId: string, tag: string) {
+  const key = tag.toLocaleLowerCase();
+  const tags = await recentHashtags(accountId).catch(() => null);
+  if (!tags) return null; // 확인 실패 시 Meta의 자체 한도에 맡긴다.
+  const known = tags.find((item) => item.name === key);
+  if (known) return known;
+  if (recentTags.tags.length >= HASHTAG_WEEKLY_LIMIT) throw new MetaGraphError(`Instagram 주간 해시태그 한도(${HASHTAG_WEEKLY_LIMIT}개)를 모두 사용했습니다. 이번 주에 이미 조회한 태그만 다시 볼 수 있습니다.`, undefined, 429, "META_HASHTAG_WEEKLY_LIMIT");
+  return null;
+}
+
+export async function searchInstagramHashtag(query: string, options: { allowNew?: boolean } = {}): Promise<HashtagSearchResult> {
   const normalized = normalizeHashtag(query);
   const status = await getMetaConnectionStatus();
   if (!status.tokenValid) {
@@ -158,10 +181,13 @@ export async function searchInstagramHashtag(query: string): Promise<HashtagSear
   const cached = readCache(cacheKey);
   if (cached) return cached;
 
-  const hashtag = await graphFetch<{ data: Array<{ id: string }> }>("ig_hashtag_search", { user_id: accountId, q: normalized });
-  const hashtagId = hashtag.data[0]?.id;
-  const emptyResult: HashtagSearchResult = { source: "live_meta", query: normalized, hashtagId: null, collectedAt: new Date().toISOString(), recentMedia: [], topMedia: [], topMediaAvailable: true, warnings: [], cache: { hit: false, ttlSeconds: HASHTAG_CACHE_TTL_MS / 1000 }, metrics: { postCount: null, growthRate: null, reason: "Meta Hashtag Search API는 전체 게시물 수와 관심도 상승률을 제공하지 않습니다." } };
+  const known = await assertHashtagBudget(accountId, normalized);
+  if (!known && !options.allowNew) throw new MetaGraphError("처음 검색하는 해시태그입니다. 주간 한도 1개 사용을 승인한 뒤 다시 검색하세요.", undefined, 409, "META_NEW_HASHTAG_APPROVAL_REQUIRED");
+  const hashtag = known ? null : await graphFetch<{ data: Array<{ id: string }> }>("ig_hashtag_search", { user_id: accountId, q: normalized });
+  const hashtagId = known?.id ?? hashtag?.data[0]?.id;
+  const emptyResult: HashtagSearchResult = { source: "live_meta", query: normalized, hashtagId: null, collectedAt: new Date().toISOString(), recentMedia: [], topMedia: [], topMediaAvailable: true, warnings: [], cache: { hit: false, ttlSeconds: HASHTAG_CACHE_TTL_MS / 1000 }, metrics: { postCount: null, growthRate: null, reason: "Meta Hashtag Search API는 전체 게시물 수와 관심도 상승률을 제공하지 않습니다." }, quota: { searchKind: known ? "refresh" : "new", usedNewSlot: !known } };
   if (!hashtagId) { writeCache(cacheKey, emptyResult); return emptyResult; }
+  if (!known) recentTags.tags.push({ id: hashtagId, name: normalized.toLocaleLowerCase() });
 
   const mediaParams = { user_id: accountId, fields: "id,caption,media_type,permalink,timestamp", limit: "12" };
   const recent = await graphFetch<{ data: InstagramMedia[] }>(`${hashtagId}/recent_media`, mediaParams);
@@ -217,18 +243,33 @@ export async function resolveIgAccountId() {
 }
 
 /** 최근 7일 안에 조회한 해시태그. 이 목록에 있는 태그는 다시 조회해도 주간 한도를 쓰지 않는다. */
-export async function getRecentlySearchedHashtags(accountId: string) {
-  const response = await graphFetch<{ data: Array<{ id: string; name?: string }> }>(`${accountId}/recently_searched_hashtags`, { fields: "id,name", limit: "30" });
-  return response.data.map((item) => (item.name ?? "").toLocaleLowerCase()).filter(Boolean);
+export async function getRecentlySearchedHashtags(accountId: string, force = false) {
+  return recentHashtags(accountId, force);
+}
+
+/** Meta 실측 주간 사용량. API는 검색 시각을 제공하지 않으므로 시각은 앱 로컬 감사 기록으로 보완한다. */
+export async function getHashtagQuotaStatus() {
+  const accountId = await resolveIgAccountId();
+  const tags = await getRecentlySearchedHashtags(accountId, true);
+  return {
+    source: "meta_api" as const,
+    checkedAt: new Date().toISOString(),
+    limit: HASHTAG_WEEKLY_LIMIT,
+    used: tags.length,
+    remaining: Math.max(0, HASHTAG_WEEKLY_LIMIT - tags.length),
+    recent: tags.map((item) => ({ tag: item.name, hashtagId: item.id })),
+    searchTimesAvailable: false,
+  };
 }
 
 export function normalizeHashtagName(query: string) { return normalizeHashtag(query.replace(/\s+/g, "")); }
 
-export async function measureHashtagPulse(accountId: string, query: string): Promise<HashtagPulseMeasure> {
+export async function measureHashtagPulse(accountId: string, query: string, knownHashtagId?: string): Promise<HashtagPulseMeasure> {
   const tag = normalizeHashtagName(query);
   const collectedAt = new Date();
-  const search = await graphFetch<{ data: Array<{ id: string }> }>("ig_hashtag_search", { user_id: accountId, q: tag });
-  const hashtagId = search.data[0]?.id ?? null;
+  const search = knownHashtagId ? null : await graphFetch<{ data: Array<{ id: string }> }>("ig_hashtag_search", { user_id: accountId, q: tag });
+  const hashtagId = knownHashtagId ?? search?.data[0]?.id ?? null;
+  if (!knownHashtagId && hashtagId && !recentTags.tags.some((item) => item.name === tag.toLocaleLowerCase())) recentTags.tags.push({ id: hashtagId, name: tag.toLocaleLowerCase() });
   const empty: HashtagPulseMeasure = { tag, hashtagId, collectedAt: collectedAt.toISOString(), sampled: 0, pagesFetched: 0, complete: true, posts24h: 0, oldestAt: null, spanHours: null, perHour: hashtagId ? 0 : null, rateBasis: "24h-full", samplePosts: [] };
   if (!hashtagId) return empty;
 

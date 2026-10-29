@@ -4,8 +4,9 @@ import { callStructured, js } from "./openai-client";
 import { collectNaverTrend, type NaverTrendSignal } from "./naver";
 import { computeSeriesStats } from "./signal";
 import type { NowTrendItem, NowTrendReport } from "./types";
+import { koreaDateKey } from "./korea-date";
 
-export const TREND_NOW_PROMPT_VERSION = "now-2030-v3";
+export const TREND_NOW_PROMPT_VERSION = "now-2030-v4";
 /** NAVER 연령 구간: 19–24, 25–29, 30–34, 35–39 */
 export const AGES_2030 = ["3", "4", "5", "6"];
 const MAX_CANDIDATES = 13; // 5 + 4 + 4: 앵커를 포함한 NAVER 요청 3회
@@ -26,7 +27,7 @@ async function collectCandidates(today: string) {
     name: "trend_now_candidates", jsonSchema: candidateJsonSchema, validator: candidateSchema, webSearch: true, maxOutputTokens: 5000,
     instructions: [
       "You collect candidate trend keywords for Korean people in their 20s and 30s. Use web search and rely only on what you find.",
-      `Today is ${today}. Run several different searches (e.g. 2030 트렌드, MZ세대 요즘 유행, 20대 인기, 30대 관심사, 트렌드 리포트) and prefer sources published within the last 90 days.`,
+      `Today in Korea is ${today}. Search with the current year and month included. Use sources published within the last 90 days. Reject an old trend unless a recent source explicitly documents a current revival or renewed growth.`,
       "Use news articles, research or consumer trend reports, and platform trend reports from at least 5 different domains. Do not use shopping product listings, coupon pages, or SEO spam blogs.",
       "Return 12-15 distinct candidates across lifestyle, food, fashion, beauty, entertainment, tech, hobbies, sports, travel.",
       "keyword: the commonly searched Korean name of the trend itself, 1-3 words (e.g. a sport, food, item, place type, app, or activity). Not a description, not a seasonal phrase, no hashtags, no brand slogans.",
@@ -86,7 +87,7 @@ async function validateWithNaver(keywords: string[]) {
 }
 
 export async function scanTrendNow(): Promise<NowTrendReport> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = koreaDateKey();
   const { candidates, model, droppedUnverified, searchedSources } = await collectCandidates(today);
   if (!candidates.length) throw new Error("검증 가능한 출처를 가진 후보를 찾지 못했습니다.");
   const { items: validated, anchor, period } = await validateWithNaver(candidates.map((candidate) => candidate.keyword));
@@ -103,7 +104,10 @@ export async function scanTrendNow(): Promise<NowTrendReport> {
     items.push({ ...candidate, stats, series: result.series, batch: result.batch, scale: Math.round(result.scale * 1000) / 1000, levelPrecision: result.precision, changePct });
   }
   // 순위: 상승률(최근 1/3 평균 ÷ 초기 1/3 평균). 한 시계열 안의 비율이라 배치 간 척도 환산의 영향을 받지 않는다.
-  items.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));
+  items.sort((a, b) => {
+    const change = (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity);
+    return change || b.stats.mean - a.stats.mean || a.keyword.localeCompare(b.keyword, "ko-KR");
+  });
 
   return {
     generatedAt: new Date().toISOString(), model, promptVersion: TREND_NOW_PROMPT_VERSION,

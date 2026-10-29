@@ -1,0 +1,336 @@
+{
+ "first": {
+  "generatedAt": "2026-10-29T00:34:07.601Z",
+  "promptVersion": "ig-pulse-v1",
+  "model": "gpt-6-luna",
+  "items": [
+   {
+    "tag": "치이카와",
+    "hashtagId": "17865460175182032",
+    "collectedAt": "2026-10-29T00:33:27.667Z",
+    "sampled": 300,
+    "pagesFetched": 6,
+    "complete": false,
+    "posts24h": 300,
+    "oldestAt": "2026-10-28T09:30:02.000Z",
+    "spanHours": 15.1,
+    "perHour": 19.9,
+    "rateBasis": "recent-sample",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE1/",
+      "timestamp": "2026-10-29T00:29:24+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE2/",
+      "timestamp": "2026-10-29T00:26:47+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE3/",
+      "timestamp": "2026-10-29T00:26:38+0000"
+     }
+    ],
+    "origin": "manual",
+    "sources": [],
+    "found": true,
+    "usedQuota": true
+   },
+   {
+    "tag": "떡지순례",
+    "hashtagId": "17847884578109380",
+    "collectedAt": "2026-10-29T00:34:05.253Z",
+    "sampled": 9,
+    "pagesFetched": 1,
+    "complete": true,
+    "posts24h": 9,
+    "oldestAt": "2026-10-28T00:51:56.000Z",
+    "spanHours": 23.7,
+    "perHour": 0.4,
+    "rateBasis": "24h-full",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE4/",
+      "timestamp": "2026-10-29T00:19:58+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE5/",
+      "timestamp": "2026-10-28T23:03:10+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE6/",
+      "timestamp": "2026-10-28T10:02:18+0000"
+     }
+    ],
+    "origin": "discovered",
+    "keyword": "떡지순례",
+    "category": "디저트·맛집",
+    "summary": "인기 떡집을 찾아다니는 ‘떡지순례’가 젊은 소비자 사이에서 확산되고, 피자설기 등 퓨전 떡의 SNS 게시물도 소개됐다.",
+    "sources": [
+     {
+      "url": "https://biz.heraldcorp.com/article/10870783"
+     },
+     {
+      "url": "https://view.asiae.co.kr/en/article/2026090410201820711"
+     }
+    ],
+    "found": true,
+    "usedQuota": true
+   },
+   {
+    "tag": "런메이트캠프",
+    "hashtagId": "18476059342113815",
+    "collectedAt": "2026-10-29T00:33:43.237Z",
+    "sampled": 8,
+    "pagesFetched": 1,
+    "complete": true,
+    "posts24h": 8,
+    "oldestAt": "2026-10-28T03:42:45.000Z",
+    "spanHours": 20.8,
+    "perHour": 0.3,
+    "rateBasis": "24h-full",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE7/",
+      "timestamp": "2026-10-28T08:55:03+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE8/",
+      "timestamp": "2026-10-28T08:13:37+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE9/",
+      "timestamp": "2026-10-28T07:58:33+0000"
+     }
+    ],
+    "origin": "discovered",
+    "keyword": "SKT 런메이트 캠프",
+    "category": "러닝·팝업",
+    "summary": "성수에서 AI 러닝 분석과 코칭, 러닝 기기 체험을 제공하는 팝업이 열려 가을 러닝 관심과 함께 소개되고 있다.",
+    "sources": [
+     {
+      "url": "https://news.sktelecom.com/232223"
+     },
+     {
+      "url": "https://runmate.co.kr/runmate_camp"
+     }
+    ],
+    "found": true,
+    "usedQuota": true
+   },
+   {
+    "tag": "조조타운인무신사",
+    "hashtagId": "18492876529099595",
+    "collectedAt": "2026-10-29T00:34:04.310Z",
+    "sampled": 0,
+    "pagesFetched": 1,
+    "complete": true,
+    "posts24h": 0,
+    "oldestAt": null,
+    "spanHours": null,
+    "perHour": 0,
+    "rateBasis": "24h-full",
+    "samplePosts": [],
+    "origin": "discovered",
+    "keyword": "조조타운 인 무신사",
+    "category": "패션·팝업",
+    "summary": "일본 패션 플랫폼 조조타운이 성수 팝업에서 인기 일본 브랜드를 소개하며 한일 패션 트렌드가 만나는 공간으로 보도됐다.",
+    "sources": [
+     {
+      "url": "https://www.news1.kr/industry/distribution/6322268"
+     }
+    ],
+    "found": true,
+    "usedQuota": true
+   }
+  ],
+  "deferred": [
+   {
+    "tag": "르세라핌",
+    "reason": "새 태그는 스캔당 최대 4개"
+   },
+   {
+    "tag": "짱구는못말려",
+    "reason": "새 태그는 스캔당 최대 4개"
+   },
+   {
+    "tag": "성수팝업",
+    "reason": "새 태그는 스캔당 최대 4개"
+   }
+  ],
+  "failed": [
+   {
+    "tag": "크런치롤페스티벌코리아",
+    "reason": "The requested resource does not exist"
+   },
+   {
+    "tag": "아이브",
+    "reason": "Meta API 응답 시간이 초과됐습니다. 잠시 후 다시 시도하세요."
+   }
+  ],
+  "droppedUnverified": 0,
+  "searchedSources": 148,
+  "quota": {
+   "limit": 30,
+   "reserve": 6,
+   "usedBefore": 8,
+   "usedAfter": 12
+  },
+  "methodology": [
+   "Instagram Graph API는 해시태그의 전체 게시물 수를 제공하지 않습니다. 여기 수치는 recent_media(최근 24시간 공개 게시물)를 직접 넘겨받아 센 값입니다.",
+   "최근 게시물을 끝까지 받은 태그는 24시간 게시물 수가 정확하고, 시간당 속도는 24시간 평균입니다.",
+   "게시물이 많아 일부만 받은 태그(최대 300개)는 받은 표본이 걸친 최근 몇 시간의 속도이며, 24시간 수는 '이상'으로 표시합니다. 측정 시각(낮·밤)에 따라 달라질 수 있습니다.",
+   "전일 대비 변화는 같은 태그를 20시간 이상 간격으로 다시 측정했을 때만 계산합니다. 측정 방식이 다르면 비교하지 않습니다.",
+   "후보는 OpenAI 웹 검색으로 찾았고, 검색 도구가 실제로 조회한 URL을 인용한 후보만 남겼습니다. 추적 중인 태그는 웹 검색 없이 다시 측정합니다.",
+   "Meta는 7일간 고유 해시태그 30개까지만 조회를 허용합니다. 이미 조회한 태그는 다시 조회해도 한도를 쓰지 않으며, 6개는 수동 검색용으로 남겨 둡니다."
+  ]
+ },
+ "second": {
+  "generatedAt": "2026-10-29T00:36:31.013Z",
+  "promptVersion": "ig-pulse-v2",
+  "model": null,
+  "items": [
+   {
+    "tag": "치이카와",
+    "hashtagId": "17865460175182032",
+    "collectedAt": "2026-10-29T00:35:33.435Z",
+    "sampled": 300,
+    "pagesFetched": 6,
+    "complete": false,
+    "posts24h": 300,
+    "oldestAt": "2026-10-28T09:30:02.000Z",
+    "spanHours": 15.1,
+    "perHour": 19.9,
+    "rateBasis": "recent-sample",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE10/",
+      "timestamp": "2026-10-29T00:34:32+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE11/",
+      "timestamp": "2026-10-29T00:29:24+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE12/",
+      "timestamp": "2026-10-29T00:26:47+0000"
+     }
+    ],
+    "origin": "tracked",
+    "sources": [],
+    "found": true,
+    "usedQuota": false
+   },
+   {
+    "tag": "아이브",
+    "hashtagId": "17843645806017104",
+    "collectedAt": "2026-10-29T00:35:55.651Z",
+    "sampled": 300,
+    "pagesFetched": 6,
+    "complete": false,
+    "posts24h": 300,
+    "oldestAt": "2026-10-28T04:43:57.000Z",
+    "spanHours": 19.9,
+    "perHour": 15.1,
+    "rateBasis": "recent-sample",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE13/",
+      "timestamp": "2026-10-29T00:13:53+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE14/",
+      "timestamp": "2026-10-29T00:09:12+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE15/",
+      "timestamp": "2026-10-29T00:03:14+0000"
+     }
+    ],
+    "origin": "tracked",
+    "sources": [],
+    "found": true,
+    "usedQuota": false
+   },
+   {
+    "tag": "떡지순례",
+    "hashtagId": "17847884578109380",
+    "collectedAt": "2026-10-29T00:36:26.665Z",
+    "sampled": 9,
+    "pagesFetched": 1,
+    "complete": true,
+    "posts24h": 9,
+    "oldestAt": "2026-10-28T00:51:56.000Z",
+    "spanHours": 23.7,
+    "perHour": 0.4,
+    "rateBasis": "24h-full",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE16/",
+      "timestamp": "2026-10-29T00:19:58+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE17/",
+      "timestamp": "2026-10-28T23:03:10+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE18/",
+      "timestamp": "2026-10-28T10:02:18+0000"
+     }
+    ],
+    "origin": "tracked",
+    "sources": [],
+    "found": true,
+    "usedQuota": false
+   },
+   {
+    "tag": "런메이트캠프",
+    "hashtagId": "18476059342113815",
+    "collectedAt": "2026-10-29T00:36:28.556Z",
+    "sampled": 8,
+    "pagesFetched": 1,
+    "complete": true,
+    "posts24h": 8,
+    "oldestAt": "2026-10-28T03:42:45.000Z",
+    "spanHours": 20.9,
+    "perHour": 0.3,
+    "rateBasis": "24h-full",
+    "samplePosts": [
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE19/",
+      "timestamp": "2026-10-28T08:55:03+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE20/",
+      "timestamp": "2026-10-28T08:13:37+0000"
+     },
+     {
+      "permalink": "https://www.instagram.com/p/FIXTURE21/",
+      "timestamp": "2026-10-28T07:58:33+0000"
+     }
+    ],
+    "origin": "tracked",
+    "sources": [],
+    "found": true,
+    "usedQuota": false
+   }
+  ],
+  "deferred": [],
+  "failed": [],
+  "droppedUnverified": 0,
+  "searchedSources": 0,
+  "quota": {
+   "limit": 30,
+   "reserve": 6,
+   "usedBefore": 13,
+   "usedAfter": 13
+  },
+  "methodology": [
+   "Instagram Graph API는 해시태그의 전체 게시물 수를 제공하지 않습니다. 여기 수치는 recent_media(최근 24시간 공개 게시물)를 직접 넘겨받아 센 값입니다.",
+   "최근 게시물을 끝까지 받은 태그는 24시간 게시물 수가 정확하고, 시간당 속도는 24시간 평균입니다.",
+   "게시물이 많아 일부만 받은 태그(최대 300개)는 받은 표본이 걸친 최근 몇 시간의 속도이며, 24시간 수는 '이상'으로 표시합니다. 측정 시각(낮·밤)에 따라 달라질 수 있습니다.",
+   "전일 대비 변화는 같은 태그를 20시간 이상 간격으로 다시 측정했을 때만 계산합니다. 측정 방식이 다르면 비교하지 않습니다.",
+   "후보는 OpenAI 웹 검색으로 찾았고, 검색 도구가 실제로 조회한 URL을 인용한 후보만 남겼습니다. 추적 중인 태그는 웹 검색 없이 다시 측정합니다.",
+   "Meta는 7일간 고유 해시태그 30개까지만 조회를 허용합니다. 이미 조회한 태그는 다시 조회해도 한도를 쓰지 않으며, 6개는 수동 검색용으로 남겨 둡니다."
+  ]
+ }
+}

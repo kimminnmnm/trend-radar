@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { persistCultureKnowledge, persistCultureRelation } from "./culture-cloud-storage";
 import { calibrateSemanticThreshold, displayableSignals } from "./culture-calibration";
+import { CULTURE_ALIAS_RULES_VERSION } from "./culture-alias-rules";
 import { currentRelationRecords, currentVersion, syncCultureLedger, type CultureLedger, type LedgerSyncResult } from "./culture-pipeline";
 import { getCultureRelations, getCultureVersions, getLiveAnalyses, saveCultureLedger } from "./storage";
 import type { LiveAnalysisSnapshot } from "./types";
@@ -30,7 +31,8 @@ const notSignedIn = (message: string) => /로그인|설정되지/.test(message);
  * 현재 버전 메타데이터와 관계를 Supabase에 저장한다. 이미 저장한 항목은 건너뛴다.
  * save_culture_knowledge RPC는 같은 분석 시각에 대해 멱등이고, 관계는 (버전, 버전, 유형) 유일 제약으로 upsert한다.
  */
-export async function syncCultureCloud(ledger: CultureLedger, snapshots: LiveAnalysisSnapshot[], client?: SupabaseClient): Promise<{ ledger: CultureLedger; status: CloudSyncStatus }> {
+/** @param sourceAnalysisIds trendId → trend_analyses 행 ID. 있으면 분석 버전을 원본 분석 행과 연결한다. */
+export async function syncCultureCloud(ledger: CultureLedger, snapshots: LiveAnalysisSnapshot[], client?: SupabaseClient, sourceAnalysisIds: Map<string, string> = new Map()): Promise<{ ledger: CultureLedger; status: CloudSyncStatus }> {
   const versions = [...ledger.versions];
   const relations = [...ledger.relations];
   let savedVersions = 0, savedRelations = 0;
@@ -39,7 +41,7 @@ export async function syncCultureCloud(ledger: CultureLedger, snapshots: LiveAna
   for (const snapshot of snapshots) {
     const version = currentVersion({ versions, relations }, snapshot);
     if (!version || version.cloud) continue;
-    const result = await persistCultureKnowledge(version.metadata, snapshot.evidence ?? [], client, { model: version.model, promptVersion: version.promptVersion, embeddingModel: version.hasEmbedding ? EMBEDDING_MODEL : undefined });
+    const result = await persistCultureKnowledge(version.metadata, snapshot.evidence ?? [], client, { model: version.model, promptVersion: version.promptVersion, embeddingModel: version.hasEmbedding ? EMBEDDING_MODEL : undefined, sourceAnalysisId: sourceAnalysisIds.get(snapshot.trendId) });
     if (result.target !== "cloud" || !result.trendId || !result.analysisVersionId || !result.versionNumber) {
       return done(notSignedIn(result.message) ? "skipped" : "unavailable", notSignedIn(result.message) ? `브라우저에만 저장했습니다. ${result.message}` : `클라우드 저장 실패: ${result.message}`);
     }
@@ -63,6 +65,7 @@ export async function syncCultureCloud(ledger: CultureLedger, snapshots: LiveAna
         sourceTrendId: source.trendUuid, targetTrendId: target.trendUuid, sourceAnalysisVersionId: source.versionUuid, targetAnalysisVersionId: target.versionUuid,
         relationType: signal.type, commonAttributeIds: common, differentialAttributeIds: differential, score: signal.score, reason: signal.reason,
         evidenceIds: signal.evidenceIds, verificationStatus: signal.verificationStatus, analyzedAt: record.result.analyzedAt,
+        metadata: { result: record.result, sourceTrendKey: record.sourceTrendId, targetTrendKey: record.targetTrendId, sourceVersion: record.sourceVersion, targetVersion: record.targetVersion, computedAt: record.computedAt, aliasRulesVersion: CULTURE_ALIAS_RULES_VERSION },
       }, client);
       if (saved.target !== "cloud") return done("unavailable", `클라우드 관계 저장 실패: ${saved.message}`);
     }

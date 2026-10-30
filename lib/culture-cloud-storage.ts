@@ -97,6 +97,7 @@ export async function persistCultureRelation(relationInput: StoredCultureRelatio
     analyzed_at: relation.analyzedAt,
     model: relation.model ?? null,
     prompt_version: relation.promptVersion ?? null,
+    metadata: relation.metadata ?? {},
   };
   const { error } = await auth.supabase.from("culture_relations").upsert(row, {
     onConflict: "source_analysis_version_id,target_analysis_version_id,relation_type",

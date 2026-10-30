@@ -16,6 +16,7 @@ import { readCultureLedger, syncCultureLedgerLocal } from "@/lib/culture-pipelin
 import { trendPath } from "@/lib/live-trend";
 import { RELATION_RATING_CRITERIA, type CultureRelationFeedback, type LiveAnalysisSnapshot, type RelationRatingKey, type Trend } from "@/lib/types";
 import { DataBadge, formatDateTime, PageHeader, StatusPill } from "./ui";
+import { CultureCloudPanel } from "./culture-cloud-panel";
 
 const LABEL_ALL_LIMIT = 6;
 const NO_EVIDENCE_NOTICE = "이 관계는 AI가 제안한 문화적 연결 가설이며, 실제 확산 관계가 확인된 것은 아닙니다.";
@@ -314,6 +315,7 @@ function CultureMapView() {
   return <div className="page map-page"><PageHeader eyebrow="04 / CULTURE MAP" title="See what culture shares." description="저장된 LIVE 분석이 노드가 되고, 연결선을 누르면 왜 연결됐는지(공통 속성·의미 유사·관찰된 연결·AI 가설)와 근거를 확인할 수 있습니다. 관계 점수는 확률이 아닙니다." />
     <div className="mode-row"><div className="chip-select"><button type="button" aria-pressed={mode === "live"} onClick={() => switchMode("live")}>LIVE GRAPH · {live.length}</button><button type="button" aria-pressed={mode === "demo"} onClick={() => switchMode("demo")}>DEMO GRAPH</button></div><DataBadge status={mode === "demo" ? "DEMO" : live.length ? "SAVED" : "NOT ANALYZED"} detail={mode === "demo" ? "예시 관계 · 실제 분석 아님" : live.length ? "브라우저에 저장된 LIVE 분석으로 계산" : undefined} /></div>
 
+    {mode === "live" && <CultureCloudPanel />}
     <section className="map-tools panel" aria-label="Culture Map 검색과 필터">
       <div className="map-search-wrap">
         <label className="map-search"><Search size={14} /><span className="sr-only">트렌드 검색</span><input aria-label="트렌드 노드 검색" type="search" value={query} onFocus={() => setSearchOpen(true)} onChange={(event) => { setQuery(event.target.value); setSearchOpen(true); }} onKeyDown={(event) => { if (event.key === "Enter" && matches[0]) { event.preventDefault(); chooseResult(matches[0]); } if (event.key === "Escape") setSearchOpen(false); }} placeholder="트렌드·키워드·DNA 속성 검색" /></label>

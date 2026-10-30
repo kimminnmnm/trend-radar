@@ -195,3 +195,61 @@ Supabase의 `auth.users`, `auth.uid()`(요청 JWT sub), `anon`/`authenticated` �
 ### 실데이터 규모 가독성 (8개 트렌드)
 
 스크린샷 점검에서 원형 배치 반지름(노드 수 × 60)이 커서 fitView가 과도하게 축소되고 관계 라벨 12개가 겹쳤다. 반지름을 노드 수 × 34로 줄이고, 관계가 6개를 넘으면 선택한 노드·선에 닿은 관계만 라벨을 표시하도록 바꿨다(LIVE 그래프만, DEMO는 고정 배치라 그대로). 원형 배치에서 곡선이 노드를 감아 도는 문제는 직선 엣지로 해결했다.
+
+## Cloud save / load verification (2026-10-29)
+
+원격 Supabase에는 마이그레이션 0001~0005가 적용돼 있다(0005는 2026-10-29 사용자 적용, 익명 요청 시 culture 테이블 5개와 `save_culture_knowledge` 모두 42501 = 존재하며 권한 차단). 이번 작업에서 마이그레이션을 다시 실행하거나 데이터를 지우지 않았다.
+
+### 발견한 오류와 수정 (코드만, 스키마 변경 없음)
+
+| # | 오류 | 확인 방법 | 수정 |
+|---|---|---|---|
+| 1 | YouTube 포함 분석(현재 기본값)의 클라우드 저장이 `trend_analyses_source_check` 위반으로 실패 | 로컬 Postgres에 0001~0005 적용 후 insert 재현 | DB에는 허용 값 `NAVER DataLab + OpenAI`로 저장, YouTube 여부는 `youtube` 컬럼으로 복원 |
+| 2 | 같은 분석을 다시 저장하면 `trend_analyses` 행 중복 | 로컬 Postgres 재현(2행) | (user, trend_id, analyzed_at)로 먼저 조회해 있으면 갱신 |
+| 3 | WHY 저장이 실패한 뒤 DNA 저장은 0행 갱신인데 "Supabase에 저장했습니다"로 표시 | 코드 검토(update 0행은 오류 없음) | 갱신 결과 행 ID를 확인하고, 행이 없으면 WHY+DNA를 함께 저장, 0행이면 실패로 보고 |
+| 4 | Culture Map이 Supabase에서 불러오는 기능이 없음(다른 브라우저에서 빈 지도) | 코드 검토(`loadCultureKnowledge` 미사용) | `pullCultureCloud`: 분석·버전·관계를 읽어 로컬과 병합. 지도 진입 시 로그인 상태면 자동 실행 |
+| 5 | Postgres 시각 형식(`+00:00`)과 로컬 ISO(`Z`) 문자열 비교로 버전이 어긋날 위험 | 코드 검토 + 테스트 DB가 `+00:00` 반환 | 불러올 때 ISO로 정규화, 병합은 시각 값으로 비교 |
+| 6 | 다른 브라우저에는 임베딩이 없어 의미 유사 관계가 사라질 위험 | 코드 검토 | `culture_relations.metadata`에 계산 결과 전체 저장 → 그대로 복원 |
+
+### 테스트
+
+| 검사 | 결과 |
+|---|---|
+| `tests/culture-cloud-sync.spec.ts` (메모리 Supabase: RLS·source 제약·관계 제약·멱등 RPC·`+00:00` 시각 재현) | 9 시나리오 × 2 프로젝트 통과 |
+| 실측 8개 저장 → 행 수(분석 8·트렌드 8·버전 8·관계 신호별) | 통과 |
+| 빈 브라우저 B에서 불러오기 → 브라우저 A와 같은 관계·유형·점수 | 통과 |
+| A·B 어디서 다시 저장해도 행 수 변화 없음 | 통과 |
+| 로컬이 더 최신·더 풍부하면 덮어쓰지 않음, 클라우드가 더 최신이면 교체하되 이전 DNA 버전 보존 | 통과 |
+| 다른 계정은 0행, 남의 트렌드 ID로 관계 생성 거부 | 통과 |
+| 전체 Playwright | 216 통과 · 2 건너뜀(아래 실제 DB 테스트) |
+| **실제 Supabase 로그인 저장·조회** `tests/cloud-sync.live.spec.ts` | **미실행 — 로그인 정보 없음** |
+
+### 실제 Supabase로 확인하는 방법
+
+1. 테스트 전용 계정을 하나 만든다(http://localhost:3000/auth → CREATE ACCOUNT, 이메일 인증).
+2. `.env.local`에 `CLOUD_TEST_EMAIL=...`, `CLOUD_TEST_PASSWORD=...`를 추가한다(Git 제외 파일).
+3. `npm run build` 후 `npx playwright test tests/cloud-sync.live.spec.ts --project=chromium`
+   - 브라우저 A에서 실측 분석 8개 저장 → "DB 행 확인"의 실제 행 수 확인 → 다시 저장해도 행 수 동일
+   - 새 브라우저 컨텍스트 B(빈 저장소)에서 같은 계정 로그인 → 지도가 Supabase에서 채워짐 → 새로고침 후에도 유지, 행 수 동일
+4. 수동으로는 Culture Map의 SUPABASE CLOUD 패널에서 "클라우드에 저장" → "DB 행 확인"으로 실제 행 수를 볼 수 있다.
+
+Supabase SQL Editor에서 읽기 전용으로 직접 확인할 때:
+
+```sql
+select 'trend_analyses' t, count(*) from public.trend_analyses
+union all select 'culture_trends', count(*) from public.culture_trends
+union all select 'culture_analysis_versions', count(*) from public.culture_analysis_versions
+union all select 'culture_relations', count(*) from public.culture_relations;
+
+-- 중복 분석 행(같은 사용자·트렌드·분석 시각)
+select user_id, trend_id, analyzed_at, count(*) from public.trend_analyses group by 1,2,3 having count(*) > 1;
+
+-- RLS 정책 목록
+select tablename, policyname, cmd from pg_policies where schemaname = 'public' and tablename like any (array['culture_%','trend_analyses','saved_items']) order by 1,2;
+```
+
+### 한계
+
+- 이전 버전의 앱으로 이미 중복 저장된 `trend_analyses` 행이 있다면 자동으로 지우지 않는다(위 SQL로 확인, 정리는 사용자 판단).
+- 의미 유사 표시 기준 보정은 임베딩이 있는 브라우저에서만 코퍼스로 계산된다. 임베딩이 없는 브라우저는 하한값 0.65를 쓴다(저장된 관계 결과는 같음).
+- Collision·Lab·스캔 이력은 여전히 브라우저에만 저장된다.

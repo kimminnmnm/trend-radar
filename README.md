@@ -274,6 +274,8 @@ LIVE 분석한 트렌드가 노드가 되고, 관계 엔진(`lib/cultural-relati
 
 **Culture Map 테이블 적용**: Supabase SQL Editor에서 `supabase/migrations/202610290005_culture_knowledge.sql`을 실행하세요. 이 마이그레이션은 로컬 Postgres에서 저장·버전·중복 방지·사용자 간 격리(RLS)를 검증했지만, 원격 프로젝트에는 아직 적용되지 않았습니다.
 
+**클라우드 동기화**: 로그인하면 Culture Map 상단 SUPABASE CLOUD 패널에서 "클라우드에 저장"(분석·메타데이터 버전·관계), "클라우드에서 불러오기"(다른 브라우저·기기), "DB 행 확인"(Supabase 실제 행 수와 중복 여부)을 쓸 수 있습니다. 로그인 상태로 지도를 열면 자동으로 한 번 불러옵니다. 같은 분석은 다시 저장해도 행이 늘지 않고, 이 브라우저의 더 최신 데이터는 덮어쓰지 않습니다. 실제 Supabase 검증 방법은 [docs/CULTURE_MAP_VALIDATION.md](docs/CULTURE_MAP_VALIDATION.md)의 Cloud 절을 보세요.
+
 DEMO GRAPH는 미리 작성한 예시입니다. 노드에 주황 줄무늬가 있고, 관계 점수·근거가 없으며 Collision 선택 대상이 아닙니다.
 
 ### 4-7. COLLISION → LAB → STUDIO

@@ -29,6 +29,8 @@ export const storedCultureRelationSchema = z.object({
   analyzedAt: z.string().datetime(),
   model: z.string().optional(),
   promptVersion: z.string().optional(),
+  /** 다른 기기에서 관계를 그대로 복원하기 위한 계산 결과 전체(culture_relations.metadata JSONB). */
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 export type StoredCultureRelation = z.infer<typeof storedCultureRelationSchema>;
 

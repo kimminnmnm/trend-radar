@@ -29,7 +29,7 @@ const sameInstant = (a?: string, b?: string) => Boolean(a && b && new Date(a).ge
  * 클라우드 분석을 로컬 목록에 합친다.
  * - 로컬에 없는 트렌드: 추가
  * - 같은 분석 시각: 로컬에 비어 있는 DNA만 채운다(로컬 값은 덮어쓰지 않음)
- * - 클라우드가 더 최신: 교체(호출 전에 로컬 DNA를 버전 원장에 보존해야 한다)
+ * - 클라우드가 더 최신: 로컬 분석이 이미 클라우드에 있을 때만 교체(호출 전에 로컬 DNA를 버전 원장에 보존). 아직 올리지 않은 로컬 분석은 유지
  * - 로컬이 더 최신: 유지
  */
 export function mergeCloudSnapshots(local: LiveAnalysisSnapshot[], cloud: LiveAnalysisSnapshot[]) {
@@ -39,16 +39,21 @@ export function mergeCloudSnapshots(local: LiveAnalysisSnapshot[], cloud: LiveAn
     const prev = newestCloud.get(item.trendId);
     if (!prev || new Date(item.analyzedAt) > new Date(prev.analyzedAt) || (sameInstant(item.analyzedAt, prev.analyzedAt) && item.dna && !prev.dna)) newestCloud.set(item.trendId, item);
   }
-  const added: LiveAnalysisSnapshot[] = [], replaced: LiveAnalysisSnapshot[] = [], filled: Array<{ trendId: string; patch: Partial<LiveAnalysisSnapshot> }> = [];
+  const added: LiveAnalysisSnapshot[] = [], replaced: LiveAnalysisSnapshot[] = [], filled: Array<{ trendId: string; patch: Partial<LiveAnalysisSnapshot> }> = [], keptLocal: string[] = [];
   for (const item of newestCloud.values()) {
     const mine = local.find((snapshot) => snapshot.trendId === item.trendId);
     if (!mine) added.push(item);
     else if (sameInstant(mine.analyzedAt, item.analyzedAt)) {
       if (!mine.dna && item.dna) filled.push({ trendId: mine.trendId, patch: { dna: item.dna, dnaGeneratedAt: item.dnaGeneratedAt, dnaModel: item.dnaModel } });
       if (!mine.evidence?.length && item.evidence?.length) filled.push({ trendId: mine.trendId, patch: { evidence: item.evidence } });
-    } else if (new Date(item.analyzedAt) > new Date(mine.analyzedAt)) replaced.push(item);
+    } else if (new Date(item.analyzedAt) > new Date(mine.analyzedAt)) {
+      // 로컬 분석이 이미 클라우드에 백업돼 있을 때만 더 최신 클라우드 분석으로 교체한다.
+      // 아직 올리지 않은 로컬 분석은 그대로 두고 "업로드 필요"로 남긴다(데이터 유실 방지).
+      const backedUp = cloud.some((row) => row.trendId === mine.trendId && sameInstant(row.analyzedAt, mine.analyzedAt));
+      if (backedUp) replaced.push(item); else keptLocal.push(mine.trendId);
+    }
   }
-  return { added, replaced, filled };
+  return { added, replaced, filled, keptLocal };
 }
 
 /** 클라우드 버전·관계를 로컬 원장에 합친다. 같은 (트렌드, DNA 시각)은 같은 버전으로 본다. */
@@ -156,7 +161,7 @@ export async function pushCultureCloud(client?: SupabaseClient): Promise<PushRep
 }
 
 export type CloudRowCounts = { ok: boolean; message?: string; counts: Record<string, number>; duplicateAnalyses: number };
-export const CULTURE_CLOUD_TABLES = ["trend_analyses", "culture_trends", "culture_analysis_versions", "culture_trend_attributes", "culture_evidence_items", "culture_relations"] as const;
+export const CULTURE_CLOUD_TABLES = ["trend_analyses", "culture_trends", "culture_analysis_versions", "culture_trend_attributes", "culture_evidence_items", "culture_relations", "saved_items"] as const;
 
 /** 본인 계정의 실제 Supabase 행 수. 같은 (trend_id, analyzed_at) 분석 행이 2개 이상이면 중복으로 센다. */
 export async function countCultureCloudRows(client?: SupabaseClient): Promise<CloudRowCounts> {

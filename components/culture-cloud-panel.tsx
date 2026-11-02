@@ -1,51 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Cloud, CloudDownload, CloudUpload, Database, LoaderCircle } from "lucide-react";
 import { countCultureCloudRows, CULTURE_CLOUD_TABLES, pullCultureCloud, pushCultureCloud, type CloudRowCounts } from "@/lib/culture-cloud-sync";
-import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
-
-type AuthState = "checking" | "not-configured" | "signed-out" | "signed-in";
+import { refreshPending, useAccountSync } from "@/lib/account-sync";
 
 /**
- * Culture Map 클라우드 동기화 패널.
- * 로그인 상태면 화면을 열 때 한 번 Supabase에서 불러온다(읽기만, 유료 API 없음).
+ * Culture Map 클라우드 동기화 패널. 로그인 상태와 자동 불러오기는 앱 공용 계정 동기화(lib/account-sync)가 맡는다.
  * 저장 성공 여부는 "DB 행 확인"으로 실제 Supabase 행 수를 보고 판단한다.
  */
 export function CultureCloudPanel() {
-  const [auth, setAuth] = useState<AuthState>("checking");
-  const [email, setEmail] = useState("");
+  const sync = useAccountSync();
+  const auth = sync.phase === "checking" ? "checking" : sync.phase === "not-configured" ? "not-configured" : sync.userId ? "signed-in" : "signed-out";
+  const email = sync.email ?? "";
   const [busy, setBusy] = useState<"pull" | "push" | "count" | null>(null);
   const [message, setMessage] = useState("");
   const [counts, setCounts] = useState<CloudRowCounts | null>(null);
-  const pulled = useRef(false);
 
-  const pull = useCallback(async () => {
+  const pull = async () => {
     setBusy("pull");
     const report = await pullCultureCloud();
     setMessage(report.ok ? report.message : `불러오기 실패: ${report.message}`);
     setBusy(null);
-  }, []);
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { const frame = requestAnimationFrame(() => setAuth("not-configured")); return () => cancelAnimationFrame(frame); }
-    let alive = true;
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!alive) return;
-      setAuth(data.user ? "signed-in" : "signed-out");
-      setEmail(data.user?.email ?? "");
-      if (data.user && !pulled.current) { pulled.current = true; void pull(); }
-    });
-    return () => { alive = false; };
-  }, [pull]);
+    void refreshPending();
+  };
 
   const push = async () => {
     setBusy("push");
     const report = await pushCultureCloud();
     setMessage(report.ok ? report.message : `저장 실패: ${report.message}`);
     setBusy(null);
+    void refreshPending();
     if (report.ok) void count();
   };
   const count = async () => {
@@ -64,7 +50,7 @@ export function CultureCloudPanel() {
       <button type="button" className="button primary" onClick={push} disabled={busy !== null} data-testid="cloud-push">{busy === "push" ? <LoaderCircle className="spin" size={14}/> : <CloudUpload size={14}/>}클라우드에 저장</button>
       <button type="button" className="button" onClick={count} disabled={busy !== null} data-testid="cloud-count">{busy === "count" ? <LoaderCircle className="spin" size={14}/> : <Database size={14}/>}DB 행 확인</button>
     </div> : auth === "signed-out" ? <Link className="button" href="/auth">로그인하고 클라우드 사용</Link> : null}
-    {message && <p className="msg" role="status" data-testid="culture-cloud-message">{message}</p>}
+    {(message || (auth === "signed-in" && sync.message)) && <p className="msg" role="status" data-testid="culture-cloud-message">{message || sync.message}</p>}
     {counts?.ok && <div className="counts" data-testid="cloud-counts">
       <small>내 계정의 Supabase 실제 행 수 (localStorage 아님)</small>
       <dl>{CULTURE_CLOUD_TABLES.map((table) => <div key={table}><dt>{table}</dt><dd data-testid={`cloud-count-${table}`}>{counts.counts[table] ?? 0}</dd></div>)}</dl>

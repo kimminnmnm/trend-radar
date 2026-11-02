@@ -8,6 +8,15 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { clearLocalAnalysisData } from "@/lib/storage";
 import { PageHeader } from "./ui";
 
+/** Supabase 인증 오류를 원인과 해결 방법이 보이는 한국어로 바꾼다(비밀번호·토큰 값은 표시하지 않음). */
+function authErrorText(message: string) {
+  if (/email not confirmed/i.test(message)) return "이메일 인증이 아직 끝나지 않았습니다. 가입할 때 받은 메일의 인증 링크를 누른 뒤 다시 로그인하세요. 인증 전에는 분석이 계정에 저장되지 않습니다.";
+  if (/invalid login credentials/i.test(message)) return "이메일 또는 비밀번호가 맞지 않습니다.";
+  if (/user already registered/i.test(message)) return "이미 가입된 이메일입니다. SIGN IN으로 로그인하세요.";
+  if (/rate limit|too many/i.test(message)) return "요청이 너무 많습니다. 잠시 후 다시 시도하세요.";
+  return `로그인 오류: ${message}`;
+}
+
 export function AuthView() {
   const [user, setUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -33,8 +42,8 @@ export function AuthView() {
       ? await supabase.auth.signInWithPassword({ email, password })
       : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth` } });
     setLoading(false);
-    if (result.error) setMessage(result.error.message);
-    else if (mode === "signup" && !result.data.session) setMessage("확인 이메일을 보냈습니다. 이메일 인증 후 로그인하세요.");
+    if (result.error) setMessage(authErrorText(result.error.message));
+    else if (mode === "signup" && !result.data.session) setMessage("확인 이메일을 보냈습니다. 메일의 인증 링크를 누른 뒤 로그인해야 분석이 계정에 저장됩니다(인증 전에는 이 브라우저에만 저장).");
     else setMessage(mode === "signin" ? "로그인했습니다." : "계정을 만들고 로그인했습니다.");
   };
 

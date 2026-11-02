@@ -8,7 +8,8 @@ const HASHTAG_CACHE_MAX = 50;
 
 type GraphErrorBody = { error?: { message?: string; type?: string; code?: number; error_subcode?: number } };
 type PageRecord = { id: string; name: string; instagram_business_account?: { id: string; username?: string; name?: string } };
-export type InstagramMedia = { id: string; caption?: string; media_type?: string; permalink?: string; timestamp?: string };
+/** media_url은 IMAGE·CAROUSEL 대표 이미지(서명된 CDN URL, 만료될 수 있음). 저작권 등으로 비어 있을 수 있다. */
+export type InstagramMedia = { id: string; caption?: string; media_type?: string; permalink?: string; timestamp?: string; media_url?: string };
 export type HashtagSearchResult = {
   source: "live_meta";
   query: string;
@@ -189,7 +190,8 @@ export async function searchInstagramHashtag(query: string, options: { allowNew?
   if (!hashtagId) { writeCache(cacheKey, emptyResult); return emptyResult; }
   if (!known) recentTags.tags.push({ id: hashtagId, name: normalized.toLocaleLowerCase() });
 
-  const mediaParams = { user_id: accountId, fields: "id,caption,media_type,permalink,timestamp", limit: "12" };
+  // media_url은 같은 요청의 필드 추가일 뿐 호출 수·해시태그 한도에 영향이 없다.
+  const mediaParams = { user_id: accountId, fields: "id,caption,media_type,permalink,timestamp,media_url", limit: "12" };
   const recent = await graphFetch<{ data: InstagramMedia[] }>(`${hashtagId}/recent_media`, mediaParams);
   let topMedia: InstagramMedia[] = [];
   let topMediaAvailable = true;

@@ -253,3 +253,48 @@ select tablename, policyname, cmd from pg_policies where schemaname = 'public' a
 - 이전 버전의 앱으로 이미 중복 저장된 `trend_analyses` 행이 있다면 자동으로 지우지 않는다(위 SQL로 확인, 정리는 사용자 판단).
 - 의미 유사 표시 기준 보정은 임베딩이 있는 브라우저에서만 코퍼스로 계산된다. 임베딩이 없는 브라우저는 하한값 0.65를 쓴다(저장된 관계 결과는 같음).
 - Collision·Lab·스캔 이력은 여전히 브라우저에만 저장된다.
+
+## Account cloud sync: analyses, Insights & Plans, Overview (2026-10-30)
+
+### 원격 상태 (익명 요청으로 확인, 값 비노출)
+
+- `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_ANON_KEY` 설정됨(새 형식 `sb_publishable_` 키, supabase-js 2.118 지원).
+- 이메일 인증 필수(`mailer_autoconfirm=false`): 가입 후 메일 인증 전에는 세션이 없어 분석이 계정에 저장되지 않는다.
+- 컬럼 존재 확인(42501=존재, 42703=없음): `trend_analyses.youtube` **없음**(0004 미적용), 나머지 앱 컬럼과 culture 테이블 컬럼은 모두 존재.
+
+### 저장되지 않았던 원인
+
+| 증상 | 실제 원인 | 수정 |
+|---|---|---|
+| 분석이 localStorage에만 저장 | ① 10-29 이후 기본값인 YouTube 포함 분석이 `youtube` 컬럼 없음 → 대체 저장 시 `source` check 제약 위반으로 실패(0e8176e에서 수정) ② 실패·로그아웃 상태에서 만든 분석을 나중에 계정에 올리는 경로가 사실상 없음 ③ 이메일 미인증 상태는 로그인 세션이 없음 | 로그인 시 업로드 필요 개수를 실제 DB와 비교해 표시하고 승인하면 업로드(`AccountSyncBar`), 인증 오류 한국어 안내 |
+| DNA "Supabase에 저장" 표시인데 행 없음 | 0행 update를 성공으로 처리(0e8176e 이전) | 행 ID 확인, 0행이면 실패 |
+| 기획안이 다른 브라우저에 없음 | `persistSavedItem`이 결과를 확인하지 않고 매번 insert, 불러오기 코드 없음, 성공 메시지 무조건 표시 | `lib/saved-items-cloud.ts`: clientId로 갱신(중복 없음), DB 응답 확인, 불러오기·병합·삭제 |
+| LIVE 인사이트 저장 불가 | DEMO WHY에만 저장 버튼 | LIVE WHY에 "LIVE 인사이트 저장"(실제 분석 요약·근거 있는 항목, mode live) |
+| Overview에서 예전 키워드가 사라짐 | 삭제가 아니라 **최근 3개만 표시**, 클라우드 분석을 읽지 않음, 검색만 한 키워드(Discover 후보)는 Overview에 없음 | 전체 분석 목록, 로그인 시 클라우드 불러오기·로딩/오류 표시, 검색 기록을 "분석 아님"으로 분리 표시 |
+
+### 안전 규칙
+
+- 계정 격리: 로그인 중 저장·불러온 항목에 `ownerId`를 붙이고, 화면에는 소유자 없는 로컬 항목 + 현재 계정 항목만 보인다. 다른 계정 항목은 지우지 않고 숨긴다. 로그아웃하면 계정 항목이 숨겨진다.
+- 병합: 로컬에 없는 항목만 추가, 같은 분석은 비어 있는 칸만 채움, 클라우드가 더 최신이어도 로컬 분석이 아직 백업되지 않았다면 교체하지 않음, 업로드 시 로컬에 없는 값으로 클라우드 값을 지우지 않고 더 최신 클라우드 DNA는 덮어쓰지 않음.
+- Insights & Plans 삭제: "이 브라우저에서만"(로컬 툼스톤, 다시 가져오지 않음) / "브라우저 + 클라우드"(클라우드 행 내용을 지우고 삭제 표시만 남김 → 다른 브라우저 사본도 정리, 재업로드 거부). 클라우드 처리 실패 시 로컬도 그대로.
+- 불완전한 저장 payload(이전 형식·손상 행)는 목록에 표시하되 열지 않아 화면이 멈추지 않는다.
+
+### 테스트
+
+| 검사 | 결과 |
+|---|---|
+| `tests/saved-items-cloud.spec.ts` (메모리 Supabase: RLS, JSON 필터, 원격처럼 youtube 컬럼 없음) | 12 시나리오 통과 |
+| `tests/culture-cloud-sync.spec.ts` (백업 안 된 로컬 분석 교체 방지 포함) | 9 시나리오 통과 |
+| `tests/account-ui.spec.ts` (Overview 전체 목록·검색 기록 분리, 로그아웃·계정 전환 격리, Workspace LOCAL/CLOUD·삭제 범위, LIVE 인사이트, 불완전 payload) | 5 시나리오 × 2 프로젝트 통과 |
+| 전체 Playwright | 최종 실행 결과는 작업 보고 참조 |
+| **실제 Supabase 로그인 저장·복원·계정 B 격리** `tests/cloud-sync.live.spec.ts` | **미실행 — 로그인 정보 없음** |
+
+### 실제 확인 절차
+
+1. 이메일 인증까지 마친 테스트 계정 A(가능하면 B도)를 준비한다.
+2. `.env.local`에 `CLOUD_TEST_EMAIL`, `CLOUD_TEST_PASSWORD`(선택: `CLOUD_TEST_EMAIL_B`, `CLOUD_TEST_PASSWORD_B`)를 추가한다.
+3. `npm run build` 후 `npx playwright test tests/cloud-sync.live.spec.ts --project=chromium`
+   - 분석·Culture Map 저장 → 실제 행 수 → 재저장 시 행 수 동일 → 빈 브라우저 복원
+   - 기획안 저장 → `saved_items` 행 → 재저장 시 행 수 동일 → 빈 브라우저 Workspace에서 복원 → Studio에서 열기
+   - 계정 B: A의 기획안·분석이 보이지 않음
+4. 선택: 원격에 `supabase/migrations/202610290004_youtube_evidence.sql`(컬럼 1개 추가)을 적용하면 YouTube 근거 요약도 클라우드에 저장된다. 적용 전에도 저장은 되지만 YouTube 요약은 클라우드에 남지 않는다.

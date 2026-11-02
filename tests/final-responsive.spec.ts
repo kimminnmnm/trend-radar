@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { stubRemoteMedia } from "./helpers/stub-media";
 import base from "./fixtures/live-pipeline.json";
 import extra from "./fixtures/culture-validation.json";
 
@@ -24,6 +25,7 @@ test.describe("360px layout with 8 real trends", () => {
     test(`no horizontal overflow on ${decodeURIComponent(path)}`, async ({ page }) => {
       const paid: string[] = [];
       page.on("request", (request) => { if (/\/api\/(analyze|dna|collision|lab|studio)$/.test(new URL(request.url()).pathname)) paid.push(request.url()); });
+      await stubRemoteMedia(page);
       await page.goto("/");
       await page.evaluate((items) => { localStorage.clear(); localStorage.setItem("trend-radar-onboarded", "1"); localStorage.setItem("trend-radar-live-analyses", JSON.stringify(items)); }, all);
       await page.goto(path);

@@ -241,6 +241,12 @@ Instagram 해시태그가 **지금 얼마나 활발하게 올라오는지** 측�
 
 WHY 분석이 끝난 트렌드에서 **Analyze DNA**를 누르면 6개 차원으로 분해합니다. 차원 카드를 누르면 설명, 근거, 한계가 나옵니다. WHY 없이는 DNA를 만들지 않습니다(`NOT ANALYZED` 표시).
 
+### 4-4b. VISUAL EVIDENCE · VISUAL DNA
+
+- **VISUAL EVIDENCE**(TREND WHY): 근거 원장에 있는 실제 YouTube 영상·Instagram 게시물·웹 출처를 썸네일 갤러리로 보여 줍니다. 이미지는 원본 플랫폼에서 직접 불러오며 저장·복제하지 않습니다. YouTube는 "미리보기"를 눌렀을 때만 공식 임베드(자동재생 없음)를 엽니다. 웹 출처 대표 이미지는 버튼을 눌러야 확인합니다(페이지 og:image 메타데이터만 읽음).
+- **VISUAL DNA**(TREND DNA): 실제 YouTube 썸네일(최대 6장, 저해상도)을 OpenAI 비전으로 분석해 색·글자·질감·구도·사물·무드·모티프를 보여 줍니다. 이미지에서 보이는 것은 "관찰", 의미·무드는 "AI 해석"으로 나눕니다. 이미지가 없으면 만들지 않습니다. 실행 시 OpenAI 1회(비용 가중치 2), 같은 이미지 조합은 7일 캐시.
+- 계정에 Visual DNA를 저장하려면 Supabase SQL Editor에서 `supabase/migrations/202610300006_trend_visual_dna.sql`을 실행하세요(미적용이어도 브라우저 저장은 됩니다).
+
 ### 4-5. DISCOVER
 
 - 키워드를 직접 입력해 LIVE 분석을 시작합니다.
@@ -273,6 +279,8 @@ LIVE 분석한 트렌드가 노드가 되고, 관계 엔진(`lib/cultural-relati
 **자동 반영(PHASE 5)**: 트렌드의 DNA 분석이 끝나면 별도 입력 없이 표준 메타데이터 버전이 기록되고, 기존 트렌드와의 관계가 계산되어 지도에 노드와 선이 추가됩니다. DNA를 다시 분석하면 새 버전(v2, v3…)이 생기고 이전 버전은 보존됩니다(노드 패널에서 확인). 이 과정은 유료 API를 호출하지 않습니다. 로그인한 상태에서 Supabase 마이그레이션 `202610290005_culture_knowledge.sql`이 적용돼 있으면 메타데이터와 관계가 Supabase에도 저장됩니다.
 
 **Culture Map 테이블 적용**: Supabase SQL Editor에서 `supabase/migrations/202610290005_culture_knowledge.sql`을 실행하세요. 이 마이그레이션은 로컬 Postgres에서 저장·버전·중복 방지·사용자 간 격리(RLS)를 검증했지만, 원격 프로젝트에는 아직 적용되지 않았습니다.
+
+**계정 동기화**: 로그인하면 모든 화면 상단 막대가 계정의 분석·Culture Map·Insights & Plans를 불러오고, 이 브라우저에만 있는 항목 수를 실제 DB와 비교해 보여 줍니다. "계정에 업로드"를 눌러 승인해야 올립니다(삭제·무조건 덮어쓰기 없음). 저장 결과는 '브라우저 저장됨'과 '클라우드 저장됨/실패/로그인 필요'로 따로 표시합니다. 로그아웃하면 그 계정 항목은 숨겨집니다(지워지지 않음). Workspace의 Insights & Plans는 LOCAL/CLOUD를 구분하고, 삭제 시 '이 브라우저에서만' 또는 '브라우저 + 클라우드'를 고를 수 있습니다.
 
 **클라우드 동기화**: 로그인하면 Culture Map 상단 SUPABASE CLOUD 패널에서 "클라우드에 저장"(분석·메타데이터 버전·관계), "클라우드에서 불러오기"(다른 브라우저·기기), "DB 행 확인"(Supabase 실제 행 수와 중복 여부)을 쓸 수 있습니다. 로그인 상태로 지도를 열면 자동으로 한 번 불러옵니다. 같은 분석은 다시 저장해도 행이 늘지 않고, 이 브라우저의 더 최신 데이터는 덮어쓰지 않습니다. 실제 Supabase 검증 방법은 [docs/CULTURE_MAP_VALIDATION.md](docs/CULTURE_MAP_VALIDATION.md)의 Cloud 절을 보세요.
 

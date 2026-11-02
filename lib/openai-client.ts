@@ -60,7 +60,7 @@ async function postOpenAI(path: string, payload: unknown, timeoutMs: number) {
 }
 
 /** Responses API + Structured Outputs(strict JSON Schema) 호출 후 Zod로 다시 검증한다. */
-export async function callStructured<T>({ name, jsonSchema, validator, instructions, input, maxOutputTokens = 4000, webSearch = false }: {
+export async function callStructured<T>({ name, jsonSchema, validator, instructions, input, maxOutputTokens = 4000, webSearch = false, images = [], timeoutMs }: {
   name: string;
   jsonSchema: Record<string, unknown>;
   validator: z.ZodType<T>;
@@ -69,14 +69,19 @@ export async function callStructured<T>({ name, jsonSchema, validator, instructi
   maxOutputTokens?: number;
   /** OpenAI 웹 검색 도구 사용. 실제로 조회한 출처 URL을 sources로 함께 반환한다. */
   webSearch?: boolean;
+  /** V3 Visual DNA: 분석할 공개 이미지 URL. 비용을 줄이려고 저해상도(detail: low)로만 보낸다. 이미지는 저장하지 않는다(store: false). */
+  images?: Array<{ url: string }>;
+  /** 응답 대기 한도. 기본 90초(웹 검색 120초). 긴 출력(Creative Collision)만 늘린다. */
+  timeoutMs?: number;
 }): Promise<{ data: T; model: string; sources: Array<{ url: string; title?: string }> }> {
   const model = getModel();
   const body = await postOpenAI("responses", {
     model, store: false, reasoning: { effort: "low" }, max_output_tokens: maxOutputTokens,
-    instructions, input,
+    instructions,
+    input: images.length ? [{ role: "user", content: [{ type: "input_text", text: input }, ...images.map((image) => ({ type: "input_image", image_url: image.url, detail: "low" }))] }] : input,
     ...(webSearch ? { tools: [{ type: "web_search" }], include: ["web_search_call.action.sources"] } : {}),
     text: { format: { type: "json_schema", name, strict: true, schema: jsonSchema } },
-  }, webSearch ? 120_000 : 90_000);
+  }, timeoutMs ?? (webSearch ? 120_000 : 90_000));
   let parsedJson: unknown;
   try { parsedJson = JSON.parse(extractOutputText(body)); }
   catch (error) {

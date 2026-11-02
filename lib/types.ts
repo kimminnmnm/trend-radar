@@ -1,8 +1,12 @@
+import type { SavedCreativePayload } from "./creative-collision";
+import type { SavedStudioProjectPayload } from "./content-production";
 import type { AnalysisStatus, CollisionAnalysis, ContentPlan, EvidenceItem, LabReview, SeriesStats, TrendAnalysis, TrendDna } from "./schemas";
 import type { YouTubeCollection } from "./youtube";
 import type { ValidationLog } from "./signal";
 import type { StandardizedCultureMetadata } from "./culture-metadata";
 import type { CulturalRelationshipResult } from "./cultural-relationship-engine";
+import type { VisualMedia } from "./visual-media";
+import type { VisualDnaRecord } from "./visual-dna";
 
 export type EvidenceStatus = AnalysisStatus;
 
@@ -41,9 +45,30 @@ export type SavedItem = {
   title: string;
   subtitle: string;
   createdAt: string;
+  /** 마지막 저장 시각. 브라우저·클라우드 충돌 시 더 최신 쪽을 고른다. 이전 항목은 createdAt을 쓴다. */
+  updatedAt?: string;
   mode?: "live" | "demo";
-  payload?: SavedPlanPayload;
+  /** 소유 계정(Supabase user id). 없으면 로그인 없이 저장한 로컬 항목. */
+  ownerId?: string;
+  /** insight 유형에는 LIVE 인사이트와 V4.5 Creative Collision 결과가 들어간다(saved_items item_type 제약 때문에 새 유형을 만들지 않음). */
+  payload?: SavedPlanPayload | SavedInsightPayload | SavedCreativePayload | SavedStudioProjectPayload;
 };
+
+/** LIVE WHY 분석에서 저장한 인사이트. 분석 원본은 trendId·analyzedAt으로 다시 찾는다. */
+export type SavedInsightPayload = {
+  kind: "live-insight";
+  trendId: string;
+  trendName: string;
+  keywords: string[];
+  analyzedAt: string;
+  summary: string;
+  highlights: string[];
+  evidenceCount: number;
+  promptVersion?: string;
+};
+
+/** 삭제 기록. scope "local"은 이 브라우저에서만 숨긴 것, "all"은 클라우드에서도 지운 것. */
+export type SavedItemTombstone = { id: string; scope: "local" | "all"; deletedAt: string };
 
 export type SavedPlanPayload = {
   kind: "content-plan";
@@ -64,6 +89,14 @@ export type LiveAnalysisSnapshot = {
   trendId: string;
   trendName: string;
   category?: Trend["category"];
+  /** 로그인 중 저장했거나 클라우드에서 가져온 분석의 소유 계정(Supabase user id). 없으면 로그인 없이 만든 로컬 분석. */
+  ownerId?: string;
+  /** V1: 분석 때 수집한 이미지·영상 메타데이터(원본 URL만, 파일 복제 없음). 없으면 근거 원장에서 다시 만든다. */
+  media?: VisualMedia[];
+  /** V1: 사용자가 확인한 웹 출처 대표 이미지(og:image). 페이지 URL → 이미지 URL. */
+  webImages?: Record<string, string>;
+  /** V3: 실제 썸네일로 만든 Visual DNA. 이미지가 없으면 없다. */
+  visualDna?: VisualDnaRecord;
   /** Culture Map에서 사용자가 직접 지정한 분류. AI나 데이터가 정한 분류가 아니다. */
   categorySource?: "user";
   keywords: string[];
@@ -184,6 +217,10 @@ export type IgPulseItem = {
 };
 
 export type IgPulseReport = {
+  /** Stable client-generated ID used for local/cloud deduplication. */
+  id?: string;
+  ownerId?: string;
+  cloudSavedAt?: string;
   generatedAt: string;
   promptVersion: string;
   model: string | null;
@@ -202,6 +239,18 @@ export type IgPulseReport = {
     recent?: Array<{ tag: string; hashtagId: string }>;
   };
   methodology: string[];
+};
+
+export type InstagramManualSearchRecord = {
+  id: string;
+  ownerId?: string;
+  cloudSavedAt?: string;
+  query: string;
+  hashtagId: string | null;
+  collectedAt: string;
+  cacheHit: boolean;
+  usedNewSlot: boolean;
+  result: unknown;
 };
 
 /** WHY 웹 출처(뉴스·공개 자료) 수집 결과 요약 */

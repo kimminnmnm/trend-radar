@@ -98,7 +98,9 @@ test.describe("live pipeline with recorded data", () => {
     expect(sent!.collision?.title).toBe(fixture.collision.result.title);
     await expect(page.getByText("10 / REFERENCES · 서버 근거 원장")).toBeVisible();
     await page.getByTitle("저장").click();
-    await expect(page.getByText("Workspace에 저장했습니다.")).toBeVisible();
+    // 로그인하지 않았으므로 브라우저 저장만 성공으로 표시하고, 클라우드는 별도로 "로그인 필요"를 알린다.
+    await expect(page.getByText("Workspace(이 브라우저)에 저장했습니다.")).toBeVisible();
+    await expect(page.getByTestId("cloud-save-status")).toContainText("로그인 필요");
     await page.goto("/workspace");
     await page.reload();
     await page.getByRole("button", { name: /CONTENT PLANS/ }).click();

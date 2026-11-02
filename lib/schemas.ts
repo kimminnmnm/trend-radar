@@ -41,8 +41,18 @@ export const whyContextSchema = z.object({
 });
 export type WhyContext = z.infer<typeof whyContextSchema>;
 
+/** Current-state observation and the representative WHY insight. Origin is intentionally separate. */
+export const whyInsightSchema = z.object({
+  summary: z.string(),
+  status: analysisStatusSchema,
+  evidenceIds: z.array(z.string()),
+});
+
 export const trendAnalysisSchema = z.object({
   trend: z.string().min(1),
+  /** Added in WHY v5. Optional so saved v1-v4 reports remain readable without re-analysis. */
+  what: whyInsightSchema.optional(),
+  overview: whyInsightSchema.optional(),
   origin: z.object({ summary: z.string(), evidenceIds: z.array(z.string()) }),
   triggers: z.array(z.object({ title: z.string(), explanation: z.string(), status: analysisStatusSchema, evidenceIds: z.array(z.string()) })),
   timeline: z.array(z.object({ date: z.string(), label: z.string(), evidenceIds: z.array(z.string()) })),

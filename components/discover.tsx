@@ -1,5 +1,7 @@
 "use client";
 
+import { MediaThumb } from "./media-thumb";
+import { cardImage } from "@/lib/visual-media";
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-fetch";
@@ -8,11 +10,13 @@ import { ArrowRight, Atom, LoaderCircle, Orbit, Plus, Radar, Search, SlidersHori
 import { trends } from "@/lib/demo-data";
 import { getLiveAnalyses, getWatchlist, saveWatchlist } from "@/lib/storage";
 import { useStored } from "@/lib/use-stored";
+import { useInstagramAutofill } from "@/lib/instagram-autofill";
 import { liveTrendId, trendPath } from "@/lib/live-trend";
 import type { LiveAnalysisSnapshot, WatchCandidate } from "@/lib/types";
 import type { SeriesStats } from "@/lib/schemas";
 import { DataBadge, formatDateTime, PageHeader, SectionHeading } from "./ui";
 import { TrendCard } from "./trend-card";
+import { selectWhyOverview, usedWhyEvidenceIds } from "@/lib/why-summary";
 
 const categories = ["All","Subculture","Lifestyle","Fashion","Entertainment","Technology"];
 type ValidateResponse = { batchId: string; collectedAt: string; startDate: string; endDate: string; stats: SeriesStats[]; methodology: string };
@@ -48,6 +52,7 @@ export function Discover(){
   const [validating,setValidating]=useState(false);const [validateError,setValidateError]=useState("");const [methodology,setMethodology]=useState("");
   const [query,setQuery]=useState(""); const [category,setCategory]=useState("All");
   const live=useMemo(()=>snapshots??[],[snapshots]);
+  const igFill=useInstagramAutofill(snapshots);
   const coTags=useMemo(()=>coHashtagCandidates(live),[live]);
   const filtered=useMemo(()=>trends.filter(t=>(category==="All"||t.category===category)&&(`${t.name} ${t.en} ${t.tags.join(" ")}`).toLowerCase().includes(query.toLowerCase())),[query,category]);
   const batches=useMemo(()=>{const map=new Map<string,WatchCandidate[]>();for(const item of watchlist)if(item.validation){const list=map.get(item.validation.batchId)??[];list.push(item);map.set(item.validation.batchId,list)}return [...map.entries()].map(([id,items])=>({id,items:items.sort((a,b)=>a.validation!.rank-b.validation!.rank)}))},[watchlist]);
@@ -71,7 +76,8 @@ export function Discover(){
     <form className="search-panel panel" onSubmit={analyze}><Radar/><input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="LIVE로 분석할 키워드 입력 (예: 러닝)" aria-label="LIVE keyword"/><button className="button primary" disabled={!keyword.trim()}>Analyze live <ArrowRight size={14}/></button></form>
 
     <section className="section"><SectionHeading index="01" title="Live trends you have analyzed" description="저장된 LIVE 분석입니다. 다시 열 때는 API를 호출하지 않습니다."/>
-      {snapshots===null?<div className="state-box panel"><LoaderCircle className="spin"/></div>:live.length?<div className="grid three">{live.map(item=><article className="live-card panel" key={item.trendId}><div className="card-top"><DataBadge status="SAVED" detail={formatDateTime(item.analyzedAt)}/></div><h3>{item.trendName}</h3><p>{item.summary}</p><dl><dt>SOURCES</dt><dd>NAVER {item.evidence?.filter(e=>e.kind==="naver_series").length??0} · Instagram {item.evidence?.filter(e=>e.kind==="instagram_media").length??0}</dd><dt>SIGNAL</dt><dd>{item.signalStats?.[0]?`${item.signalStats[0].direction} (같은 요청 내 ${item.signalStats[0].earlyAvg}→${item.signalStats[0].recentAvg})`:"—"}</dd><dt>DNA</dt><dd>{item.dna?"분석 완료":"미분석"}</dd></dl><footer><Link href={trendPath(item.trendId,"why")}><Orbit size={13}/>WHY</Link><Link href={trendPath(item.trendId,"dna")}><Atom size={13}/>DNA</Link></footer></article>)}</div>:<div className="state-box panel"><DataBadge status="NOT ANALYZED"/><p>아직 LIVE 분석한 키워드가 없습니다. 위 입력창에서 시작하세요.</p></div>}
+      {igFill.phase!=="idle"&&<p className={`ig-fill ${igFill.phase}`} role="status" data-testid="ig-autofill">{igFill.phase==="loading"?"사진 없는 카드를 Instagram 사진으로 채우는 중…":igFill.message}</p>}
+      {snapshots===null?<div className="state-box panel"><LoaderCircle className="spin"/></div>:live.length?<div className="grid three">{live.map(item=>{const insight=selectWhyOverview(item);const used=usedWhyEvidenceIds(item.whyReport,item.evidence);return <article className="live-card panel" key={item.trendId}><MediaThumb media={cardImage(item)} label={item.trendName}/><div className="card-top"><DataBadge status="SAVED" detail={formatDateTime(item.analyzedAt)}/></div><h3>{item.trendName}</h3><p>{insight.summary}</p><dl><dt>EVIDENCE</dt><dd>사용 {used.length} / 수집 {item.evidence?.length??0}</dd><dt>SOURCES</dt><dd>NAVER {item.evidence?.filter(e=>e.kind==="naver_series").length??0} · Instagram {item.evidence?.filter(e=>e.kind==="instagram_media").length??0} · YouTube {item.evidence?.filter(e=>e.kind==="youtube_video").length??0} · 웹 {item.evidence?.filter(e=>e.kind==="web_source").length??0}</dd><dt>SIGNAL</dt><dd>{item.signalStats?.[0]?`${item.signalStats[0].direction} (같은 요청 내 ${item.signalStats[0].earlyAvg}→${item.signalStats[0].recentAvg})`:"—"}</dd><dt>DNA</dt><dd>{item.dna?"분석 완료":"미분석"}</dd></dl><footer><Link href={trendPath(item.trendId,"why")}><Orbit size={13}/>WHY</Link><Link href={trendPath(item.trendId,"dna")}><Atom size={13}/>DNA</Link></footer></article>})}</div>:<div className="state-box panel"><DataBadge status="NOT ANALYZED"/><p>아직 LIVE 분석한 키워드가 없습니다. 위 입력창에서 시작하세요.</p></div>}
     </section>
 
     <section className="section"><SectionHeading index="02" title="Observed candidates" description="후보 출처를 기록하고, 선택한 후보(최대 5개)를 하나의 NAVER 요청으로 묶어 검증합니다. AI를 호출하지 않습니다."/>

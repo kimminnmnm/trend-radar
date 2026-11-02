@@ -114,6 +114,14 @@ test.describe("core cultural intelligence flow", () => {
     await expect(page.getByText("이 분류에 저장한 항목이 없습니다.")).toBeVisible();
   });
 
+  test("plain Studio entry opens PRODUCTION by default; the demo Lab entry opens the demo brief", async ({ page }) => {
+    await page.goto("/studio");
+    await expect(page.getByTestId("studio-tab-production")).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/studio?demo=lab");
+    await expect(page.getByRole("button", { name: "DEMO EXAMPLE" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Generate grounded brief" })).toBeVisible();
+  });
+
   test("analysis API rejects invalid input without calling external services", async ({ request }) => {
     const invalid = await request.post("/api/analyze", { data: {} });
     expect(invalid.status()).toBe(400);

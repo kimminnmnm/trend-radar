@@ -134,7 +134,12 @@ test.describe("culture map cloud save and load (in-memory Supabase)", () => {
     // 클라우드가 더 최신이면 교체하되, 로컬 DNA 버전은 원장에 남는다
     const olderLocal = { ...run, analyzedAt: "2020-01-01T00:00:00.000Z", dnaGeneratedAt: "2020-01-01T00:01:00.000Z", cultureMetadata: undefined };
     const ledger = syncCultureLedger(EMPTY, [olderLocal]).ledger;
-    expect(mergeCloudSnapshots([olderLocal], cloud).replaced.some((item) => item.trendId === run.trendId)).toBe(true);
+    // 아직 클라우드에 올리지 않은 로컬 분석은 교체하지 않는다(유실 방지)
+    const notBackedUp = mergeCloudSnapshots([olderLocal], cloud);
+    expect(notBackedUp.replaced.some((item) => item.trendId === run.trendId)).toBe(false);
+    expect(notBackedUp.keptLocal).toContain(run.trendId);
+    // 클라우드에 백업된 로컬 분석이면 더 최신 클라우드 분석으로 교체한다
+    expect(mergeCloudSnapshots([olderLocal], [...cloud, { ...olderLocal }]).replaced.some((item) => item.trendId === run.trendId)).toBe(true);
     const after = syncCultureLedger(ledger, [cloud.find((item) => item.trendId === run.trendId)!]).ledger;
     expect(versionsOf(after, run.trendId).map((item) => item.version)).toEqual([2, 1]);
   });

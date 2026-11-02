@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { stubRemoteMedia } from "./helpers/stub-media";
 import base from "./fixtures/live-pipeline.json";
 import extra from "./fixtures/culture-validation.json";
 import { buildCultureGraph } from "../lib/culture-graph";
@@ -101,6 +102,7 @@ test.describe("relationship validation on 8 real trends (no browser)", () => {
 });
 
 async function seed(page: Page) {
+  await stubRemoteMedia(page);
   await page.goto("/");
   await page.evaluate((items) => { localStorage.clear(); localStorage.setItem("trend-radar-onboarded", "1"); localStorage.setItem("trend-radar-live-analyses", JSON.stringify(items)); }, all);
 }

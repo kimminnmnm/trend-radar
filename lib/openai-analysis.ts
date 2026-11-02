@@ -9,6 +9,8 @@ export { OpenAIAnalysisError } from "./openai-client";
 
 const analysisJsonSchema = js.obj({
   trend: js.str,
+  what: js.obj({ summary: js.str, status: js.status, evidenceIds: js.strArr }),
+  overview: js.obj({ summary: js.str, status: js.status, evidenceIds: js.strArr }),
   origin: js.obj({ summary: js.str, evidenceIds: js.strArr }),
   triggers: js.arr(js.obj({ title: js.str, explanation: js.str, status: js.status, evidenceIds: js.strArr })),
   timeline: js.arr(js.obj({ date: js.str, label: js.str, evidenceIds: js.strArr })),
@@ -23,18 +25,22 @@ const analysisJsonSchema = js.obj({
   }),
 });
 
-export const TREND_WHY_PROMPT_VERSION = "why-live-v4-youtube";
+export const TREND_WHY_PROMPT_VERSION = "why-live-v5-balanced";
 
 const instructions = [
   "You are TREND RADAR, a cautious Korean cultural intelligence analyst. Return Korean analysis only in the requested JSON schema.",
   "You receive an EVIDENCE LEDGER built by the server from real API responses. You may cite evidence only by these exact ids. Never invent ids, articles, URLs, events, people, brands, dates, surveys, or sources.",
+  "First disambiguate the user's keyword from the evidence. Do not silently analyze a different person, character, event, product, or homonym. If the meaning remains ambiguous, state the ambiguity in what.summary and missingEvidence.",
+  "Structure the analysis as: WHAT = what; WHY NOW = triggers; CULTURAL CONTEXT = context; AUDIENCE MOTIVATION = motivations; SPREADING CONTENT = context.spreadContents; ORIGIN = origin.",
+  "overview is the representative insight shown on the Overview card. It must explain the most distinctive currently observed feature, cultural context, or audience response supported by evidence. Never use an unverified-origin sentence, a generic lack-of-causality disclaimer, or a request for more data as overview.summary.",
+  "what describes the current observable phenomenon using concrete keyword-specific details. Do not make causal claims in what.",
   "NAVER-xx items are a relative search-interest index (0-100 within one request), not absolute volume, origin, causality, demographics, or consumer psychology.",
   "IG-xx items are a small sample of Instagram hashtag posts returned by the API. They show what some posts contain; they do not represent all of Instagram, popularity, or demographics.",
   "YT-xx items are a small, recent YouTube search sample with public titles, publication times and view counts at collection time. They do not represent all YouTube trends. A high view count, upload cluster or temporal coincidence is not evidence that a video caused the trend.",
   "Status rules: Verified Signal = directly observable in the cited evidence (e.g. a peak period in NAVER data, a word that literally appears in captions). Supported Hypothesis = an interpretation that cited evidence makes plausible. Creative Hypothesis = speculative. Insufficient Evidence = the question matters but the ledger cannot answer it.",
   "Temporal coincidence between search interest and posts is not proof of causation. Say so when relevant.",
   "Timeline entries must be dated observations taken from the evidence (NAVER periods, IG post timestamps, or YT publication timestamps, YYYY-MM-DD) and must cite that evidence. Do not add external historical events that are not in the ledger.",
-  "Origin: if the ledger cannot establish where the trend started, say that verification is needed and use an empty evidenceIds array.",
+  "Origin is only one section. If the ledger cannot establish where the trend started, say that verification is needed and use an empty evidenceIds array, but still provide useful WHAT, WHY NOW, context, motivation, and overview when their evidence exists.",
   "Future scenarios must always be Creative Hypothesis. List concrete missing evidence that would be needed to verify the hypotheses.",
   "WEB-xx items are AI summaries of public web pages (news, magazines, brand pages) found by web search. They show that a source reported something, not that it caused the trend. Never treat a WEB item as proof of causation.",
   "context.background: the trend's background or history as reported by WEB sources (Verified Signal only when a cited source states it directly; otherwise Supported Hypothesis or Insufficient Evidence).",
@@ -52,11 +58,18 @@ export function validateWhyReport(report: TrendAnalysis, evidence: EvidenceItem[
   const triggers = report.triggers.map((item) => { const evidenceIds = sanitizeIds(item.evidenceIds, valid, removed); return { ...item, evidenceIds, status: enforceStatus(item.status, evidenceIds, counter) }; });
   const motivations = report.motivations.map((item) => { const evidenceIds = sanitizeIds(item.evidenceIds, valid, removed); return { ...item, evidenceIds, status: enforceStatus(item.status, evidenceIds, counter) }; });
   const context = report.context ? validateContext(report.context, valid, webIds(evidence), removed, counter) : undefined;
+  const validateInsight = (item: TrendAnalysis["overview"] | TrendAnalysis["what"]) => {
+    if (!item) return undefined;
+    const evidenceIds = sanitizeIds(item.evidenceIds, valid, removed);
+    return { ...item, evidenceIds, status: enforceStatus(item.status, evidenceIds, counter) };
+  };
+  const what = validateInsight(report.what);
+  const overview = validateInsight(report.overview);
   const allTimeline = report.timeline.map((item) => ({ ...item, evidenceIds: sanitizeIds(item.evidenceIds, valid, removed) }));
   // 근거 없는 타임라인 항목은 관찰 사실이 아니므로 제외하고 날짜순으로 정렬한다.
   const timeline = allTimeline.filter((item) => item.evidenceIds.length > 0).sort((a, b) => a.date.localeCompare(b.date));
   return {
-    report: { ...report, ...(context ? { context: context.value } : {}), origin: { ...report.origin, evidenceIds: sanitizeIds(report.origin.evidenceIds, valid, removed) }, triggers, motivations, timeline },
+    report: { ...report, ...(what ? { what } : {}), ...(overview ? { overview } : {}), ...(context ? { context: context.value } : {}), origin: { ...report.origin, evidenceIds: sanitizeIds(report.origin.evidenceIds, valid, removed) }, triggers, motivations, timeline },
     validation: { removedEvidenceIds: [...new Set(removed)], downgraded: counter.downgraded, droppedTimeline: allTimeline.length - timeline.length, droppedContext: context?.dropped ?? 0 },
   };
 }

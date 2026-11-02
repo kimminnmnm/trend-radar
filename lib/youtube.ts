@@ -1,5 +1,8 @@
 import "server-only";
+import { safeYouTubeThumbnail } from "./visual-media";
 import type { EvidenceItem } from "./schemas";
+import { youtubeResultRelevant } from "./evidence-quality";
+export { youtubeResultRelevant } from "./evidence-quality";
 
 const API_BASE = "https://www.googleapis.com/youtube/v3";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -14,6 +17,10 @@ export type YouTubeVideo = {
   publishedAt: string;
   viewCount: number | null;
   url: string;
+  /** Public search.list snippet description, truncated before storage. */
+  description?: string;
+  /** search.list snippet.thumbnails가 돌려준 공식 썸네일(i.ytimg.com). 추가 호출 없이 같은 응답에서 얻는다. */
+  thumbnailUrl?: string;
 };
 
 export type YouTubeCollection = {
@@ -69,10 +76,16 @@ async function youtubeFetch<T>(path: "search" | "videos", params: Record<string,
 const cleanQuery = (value: string) => value.trim().replace(/\s+/g, " ").slice(0, 100);
 const hourInKorea = (value: string) => Number(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", hour: "2-digit", hourCycle: "h23" }).format(new Date(value)));
 
-export async function collectYouTubeEvidence(queryValue: string, options: { force?: boolean } = {}) {
+/**
+ * options.days: 게시 기간(기본 30일). options.order: 정렬(기본 date). options.global: 지역·언어 조건 없이(영어 검색어용).
+ * 기본값이면 기존과 같은 요청·캐시 키다.
+ */
+export async function collectYouTubeEvidence(queryValue: string, options: { force?: boolean; days?: number; order?: "date" | "relevance" | "viewCount"; global?: boolean } = {}) {
   const query = cleanQuery(queryValue);
   if (!query) throw new YouTubeApiError("YouTube 검색 키워드가 비어 있습니다.", 400, "YOUTUBE_INVALID_QUERY");
-  const cacheKey = query.toLocaleLowerCase("ko-KR");
+  const days = Math.max(1, Math.min(365, Math.round(options.days ?? 30))), order = options.order ?? "date";
+  const custom = days !== 30 || order !== "date" || options.global;
+  const cacheKey = `${query.toLocaleLowerCase("ko-KR")}${custom ? `|${days}|${order}|${options.global ? "global" : "kr"}` : ""}`;
   const hit = cache.get(cacheKey);
   if (!options.force && hit && hit.expiresAt > Date.now()) {
     const ttlSeconds = Math.max(1, Math.ceil((hit.expiresAt - Date.now()) / 1000));
@@ -83,13 +96,13 @@ export async function collectYouTubeEvidence(queryValue: string, options: { forc
 
   const collectedAt = new Date();
   const publishedBefore = collectedAt.toISOString();
-  const publishedAfter = new Date(collectedAt.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const publishedAfter = new Date(collectedAt.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
   daily.searches += 1;
-  const search = await youtubeFetch<{ items?: Array<{ id?: { videoId?: string }; snippet?: { title?: string; channelTitle?: string; publishedAt?: string } }> }>("search", {
-    part: "snippet", type: "video", q: query, maxResults: String(MAX_RESULTS), order: "date",
-    publishedAfter, publishedBefore, relevanceLanguage: "ko", regionCode: "KR", safeSearch: "moderate",
+  const search = await youtubeFetch<{ items?: Array<{ id?: { videoId?: string }; snippet?: { title?: string; description?: string; channelTitle?: string; publishedAt?: string; thumbnails?: Record<string, { url?: string }> } }> }>("search", {
+    part: "snippet", type: "video", q: query, maxResults: String(MAX_RESULTS), order,
+    publishedAfter, publishedBefore, ...(options.global ? {} : { relevanceLanguage: "ko", regionCode: "KR" }), safeSearch: "moderate",
   });
-  const searchItems = search.items ?? [];
+  const searchItems = (search.items ?? []).filter((item) => youtubeResultRelevant(query, item.snippet?.title ?? "", item.snippet?.description ?? ""));
   const ids = searchItems.map((item) => item.id?.videoId).filter((id): id is string => Boolean(id));
   let statistics = new Map<string, number | null>();
   if (ids.length) {
@@ -100,7 +113,9 @@ export async function collectYouTubeEvidence(queryValue: string, options: { forc
   const videos: YouTubeVideo[] = searchItems.flatMap((item) => {
     const id = item.id?.videoId, snippet = item.snippet;
     if (!id || !snippet?.title || !snippet.publishedAt) return [];
-    return [{ id, title: snippet.title, channelTitle: snippet.channelTitle ?? "채널 정보 없음", publishedAt: snippet.publishedAt, viewCount: statistics.get(id) ?? null, url: `https://www.youtube.com/watch?v=${id}` }];
+    const thumbnailUrl = safeYouTubeThumbnail(snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url ?? snippet.thumbnails?.default?.url) ?? undefined;
+    const description = snippet.description?.replace(/\s+/g, " ").trim().slice(0, 300) || undefined;
+    return [{ id, title: snippet.title, channelTitle: snippet.channelTitle ?? "채널 정보 없음", publishedAt: snippet.publishedAt, viewCount: statistics.get(id) ?? null, url: `https://www.youtube.com/watch?v=${id}`, ...(description ? { description } : {}), ...(thumbnailUrl ? { thumbnailUrl } : {}) }];
   });
   const counts = new Map<number, number>();
   videos.forEach((video) => { const hour = hourInKorea(video.publishedAt); counts.set(hour, (counts.get(hour) ?? 0) + 1); });
@@ -113,11 +128,11 @@ export async function collectYouTubeEvidence(queryValue: string, options: { forc
     url: video.url,
     date: video.publishedAt,
     collectedAt: collectedAt.toISOString(),
-    excerpt: `공개 영상 검색 결과. 게시 ${video.publishedAt}, 조회수 ${video.viewCount === null ? "비공개/미제공" : video.viewCount.toLocaleString("ko-KR")}회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음.`.slice(0, 800),
+    excerpt: `공개 영상 검색 결과. 게시 ${video.publishedAt}, 조회수 ${video.viewCount === null ? "비공개/미제공" : video.viewCount.toLocaleString("ko-KR")}회(수집 시점 값).${video.description ? ` 공개 설명: ${video.description}` : ""} 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음.`.slice(0, 800),
   }));
   const collection: YouTubeCollection = {
     status: "live", query, collectedAt: collectedAt.toISOString(), period: { publishedAfter, publishedBefore }, videos, hourlyDistribution,
-    methodology: `최근 30일, 한국 지역·한국어 관련성 조건으로 최신순 최대 ${MAX_RESULTS}개 공개 영상을 수집한 검색 표본입니다. 전체 YouTube 트렌드나 인과관계를 대표하지 않습니다.`,
+    methodology: `최근 ${days}일, ${options.global ? "지역·언어 조건 없이" : "한국 지역·한국어 관련성 조건으로"} ${order === "date" ? "최신순" : order === "viewCount" ? "조회수순" : "관련도순"} 최대 ${MAX_RESULTS}개 공개 영상을 수집한 검색 표본입니다. 전체 YouTube 트렌드나 인과관계를 대표하지 않습니다.`,
     cache: { hit: false, ttlSeconds: CACHE_TTL_MS / 1000 },
     quota: { searchCalls: 1, detailCalls: ids.length ? 1 : 0, dailySearchUsed: daily.searches, dailySearchLimit: DAILY_SEARCH_LIMIT },
   };

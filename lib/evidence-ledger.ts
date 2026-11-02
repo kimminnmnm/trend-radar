@@ -2,6 +2,7 @@ import "server-only";
 import type { EvidenceItem, SeriesStats } from "./schemas";
 import type { NaverTrendSignal } from "./naver";
 import type { HashtagSearchResult } from "./meta";
+export { dedupeEvidence } from "./evidence-quality";
 
 const MAX_INSTAGRAM_EVIDENCE = 10;
 

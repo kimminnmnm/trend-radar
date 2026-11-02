@@ -5,7 +5,9 @@ import { apiFetch } from "@/lib/api-fetch";
 import { FormEvent, useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Instagram, LoaderCircle, LockKeyhole, Search, ShieldCheck, XCircle } from "lucide-react";
 import { PageHeader } from "./ui";
-import { recordIgQuotaUse } from "@/lib/storage";
+import { recordIgQuotaUse, saveInstagramManualSearch } from "@/lib/storage";
+import { instagramManualSearchId, pullInstagramManualSearches, pushInstagramManualSearch } from "@/lib/ig-pulse-cloud";
+import { useAccountSync } from "@/lib/account-sync";
 
 type MetaStatus = {
   configured: boolean;
@@ -41,6 +43,7 @@ function MediaCollection({title,items}:{title:string;items:InstagramMedia[]}){
 }
 
 export function InstagramView(){
+  const account=useAccountSync();
   const [query,setQuery]=useState("");
   const [status,setStatus]=useState<MetaStatus|null>(null);
   const [loading,setLoading]=useState(true);
@@ -48,6 +51,8 @@ export function InstagramView(){
   const [result,setResult]=useState<HashtagResult|null>(null);
   const [searchError,setSearchError]=useState("");
   const [allowNew,setAllowNew]=useState(false);
+  const [historySync,setHistorySync]=useState<"local"|"syncing"|"saved"|"failed">("local");
+  const displayedHistorySync=account.userId?historySync:"local";
 
   useEffect(()=>{
     const controller=new AbortController();
@@ -58,17 +63,18 @@ export function InstagramView(){
       .finally(()=>setLoading(false));
     return()=>controller.abort();
   },[]);
+  useEffect(()=>{if(!account.userId)return;void Promise.resolve().then(async()=>{setHistorySync("syncing");const result=await pullInstagramManualSearches();setHistorySync(result.ok?"saved":"failed")})},[account.userId]);
 
   const search=async(event:FormEvent)=>{
     event.preventDefault();setSearching(true);setSearchError("");setResult(null);
-    try{const response=await apiFetch(`/api/meta/hashtag?query=${encodeURIComponent(query)}&allowNew=${allowNew?"1":"0"}`,{cache:"no-store"});const body=await response.json();if(!response.ok)throw new Error(body.message||"검색에 실패했습니다.");const next=body as HashtagResult;setResult(next);if(next.quota.usedNewSlot&&!next.cache.hit)recordIgQuotaUse({tag:next.query,hashtagId:next.hashtagId,searchedAt:next.collectedAt,source:"manual"});setAllowNew(false)}
+    try{const response=await apiFetch(`/api/meta/hashtag?query=${encodeURIComponent(query)}&allowNew=${allowNew?"1":"0"}`,{cache:"no-store"});const body=await response.json();if(!response.ok)throw new Error(body.message||"검색에 실패했습니다.");const next=body as HashtagResult;setResult(next);if(next.quota.usedNewSlot&&!next.cache.hit)recordIgQuotaUse({tag:next.query,hashtagId:next.hashtagId,searchedAt:next.collectedAt,source:"manual"});const record={id:instagramManualSearchId(next),query:next.query,hashtagId:next.hashtagId,collectedAt:next.collectedAt,cacheHit:next.cache.hit,usedNewSlot:next.quota.usedNewSlot,result:next};saveInstagramManualSearch(record);if(account.userId){setHistorySync("syncing");const synced=await pushInstagramManualSearch(record);setHistorySync(synced.ok?"saved":"failed")}else setHistorySync("local");setAllowNew(false)}
     catch(error){setSearchError(error instanceof Error?error.message:"검색에 실패했습니다.")}
     finally{setSearching(false)}
   };
 
   const connectedAccount=status?.pages.find(page=>page.instagramProfessional)?.instagramProfessional;
   return <div className="page"><PageHeader eyebrow="LIVE SOURCE / INSTAGRAM" title="Search with permission, interpret with care." description="Meta Graph API 서버 연결 상태를 확인하고, 승인된 범위에서만 실제 Instagram 해시태그 데이터를 요청합니다."/>
-    <div className="source-banner"><span className="live-dot"/>LIVE META와 DEMO 데이터는 합치지 않습니다.<b>{status?.graphVersion||"Graph API"}</b></div>
+    <div className="source-banner"><span className="live-dot"/>LIVE META와 DEMO 데이터는 합치지 않습니다.<b>{status?.graphVersion||"Graph API"} · SEARCH HISTORY {displayedHistorySync === "syncing" ? "SYNCING" : displayedHistorySync === "saved" ? "CLOUD SAVED" : displayedHistorySync === "failed" ? "SYNC FAILED" : "LOCAL ONLY"}</b></div>
     <div className="instagram-layout">
       <section className="panel connection-panel">
         <header><div><small>SERVER CONNECTION</small><h2>Meta Graph API</h2></div>{loading?<LoaderCircle className="spin"/>:status?.tokenValid?<CheckCircle2 className="ok"/>:<XCircle className="bad"/>}</header>

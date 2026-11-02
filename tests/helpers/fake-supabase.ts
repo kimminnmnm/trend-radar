@@ -10,8 +10,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * 여러 클라이언트가 같은 DB(store)를 공유하므로 "다른 브라우저, 같은 계정"을 재현할 수 있다.
  */
 type Row = Record<string, unknown>;
-export type FakeStore = { tables: Record<string, Row[]>; seq: number };
-export const createStore = (): FakeStore => ({ tables: {}, seq: 0 });
+export type FakeStore = { tables: Record<string, Row[]>; seq: number; objects: Record<string, { bytes: number; contentType?: string }> };
+export const createStore = (): FakeStore => ({ tables: {}, seq: 0, objects: {} });
 
 const uuid = (store: FakeStore) => `00000000-0000-4000-8000-${String(++store.seq).padStart(12, "0")}`;
 const pgTime = (value: unknown) => { const date = new Date(String(value)); return Number.isNaN(date.getTime()) ? value : date.toISOString().replace("Z", "+00:00"); };
@@ -34,7 +34,7 @@ class Query implements PromiseLike<{ data: unknown; error: { message: string } |
   private countMode = false;
   private max?: number;
   private conflict?: string;
-  constructor(private store: FakeStore, private table: string, private userId: string | null, private options: { failUpdate?: boolean }) {}
+  constructor(private store: FakeStore, private table: string, private userId: string | null, private options: FakeOptions) {}
   select(columns?: string, opts?: { count?: string; head?: boolean }) { if (this.op === "select") { this.columns = columns; this.head = Boolean(opts?.head); this.countMode = opts?.count === "exact"; } else this.returnColumns = columns ?? "*"; return this; }
   insert(row: Row) { this.op = "insert"; this.payload = row; return this; }
   update(row: Row) { this.op = "update"; this.payload = row; return this; }
@@ -44,11 +44,13 @@ class Query implements PromiseLike<{ data: unknown; error: { message: string } |
   limit(value: number) { this.max = value; return this; }
   returns() { return this; }
   private rows() { return (this.store.tables[this.table] ??= []); }
-  private visible() { return this.rows().filter((row) => this.userId && row.user_id === this.userId && this.filters.every(([key, value]) => same(row[key], value))); }
+  private field(row: Row, key: string) { if (!key.includes("->>")) return row[key]; const [column, path] = key.split("->>"); const value = (row[column] as Row | null)?.[path]; return value === undefined || value === null ? value : String(value); }
+  private visible() { return this.rows().filter((row) => this.userId && row.user_id === this.userId && this.filters.every(([key, value]) => same(this.field(row, key), value))); }
   private check(row: Row): string | null {
     if (!this.userId) return "permission denied";
     if (row.user_id !== this.userId) return `new row violates row-level security policy for table "${this.table}"`;
     if (this.table === "trend_analyses" && row.source !== "NAVER DataLab + OpenAI") return 'new row for relation "trend_analyses" violates check constraint "trend_analyses_source_check"';
+    if (this.table === "saved_items" && !["insight", "plan", "collision", "lab"].includes(String(row.item_type))) return 'violates check constraint "saved_items_item_type_check"';
     if (this.table === "culture_relations") {
       if (!(String(row.source_trend_id) < String(row.target_trend_id))) return 'violates check constraint "culture_relation_distinct_trends_check"';
       if (row.score !== null && row.score !== undefined && (Number(row.score) < 0 || Number(row.score) > 1)) return 'violates check constraint "culture_relations_score_check"';
@@ -62,6 +64,12 @@ class Query implements PromiseLike<{ data: unknown; error: { message: string } |
   }
   private run(): { data: unknown; error: { message: string } | null; count?: number | null } {
     if (!this.userId) return { data: null, error: { message: `permission denied for table ${this.table}` } };
+    if ((this.options.missingTables ?? []).includes(this.table)) return { data: null, error: { message: `Could not find the table 'public.${this.table}' in the schema cache` } };
+    // 원격에 없는 컬럼(예: 0004 미적용으로 trend_analyses.youtube 없음)은 PostgREST처럼 거부한다.
+    const missing = (this.options.missingColumns ?? {})[this.table] ?? [];
+    const used = [...Object.keys(this.payload ?? {}), ...(this.columns ?? "").split(",").map((key) => key.trim())];
+    const absent = missing.find((column) => used.includes(column));
+    if (absent) return { data: null, error: { message: `Could not find the '${absent}' column of '${this.table}' in the schema cache` } };
     if (this.op === "select") {
       const rows = this.visible().slice(0, this.max);
       return { data: this.head ? null : rows.map((row) => out(row, this.columns)), error: null, count: this.countMode ? rows.length : null };
@@ -75,9 +83,9 @@ class Query implements PromiseLike<{ data: unknown; error: { message: string } |
     const row: Row = { id: uuid(this.store), created_at: new Date(Date.now() + this.store.seq).toISOString(), ...this.payload };
     const error = this.check(row);
     if (error) return { data: null, error: { message: error } };
-    if (this.table === "culture_relations") {
+    if (this.table === "culture_relations" || (this.op === "upsert" && this.conflict)) {
       const keys = (this.conflict ?? "source_analysis_version_id,target_analysis_version_id,relation_type").split(",");
-      const existing = this.rows().find((item) => keys.every((key) => item[key] === row[key]));
+      const existing = this.rows().find((item) => keys.every((key) => same(item[key], row[key])));
       if (existing) {
         if (this.op === "insert") return { data: null, error: { message: 'duplicate key value violates unique constraint "culture_relation_version_type_unique"' } };
         Object.assign(existing, { ...this.payload });
@@ -89,10 +97,39 @@ class Query implements PromiseLike<{ data: unknown; error: { message: string } |
   }
 }
 
-export function fakeSupabase(store: FakeStore, user: { id: string; email?: string } | null, options: { failUpdate?: boolean } = {}) {
+export type FakeOptions = { failUpdate?: boolean; missingColumns?: Record<string, string[]>; missingTables?: string[]; missingBucket?: boolean };
+export function fakeSupabase(store: FakeStore, user: { id: string; email?: string } | null, options: FakeOptions = {}) {
   const client = {
     auth: { getUser: async () => ({ data: { user }, error: null }) },
     from: (table: string) => new Query(store, table, user?.id ?? null, options),
+    /* Storage(0008): 비공개 버킷, 경로 첫 폴더가 본인 user_id인 객체만 읽기·쓰기·삭제 가능(RLS 흉내). */
+    storage: {
+      from: (bucket: string) => {
+        const key = (path: string) => `${bucket}/${path}`;
+        const own = (path: string) => Boolean(user) && path.split("/")[0] === user!.id;
+        const missing = () => options.missingBucket ? { message: "Bucket not found" } : null;
+        return {
+          upload: async (path: string, body: Blob, opts: { upsert?: boolean; contentType?: string } = {}) => {
+            if (missing()) return { data: null, error: missing() };
+            if (!own(path)) return { data: null, error: { message: "new row violates row-level security policy" } };
+            if (store.objects[key(path)] && !opts.upsert) return { data: null, error: { message: "The resource already exists" } };
+            store.objects[key(path)] = { bytes: body.size, contentType: opts.contentType };
+            return { data: { path }, error: null };
+          },
+          createSignedUrl: async (path: string, expiresIn: number) => {
+            if (missing()) return { data: null, error: missing() };
+            if (!own(path) || !store.objects[key(path)]) return { data: null, error: { message: "Object not found" } };
+            return { data: { signedUrl: `https://fake.supabase.storage/${key(path)}?expires=${expiresIn}` }, error: null };
+          },
+          remove: async (paths: string[]) => {
+            if (missing()) return { data: null, error: missing() };
+            const removed = paths.filter((path) => own(path) && store.objects[key(path)]);
+            removed.forEach((path) => delete store.objects[key(path)]);
+            return { data: removed.map((name) => ({ name })), error: null };
+          },
+        };
+      },
+    },
     rpc: async (name: string, args: Record<string, unknown>) => {
       if (name !== "save_culture_knowledge") return { data: null, error: { message: "function not found" } };
       if (!user) return { data: null, error: { message: "permission denied for function save_culture_knowledge" } };

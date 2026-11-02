@@ -33,8 +33,30 @@ export function nextTrackList(current: string[], report: IgPulseReport, limit = 
   return [...current, ...measured].filter((tag) => { const k = key(tag); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, limit);
 }
 
-/** 보드에 함께 보여줄 범위: 가장 최근 스캔 기준 24시간 안의 스캔들 */
+/** 이 시간보다 오래된 측정은 보드에서 "N시간 전 측정"으로 표시한다. */
 export const BOARD_WINDOW_HOURS = 24;
+/**
+ * 보드에 남기는 기간: 각 태그의 가장 최근 측정이 이 기간 안이면 보드에 남긴다.
+ * (이전에는 "가장 최근 스캔 기준 24시간"이라 결과가 0개인 RESCAN 한 번에 전날 측정이 모두 화면에서 사라졌다.)
+ */
+export const BOARD_KEEP_DAYS = 7;
+
+/**
+ * 과거 보고서에서 측정된 적이 있지만 지금 추적 목록에 없는 태그(복구 후보). 자동으로 추적에 넣지 않는다 — 사용자가 직접 고른다.
+ * 사용자가 추적에서 뺀(dismissed) 태그는 뺀 이후 다시 측정되지 않았다면 후보에서 제외한다.
+ */
+export function restorableTags(reports: IgPulseReport[], tracked: string[], dismissed: DismissedTag[]) {
+  const trackedKeys = new Set(tracked.map(key));
+  const hiddenUntil = new Map(dismissed.map((entry) => [key(entry.tag), new Date(entry.at).getTime()]));
+  const latest = new Map<string, IgPulseItem>();
+  for (const item of reports.flatMap((report) => report.items)) {
+    const k = key(item.tag);
+    if (!item.found || trackedKeys.has(k) || new Date(item.collectedAt).getTime() <= (hiddenUntil.get(k) ?? -Infinity)) continue;
+    const seen = latest.get(k);
+    if (!seen || new Date(item.collectedAt) > new Date(seen.collectedAt)) latest.set(k, item);
+  }
+  return [...latest.values()].sort((a, b) => (b.perHour ?? -1) - (a.perHour ?? -1));
+}
 export type DismissedTag = { tag: string; at: string };
 
 /**
@@ -42,11 +64,13 @@ export type DismissedTag = { tag: string; at: string };
  * 사용자가 추적에서 뺀 태그는 뺀 시각 이전의 측정을 숨긴다(이후 웹 검색이 다시 찾으면 다시 보인다).
  */
 export function boardItems(reports: IgPulseReport[], dismissed: DismissedTag[]) {
-  const newest = Math.max(...reports.map((report) => new Date(report.generatedAt).getTime()));
+  // 기준은 "실제로 무언가를 측정한" 가장 최근 시각. 빈 스캔이나 실패한 스캔이 기준을 앞당겨 과거 측정을 밀어내지 않게 한다.
+  const measuredTimes = reports.flatMap((report) => report.items.filter((item) => item.found).map((item) => new Date(item.collectedAt).getTime()));
+  const newest = measuredTimes.length ? Math.max(...measuredTimes) : 0;
   const hiddenUntil = new Map(dismissed.map((entry) => [key(entry.tag), new Date(entry.at).getTime()]));
   const latest = new Map<string, IgPulseItem>();
   for (const report of reports) {
-    if (newest - new Date(report.generatedAt).getTime() > BOARD_WINDOW_HOURS * 36e5) continue;
+    if (newest - new Date(report.generatedAt).getTime() > BOARD_KEEP_DAYS * 24 * 36e5) continue;
     for (const item of report.items) {
       const k = key(item.tag);
       if (!item.found || new Date(item.collectedAt).getTime() <= (hiddenUntil.get(k) ?? -Infinity)) continue;

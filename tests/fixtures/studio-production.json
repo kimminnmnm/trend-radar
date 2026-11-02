@@ -1,0 +1,242 @@
+{
+ "note": "2026-10-30 실측: Creative v2 '네 컷 사진 부스' → /api/studio/production(카드뉴스 6장, 4:5)",
+ "concept": {
+  "runId": "cc-v2",
+  "ideaId": "idea-5-bold-popup_space",
+  "title": "네 컷 사진 부스",
+  "concept": "직접 꾸민 네 가지 프레임 중 하나를 골라 콤팩트 디카로 촬영하고, 네 장의 사진 띠로 가져가는 작은 사진 부스다. 약 3m×3m의 이동형 부스에 파스텔 배경판 4종, 콤팩트 디카 1대, 유선 셔터, 즉석 프린터, 교체형 투명 오버레이 프레임 4종, 사진 띠 봉투 1종을 설치한다. 참가자는 프레임을 고르고 버튼으로 촬영한 뒤 4컷 사진 띠를 받아간다.",
+  "rationale": "A의 프리쿠라 이미지 재현·팬시 꾸미기와 B의 디카 촬영·사진 공유를 연결해, 프레임 선택부터 실물 사진 소장까지 한 공간에서 이어지게 한다.",
+  "level": "BOLD",
+  "ideaType": "popup_space",
+  "evidenceMode": "hybrid_inference",
+  "hooks": [
+   "필터 대신 프레임을 끼우고, 버튼으로 네 컷",
+   "필터 대신 프레임을 끼우고, 버튼으로 네 컷"
+  ],
+  "audience": "프레임을 직접 선택하고 물리 버튼을 눌러 촬영한 결과를 바로 실물로 가져갈 수 있다.",
+  "visualBrief": "피사체 교체형 투명 프레임과 콤팩트 디카를 갖춘 작은 네 컷 부스 / 배경 밝은 행사장 벽면과 파스텔 배경판 / 조명 얼굴 그림자를 줄이는 확산형 정면 조명 / 샷 부스 정면 와이드와 출력구 클로즈업을 함께 확보 / 컬러 파스텔 배경에 차콜 카메라와 흰색 출력 장치 / 스타일링 기존 프리쿠라 브랜드나 공식 캐릭터 대신 독자 도형 프레임 / 활용 행사 설치 제안서, 현장 안내, 체험 기록",
+  "imagePrompt": "A compact 3 by 3 meter pastel photo booth with a compact digital camera, tactile wired shutter, four removable transparent geometric overlay frames, and a small instant photo strip printer, a blank four-photo strip emerging from the slot, bright clean event space, soft frontal diffused lighting, straight-on medium-wide product installation shot, pastel pink, sky blue, butter yellow, white and charcoal palette, playful early-digital photo culture inspired styling without logos, no text, no real people.",
+  "ipCaution": "",
+  "trendKeys": [
+   "live-헤이세이-레트로",
+   "live-디지털카메라"
+  ]
+ },
+ "settings": {
+  "format": "cardnews",
+  "aspect": "4:5",
+  "slideCount": 6,
+  "durationSec": 30,
+  "target": "프레임을 직접 선택하고 물리 버튼을 눌러 촬영한 결과를 바로 실물로 가져갈 수 있다.",
+  "tone": "위트 있는, 발견하는, 과장하지 않는",
+  "brand": "",
+  "goal": "저장과 공유 유도",
+  "cta": "가장 먼저 써보고 싶은 프레임을 골라보세요."
+ },
+ "assets": [
+  {
+   "id": "real-youtube:test",
+   "status": "REAL REFERENCE",
+   "title": "헤이세이 레트로 영상 썸네일"
+  }
+ ],
+ "response": {
+  "mode": "live",
+  "cached": false,
+  "generatedAt": "2026-10-30T09:06:12.952Z",
+  "promptVersion": "studio-production-v1",
+  "plan": {
+   "title": "필터 대신 프레임, 네 컷 사진 부스",
+   "concept_notice": "‘네 컷 사진 부스’는 확인된 제품이나 실제 출시가 아니라, 트렌드 분석을 바탕으로 구성한 콘셉트 제안입니다.",
+   "summary": "헤이세이 레트로의 프리쿠라 재현과 꾸미기 요소, 디지털카메라의 물리적 촬영 경험을 한 공간에서 잇는 팝업 콘셉트를 소개합니다. 직접 고른 프레임을 끼우고 촬영해 네 컷 사진 띠로 가져가는 경험을 상상해 보세요.",
+   "claims": [
+    {
+     "text": "헤이세이풍 프리쿠라 필터가 주목받은 사례와 스티커 바인더 꾸미기 영상이 자료에서 확인됩니다.",
+     "evidence_ids": [
+      "T1:WEB-04",
+      "T1:YT-04",
+      "T1:YT-05"
+     ],
+     "status": "Verified Signal"
+    },
+    {
+     "text": "관련 보도는 구형 디카의 물리 버튼 촬영감과 사진을 찍고 공유하는 활동을 소개합니다.",
+     "evidence_ids": [
+      "T2:WEB-04"
+     ],
+     "status": "Supported Hypothesis"
+    },
+    {
+     "text": "프레임 선택부터 실물 사진 띠 소장까지 이어지면, 과거 사진 미감과 손에 잡히는 촬영 경험을 함께 즐기는 팝업이 될 수 있습니다.",
+     "evidence_ids": [
+      "T1:WEB-04",
+      "T1:YT-04",
+      "T2:WEB-04"
+     ],
+     "status": "Creative Hypothesis"
+    }
+   ],
+   "slides": [
+    {
+     "slide_id": "slide-1",
+     "number": 1,
+     "type": "cover",
+     "headline": "필터 말고 프레임!",
+     "body": "직접 고르고, 버튼을 눌러 네 컷을 찍는 작은 사진 부스.",
+     "supporting_text": "가상의 팝업 공간 콘셉트 제안",
+     "visual_direction": "3×3m 규모의 파스텔 사진 부스를 정면에 배치. 카메라와 프레임, 사진 띠 출력구가 한눈에 보이도록 구성하고 텍스트 영역은 비운다.",
+     "image_ref": "",
+     "image_prompt": "A compact 3 by 3 meter pastel photo booth in a bright clean event space, compact digital camera, tactile wired shutter, four removable transparent geometric overlay frames, small instant photo strip printer with a blank four-photo strip emerging, straight-on medium-wide installation shot, soft frontal diffused lighting, pastel pink, sky blue, butter yellow, white and charcoal palette, playful early-digital photo culture inspired styling, no logos, no text, no people, leave clear negative space in the upper third for headline.",
+     "layout_hint": "헤드라인 좌측 상단, 부스 이미지 하단 65%, 상단 여백 확보",
+     "cta": "",
+     "evidence_ids": []
+    },
+    {
+     "slide_id": "slide-2",
+     "number": 2,
+     "type": "hook",
+     "headline": "고르는 건 네 취향",
+     "body": "투명 오버레이 프레임 네 가지 중 하나를 골라요. 오늘의 네 컷 분위기는 프레임이 정합니다.",
+     "supporting_text": "프레임 4종 구성은 콘셉트 설정",
+     "visual_direction": "서로 다른 독자 도형의 투명 프레임 네 장을 펼쳐 보여준다. 프리쿠라 브랜드나 기존 캐릭터를 연상시키는 요소는 사용하지 않는다.",
+     "image_ref": "",
+     "image_prompt": "Four original transparent photo overlay frames arranged like a neat selection menu on a pastel tabletop, distinct geometric motifs such as stars, rounded grid, tiny abstract flowers and wavy borders, blank centers, early digital photo booth mood, no existing characters, no logos, no text, soft studio light, leave negative space on the left for copy.",
+     "layout_hint": "헤드라인 상단, 프레임 4종 중앙 배열, 하단에 짧은 설명",
+     "cta": "",
+     "evidence_ids": []
+    },
+    {
+     "slide_id": "slide-3",
+     "number": 3,
+     "type": "body",
+     "headline": "버튼은 직접 딸깍",
+     "body": "콤팩트 디카와 유선 셔터로 촬영하는 설정이에요. 화면을 쓸어 넘기는 대신, 손으로 누르는 순간을 즐겨요.",
+     "supporting_text": "촬영 방식은 콘셉트 제안",
+     "visual_direction": "손가락이 유선 셔터를 누르는 순간을 클로즈업한다. 카메라와 케이블이 명확히 보이게 하고 제품 로고는 넣지 않는다.",
+     "image_ref": "",
+     "image_prompt": "Close-up of a hand pressing a simple wired shutter button connected to a generic compact digital camera inside a pastel photo booth, tactile physical controls visible, clean event setting, charcoal camera against soft pink and sky blue background, no logos, no text, no recognizable person, leave clean space in the upper left for headline.",
+     "layout_hint": "헤드라인 상단 좌측, 이미지 하단 60%, 보조 문구 하단 가장자리",
+     "cta": "",
+     "evidence_ids": [
+      "T2:WEB-04"
+     ]
+    },
+    {
+     "slide_id": "slide-4",
+     "number": 4,
+     "type": "body",
+     "headline": "네 장, 한 줄로",
+     "body": "촬영이 끝나면 네 컷 사진 띠가 출력돼요. 디지털 화면에서 멈추지 않고 손에 들고 가는 마무리.",
+     "supporting_text": "즉석 출력은 콘셉트 설정",
+     "visual_direction": "출력구에서 사진 띠가 나오는 장면을 크게 보여준다. 사진 칸은 추상적인 색면이나 비식별 이미지로 처리한다.",
+     "image_ref": "",
+     "image_prompt": "A blank four-photo strip emerging from a small instant printer in a pastel photo booth, four frames filled with abstract pastel shapes rather than identifiable faces, close-up of the printer slot and paper strip, bright diffused lighting, playful retro-digital mood, no logos, no text, leave negative space along the top.",
+     "layout_hint": "이미지 상단 55%, 헤드라인과 본문 하단 좌측",
+     "cta": "",
+     "evidence_ids": []
+    },
+    {
+     "slide_id": "slide-5",
+     "number": 5,
+     "type": "evidence",
+     "headline": "익숙한 감각, 새 조합",
+     "body": "자료에는 프리쿠라 재현과 스티커 바인더 꾸미기 사례가 보여요. 구형 디카의 물리 버튼과 사진 공유도 관련 보도에서 소개됩니다.",
+     "supporting_text": "사례가 전체 이용자 행동이나 현재 인기를 증명하는 것은 아닙니다.",
+     "visual_direction": "왼쪽에는 추상적인 프레임·스티커 바인더 아이콘, 오른쪽에는 카메라 버튼 아이콘을 배치하고, 아래에 출처를 작게 표기한다. 실제 썸네일 이미지는 사용하지 않는다.",
+     "image_ref": "",
+     "image_prompt": "Minimal editorial flat lay of a generic compact digital camera, tactile shutter button, blank sticker binder and original geometric transparent photo frame, arranged as two complementary clusters, pastel cream and muted colors, no logos, no characters, no text, generous negative space for annotations.",
+     "layout_hint": "헤드라인 상단, 양쪽 사례 이미지 중앙, 출처 및 한계 문구 하단",
+     "cta": "",
+     "evidence_ids": [
+      "T1:WEB-04",
+      "T1:YT-04",
+      "T1:YT-05",
+      "T2:WEB-04"
+     ]
+    },
+    {
+     "slide_id": "slide-6",
+     "number": 6,
+     "type": "cta",
+     "headline": "어떤 프레임부터?",
+     "body": "별, 물결, 작은 꽃, 둥근 격자. 가장 먼저 써보고 싶은 프레임을 골라보세요.",
+     "supporting_text": "저장해 두고 친구와 프레임 취향을 나눠봐요.",
+     "visual_direction": "네 가지 독자 프레임을 다시 한 번 크게 펼쳐 배치하고, 선택을 표시할 수 있도록 각 프레임 아래 여백을 둔다.",
+     "image_ref": "",
+     "image_prompt": "Four original transparent photo booth overlay frames displayed evenly on a soft pastel background, motifs of stars, waves, tiny abstract flowers and rounded grid, blank centers, playful but clean, no logos, no existing characters, no text, leave clear space under each frame for labels and a generous upper margin.",
+     "layout_hint": "헤드라인 상단 중앙, 프레임 4종 2×2 배열, CTA 하단",
+     "cta": "가장 먼저 써보고 싶은 프레임을 골라보세요.",
+     "evidence_ids": []
+    }
+   ],
+   "scenes": [],
+   "caption": "필터 대신 프레임을 고르고, 버튼을 눌러 네 컷을 찍는다면? 📸\n\n콤팩트 디카와 투명 오버레이 프레임, 즉석 사진 띠를 한 공간에 모은 가상의 팝업 콘셉트예요. 프레임을 고르는 순간부터 결과물을 손에 쥐는 순간까지, 사진 찍기의 작은 의식을 즐기는 상상.\n\n별·물결·작은 꽃·둥근 격자 중 어떤 프레임을 먼저 써보고 싶나요? 저장해 두고 친구와 취향을 나눠봐요.\n\n※ 실제 운영 중인 부스나 출시 제품이 아닌 콘셉트 제안입니다. 트렌드 사례는 제한된 자료에 기반하며 전체 이용자 행동을 대표하지 않습니다.",
+   "hashtags": [
+    "#네컷사진",
+    "#사진부스",
+    "#디지털카메라",
+    "#헤이세이레트로",
+    "#레트로감성",
+    "#팝업콘셉트",
+    "#카드뉴스"
+   ],
+   "verify_before_publishing": [
+    "실제 사진이나 영상 썸네일을 사용한다면 이미지 저작권과 플랫폼 이용 조건을 확인하세요. 현재 기획안은 보유한 실물 참고 이미지 대신 새로 제작하는 비증거성 비주얼을 전제로 합니다.",
+    "AI 생성 이미지를 사용할 경우 게시물 또는 이미지 설명에 AI 생성 이미지임을 적절히 고지하세요.",
+    "출처 사례를 게시 전에 원문으로 확인하고, 프리쿠라 필터·스티커 바인더·구형 디카의 물리 버튼과 사진 공유 관련 표현이 원문 취지와 맞는지 검토하세요.",
+    "프리쿠라 상표, 기존 캐릭터, 특정 브랜드의 카메라·장비 디자인을 연상시키거나 사용하지 않도록 시각물과 문구를 점검하세요.",
+    "네 컷 부스, 프레임 4종, 유선 셔터, 즉석 출력은 모두 콘셉트 설정임을 유지하고 실제 서비스·제품·운영 사실처럼 표현하지 마세요."
+   ]
+  },
+  "validation": {
+   "removedEvidenceIds": [],
+   "removedImageRefs": 0,
+   "slideCountAdjusted": false,
+   "downgradedClaims": 0,
+   "timingFixed": 0
+  },
+  "model": "gpt-6-luna",
+  "references": [
+   {
+    "id": "T1:YT-04",
+    "kind": "youtube_video",
+    "title": "헤이세이 레트로 시즈쿠짱 아와와짱 스티커 바인더 꾸미기🫧 | 平成レトロ シールバインダー",
+    "source": "YouTube Data API · 표독한토끼 いじわるなうさぎ",
+    "url": "https://www.youtube.com/watch?v=m14xJwkM0MU",
+    "date": "2026-10-21T05:09:20Z",
+    "collectedAt": "2026-10-29T06:36:27.937Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T05:09:20Z, 조회수 1,462회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "T1:YT-05",
+    "kind": "youtube_video",
+    "title": "しずくちゃん シールバインダー&amp;平成レトロ ウォーターシール 헤이세이레트로 스티커 바인더&amp;스티커 1탄",
+    "source": "YouTube Data API · 표독한토끼 いじわるなうさぎ",
+    "url": "https://www.youtube.com/watch?v=Ui-R1jWhoBo",
+    "date": "2026-10-21T04:45:53Z",
+    "collectedAt": "2026-10-29T06:36:27.937Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T04:45:53Z, 조회수 364회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "T1:WEB-04",
+    "kind": "web_source",
+    "title": "[확산 콘텐츠] TikTokで“平成風プリ”がトレンドに？　水ダウで話題のクロちゃんや人気YouTuber・きりたんぽなど幅広い世代のムーブメントに",
+    "source": "Real Sound",
+    "url": "https://realsound.jp/tech/2023/01/post-1237300.html/amp",
+    "date": "2023-01",
+    "collectedAt": "2026-10-29T06:36:28.377Z",
+    "excerpt": "기사는 2023년 1월 TikTok에서 ‘#平成プリ’가 트렌드 키워드가 됐으며, 프린트 스티커 사진 촬영을 재현하는 필터가 주목받았다고 전한다. 인기 유튜버의 게시물과 프리 기계 업체 후류의 기간 한정 ‘平成ギャルスペシャルモード’도 사례로 소개한다. (발행 2023-01-19 · 사건 시점 2023-01 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   },
+   {
+    "id": "T2:WEB-04",
+    "kind": "web_source",
+    "title": "[배경] “엄마, 장롱 속 그 카메라 줘봐”…제니·수지도 푹 빠진 ‘디놀’ 뭐길래",
+    "source": "매일경제",
+    "url": "https://www.mk.co.kr/news/society/11956816",
+    "date": "2026-02-08",
+    "collectedAt": "2026-10-29T06:39:43.762Z",
+    "excerpt": "매일경제는 구형 디카를 들고 사진을 찍으며 노는 ‘디놀’ 문화와 디카를 꾸미는 ‘디꾸’를 소개한다. 기사에서는 흐릿하고 색이 바랜 듯한 사진, 물리 버튼의 촬영감, 함께 출사하거나 사진을 공유하는 활동을 다룬다. (발행 2026-02-08 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   }
+  ]
+ }
+}

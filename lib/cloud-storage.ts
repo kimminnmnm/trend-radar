@@ -1,13 +1,19 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { LiveAnalysisSnapshot, SavedItem } from "./types";
+import type { LiveAnalysisSnapshot } from "./types";
 import type { TrendAnalysis } from "./schemas";
 import { saveLiveAnalysis } from "./storage";
 import { getSupabaseBrowserClient } from "./supabase-browser";
 import { isLiveTrendId, liveTrendId } from "./live-trend";
+import { overviewSummary } from "./why-summary";
 
-export type PersistenceResult = { target: "cloud" | "local"; message: string };
+/**
+ * 저장 결과. 브라우저 저장(local)과 실제 DB 저장(cloud)을 따로 알린다.
+ * cloud가 "saved"인 것은 Supabase가 행 ID를 돌려준 경우뿐이다. 클라우드 실패를 브라우저 성공 메시지로 덮지 않는다.
+ */
+export type CloudState = "saved" | "failed" | "signed-out" | "not-configured";
+export type PersistenceResult = { target: "cloud" | "local"; message: string; local: boolean; cloud: CloudState; error?: string };
 
 const tableMissing = (message: string) => /schema cache|does not exist|PGRST205|column/i.test(message);
 const cloudHint = (message: string) => tableMissing(message) ? "Supabase 테이블이 없습니다. supabase/migrations의 SQL을 적용하세요." : message;
@@ -31,11 +37,19 @@ export async function upsertCloudAnalysis(supabase: SupabaseClient, userId: stri
     user_id: userId, trend_id: snapshot.trendId, trend_name: snapshot.trendName, keywords: snapshot.keywords, period_months: snapshot.periodMonths,
     source: CLOUD_SOURCE, report: snapshot.whyReport, naver_signal: snapshot.naverSignal ?? {}, prompt_version: snapshot.whyPromptVersion ?? "unknown", analyzed_at: snapshot.analyzedAt,
   };
-  const extended = { ...base, evidence: snapshot.evidence ?? [], signal_stats: snapshot.signalStats ?? null, ...(snapshot.dna ? { dna: snapshot.dna, dna_generated_at: snapshot.dnaGeneratedAt ?? null, dna_model: snapshot.dnaModel ?? null } : {}) };
-  const full = { ...extended, youtube: snapshot.youtube ?? null };
-  const existing = await supabase.from("trend_analyses").select("id").eq("user_id", userId).eq("trend_id", snapshot.trendId).eq("analyzed_at", snapshot.analyzedAt).order("created_at", { ascending: true }).limit(1);
+  const existing = await supabase.from("trend_analyses").select("id,dna_generated_at").eq("user_id", userId).eq("trend_id", snapshot.trendId).eq("analyzed_at", snapshot.analyzedAt).order("created_at", { ascending: true }).limit(1);
   if (existing.error) return { ok: false, error: cloudHint(existing.error.message) };
-  const existingId = (existing.data as Array<{ id: string }> | null)?.[0]?.id;
+  const current = (existing.data as Array<{ id: string; dna_generated_at: string | null }> | null)?.[0];
+  const existingId = current?.id;
+  // 안전한 병합: 로컬에 없는 값으로 클라우드 값을 지우지 않고, 클라우드 DNA가 더 최신이면 덮어쓰지 않는다.
+  const cloudDnaNewer = Boolean(current?.dna_generated_at && (!snapshot.dnaGeneratedAt || new Date(current.dna_generated_at) > new Date(snapshot.dnaGeneratedAt)));
+  const extended = {
+    ...base,
+    ...(snapshot.evidence?.length ? { evidence: snapshot.evidence } : {}),
+    ...(snapshot.signalStats ? { signal_stats: snapshot.signalStats } : {}),
+    ...(snapshot.dna && !cloudDnaNewer ? { dna: snapshot.dna, dna_generated_at: snapshot.dnaGeneratedAt ?? null, dna_model: snapshot.dnaModel ?? null } : {}),
+  };
+  const full = { ...extended, ...(snapshot.youtube ? { youtube: snapshot.youtube } : {}) };
   // 0004 전이면 youtube 컬럼만 빼고, 0003 전이면 기본 컬럼으로 한 번 더 폴백한다.
   for (const row of [full, extended, base]) {
     const result = existingId
@@ -50,7 +64,7 @@ export async function upsertCloudAnalysis(supabase: SupabaseClient, userId: stri
   return { ok: false, error: "Supabase 테이블 컬럼이 앱과 맞지 않습니다. supabase/migrations를 확인하세요." };
 }
 
-async function signedInClient() {
+export async function signedInClient() {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
   const { data: { user } } = await supabase.auth.getUser();
@@ -58,32 +72,42 @@ async function signedInClient() {
 }
 
 export async function persistLiveAnalysis(snapshot: LiveAnalysisSnapshot, report: TrendAnalysis, naverSignal: unknown, promptVersion: string): Promise<PersistenceResult> {
-  const localSaved = saveLiveAnalysis(snapshot);
-  const local = localSaved ? "이 브라우저에 저장했습니다" : "브라우저 저장 공간이 부족해 저장하지 못했습니다";
-  if (!getSupabaseBrowserClient()) return { target: "local", message: `${local}. (Supabase 미설정)` };
+  const local = saveLiveAnalysis(snapshot);
+  const localText = local ? "이 브라우저에 저장했습니다" : "브라우저 저장 공간이 부족해 저장하지 못했습니다";
+  if (!getSupabaseBrowserClient()) return { target: "local", local, cloud: "not-configured", message: `${localText}. 클라우드: Supabase 미설정` };
   const session = await signedInClient();
-  if (!session) return { target: "local", message: `${local}. 로그인하면 Cloud Workspace에도 저장됩니다.` };
+  if (!session) return { target: "local", local, cloud: "signed-out", message: `${localText}. 클라우드: 로그인하지 않아 저장하지 않았습니다(로그인 후 업로드 가능).` };
   const result = await upsertCloudAnalysis(session.supabase, session.user.id, { ...snapshot, whyReport: report, naverSignal, whyPromptVersion: promptVersion });
-  if (!result.ok) return { target: "local", message: `${local}. 클라우드 저장 실패: ${result.error}` };
-  return { target: "cloud", message: `${local}. Supabase 개인 Workspace에도 저장했습니다.` };
+  if (!result.ok) return { target: "local", local, cloud: "failed", error: result.error, message: `${localText}. 클라우드 저장 실패: ${result.error}` };
+  return { target: "cloud", local, cloud: "saved", message: `${localText}. Supabase 계정에도 저장했습니다(행 확인됨).` };
 }
 
 export async function persistLiveDna(snapshot: LiveAnalysisSnapshot): Promise<PersistenceResult> {
-  if (!snapshot.dna) return { target: "local", message: "DNA를 이 브라우저에 저장했습니다." };
+  if (!snapshot.dna) return { target: "local", local: true, cloud: "failed", error: "DNA가 없습니다.", message: "DNA가 없어 저장하지 않았습니다." };
+  if (!getSupabaseBrowserClient()) return { target: "local", local: true, cloud: "not-configured", message: "DNA를 이 브라우저에 저장했습니다. 클라우드: Supabase 미설정" };
   const session = await signedInClient();
-  if (!session) return { target: "local", message: "DNA를 이 브라우저에 저장했습니다." };
+  if (!session) return { target: "local", local: true, cloud: "signed-out", message: "DNA를 이 브라우저에 저장했습니다. 클라우드: 로그인하지 않아 저장하지 않았습니다." };
   // WHY 행이 없으면(이전 저장 실패 포함) WHY와 DNA를 함께 저장한다. 0행 갱신을 성공으로 보지 않는다.
   const result = await upsertCloudAnalysis(session.supabase, session.user.id, snapshot);
-  if (!result.ok) return { target: "local", message: `DNA를 브라우저에 저장했습니다. 클라우드 저장 실패: ${result.error}` };
-  return { target: "cloud", message: "DNA를 브라우저와 Supabase에 저장했습니다." };
+  if (!result.ok) return { target: "local", local: true, cloud: "failed", error: result.error, message: `DNA를 이 브라우저에 저장했습니다. 클라우드 저장 실패: ${result.error}` };
+  return { target: "cloud", local: true, cloud: "saved", message: "DNA를 브라우저와 Supabase 계정에 저장했습니다(행 확인됨)." };
 }
 
-export async function persistSavedItem(item: SavedItem) {
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase) return;
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from("saved_items").insert({ user_id: user.id, item_type: item.type, title: item.title, subtitle: item.subtitle, payload: { ...item.payload, clientId: item.id, mode: item.mode } });
+/** 계정의 분석 행 키(트렌드·분석 시각·DNA 시각). 업로드가 필요한 로컬 분석을 세는 데 쓴다. */
+export async function listCloudAnalysisKeys(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase.from("trend_analyses").select("trend_id,analyzed_at,dna_generated_at").eq("user_id", userId).limit(2000);
+  if (error) return { ok: false as const, error: cloudHint(error.message) };
+  return { ok: true as const, rows: (data ?? []) as Array<{ trend_id: string; analyzed_at: string; dna_generated_at: string | null }> };
+}
+
+/** 클라우드에 없거나(같은 트렌드·분석 시각 행 없음) 로컬 DNA가 더 최신인 로컬 분석. */
+export function pendingAnalysisUploads(local: LiveAnalysisSnapshot[], rows: Array<{ trend_id: string; analyzed_at: string; dna_generated_at: string | null }>) {
+  return local.filter((item) => {
+    if (!item.whyReport) return false;
+    const row = rows.find((r) => r.trend_id === item.trendId && new Date(r.analyzed_at).getTime() === new Date(item.analyzedAt).getTime());
+    if (!row) return true;
+    return Boolean(item.dna && item.dnaGeneratedAt && (!row.dna_generated_at || new Date(item.dnaGeneratedAt) > new Date(row.dna_generated_at)));
+  });
 }
 
 type CloudRow = Record<string, unknown>;
@@ -92,6 +116,7 @@ const toIso = (value: unknown) => { const date = new Date(String(value)); return
 
 export function rowToSnapshot(row: CloudRow): LiveAnalysisSnapshot {
   const report = row.report as TrendAnalysis | undefined;
+  const evidence = Array.isArray(row.evidence) ? row.evidence as NonNullable<LiveAnalysisSnapshot["evidence"]> : [];
   const trendName = String(row.trend_name);
   const storedTrendId = String(row.trend_id);
   return {
@@ -101,7 +126,7 @@ export function rowToSnapshot(row: CloudRow): LiveAnalysisSnapshot {
     trendName,
     keywords: Array.isArray(row.keywords) ? row.keywords.map(String) : [],
     periodMonths: (row.period_months === 1 || row.period_months === 3 ? row.period_months : 12) as 1 | 3 | 12,
-    summary: report?.origin?.summary ? String(report.origin.summary) : "저장된 LIVE WHY 분석",
+    summary: report ? overviewSummary(report, trendName, evidence) : "저장된 LIVE WHY 분석",
     // Postgres는 "+00:00" 형식으로 돌려준다. 로컬 원장은 ISO "Z" 문자열로 버전을 식별하므로 형식을 맞춘다.
     analyzedAt: toIso(row.analyzed_at),
     // DB source 컬럼은 제약 때문에 항상 NAVER+OpenAI다. YouTube 사용 여부는 youtube 컬럼에서 복원한다.
@@ -109,7 +134,7 @@ export function rowToSnapshot(row: CloudRow): LiveAnalysisSnapshot {
     whyReport: report,
     naverSignal: row.naver_signal,
     whyPromptVersion: row.prompt_version ? String(row.prompt_version) : undefined,
-    evidence: Array.isArray(row.evidence) ? row.evidence as LiveAnalysisSnapshot["evidence"] : undefined,
+    evidence: evidence.length ? evidence : undefined,
     signalStats: Array.isArray(row.signal_stats) ? row.signal_stats as LiveAnalysisSnapshot["signalStats"] : undefined,
     youtube: (row.youtube as LiveAnalysisSnapshot["youtube"]) ?? undefined,
     dna: (row.dna as LiveAnalysisSnapshot["dna"]) ?? undefined,

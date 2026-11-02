@@ -5,7 +5,11 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api-fetch";
 import { AlertTriangle, Check, Clipboard, ExternalLink, LoaderCircle, PenLine, Save, Sparkles } from "lucide-react";
 import { getCollisions, getLabReviews, getLiveAnalyses, getSavedItem, saveItem } from "@/lib/storage";
-import { persistSavedItem } from "@/lib/cloud-storage";
+import { isPlanPayload, saveItemEverywhere } from "@/lib/saved-items-cloud";
+import { syncAccount } from "@/lib/account-sync";
+import type { PersistenceResult } from "@/lib/cloud-storage";
+import { CloudSaveStatus } from "./cloud-save-status";
+import { StudioProduction } from "./studio-production";
 import { useStored } from "@/lib/use-stored";
 import { buildInsightSources, readQueryParam } from "@/lib/insight-sources";
 import { evidenceLookup, type ValidationLog } from "@/lib/signal";
@@ -18,13 +22,18 @@ type StudioResponse={cached:boolean;analyzedAt:string;model:string;result:Conten
 export function ContentStudio(){
   const snapshots=useStored(getLiveAnalyses);const collisions=useStored(getCollisions);
   const sources=useMemo(()=>buildInsightSources(snapshots??[],collisions??[]),[snapshots,collisions]);
-  const [modeChoice,setModeChoice]=useState<"live"|"demo"|null>(null);
-  const mode=modeChoice??(snapshots!==null&&sources.length===0?"demo":"live");
+  const [modeChoice,setModeChoice]=useState<"production"|"live"|"demo"|null>(null);
+  // LIVE 분석이 하나도 없으면 이전처럼 데모 예시를 보여 준다(데모를 LIVE처럼 쓰지 않음).
+  // SINGLE TREND MODE가 기본이다. 분석이 없어도 Production에서 사용자 지정 주제로 시작할 수 있고,
+  // 기존 데모는 사용자가 DEMO EXAMPLE 탭을 눌렀을 때만 표시한다.
+  const mode=modeChoice??"production";
   // 저장된 기획안 복원 링크는 LIVE 출처가 없어도 LIVE 화면에서 열어야 한다.
-  useEffect(()=>{const frame=requestAnimationFrame(()=>{if(readQueryParam("plan"))setModeChoice("live")});return()=>cancelAnimationFrame(frame)},[]);
+  // 저장된 기획 브리프·Collision·Lab 링크는 BRIEF 화면에서, 프로젝트·Creative·단일 트렌드 진입은 PRODUCTION 화면에서 연다.
+  // 데모 Lab에서 넘어온 진입(?demo=lab)은 데모 기획안 화면으로 연다 — 기본 탭(PRODUCTION)은 그대로 두고, 출발지가 데모일 때만.
+  useEffect(()=>{const frame=requestAnimationFrame(()=>{if(readQueryParam("plan")||readQueryParam("collision")||readQueryParam("lab"))setModeChoice("live");else if(readQueryParam("project")||readQueryParam("creative")||readQueryParam("trend")||readQueryParam("phenomenon"))setModeChoice("production");else if(readQueryParam("demo"))setModeChoice("demo")});return()=>cancelAnimationFrame(frame)},[]);
   return <div className="page"><PageHeader eyebrow="07 / CONTENT STUDIO" title="Turn cultural insight into a brief." description="LIVE WHY·DNA·Collision·Lab 결과를 실제 입력으로 전달해 근거가 연결된 콘텐츠 기획안을 만듭니다. 참고 자료 URL은 AI가 아니라 서버의 근거 원장에서 붙입니다."/>
-    <div className="chip-select mode-switch"><button type="button" aria-pressed={mode==="live"} onClick={()=>setModeChoice("live")}>LIVE BRIEF · {sources.length} SOURCES</button><button type="button" aria-pressed={mode==="demo"} onClick={()=>setModeChoice("demo")}>DEMO EXAMPLE</button></div>
-    {mode==="live"?<LiveStudio sources={sources} loading={snapshots===null}/>:<DemoStudio/>}
+    <div className="chip-select mode-switch"><button type="button" aria-pressed={mode==="production"} onClick={()=>setModeChoice("production")} data-testid="studio-tab-production">PRODUCTION · 카드뉴스·숏폼</button><button type="button" aria-pressed={mode==="live"} onClick={()=>setModeChoice("live")} data-testid="studio-tab-brief">LIVE BRIEF · {sources.length} SOURCES</button><button type="button" aria-pressed={mode==="demo"} onClick={()=>setModeChoice("demo")}>DEMO EXAMPLE</button></div>
+    {mode==="production"?(snapshots===null?<div className="state-box panel"><LoaderCircle className="spin"/><p>저장된 LIVE 분석을 불러오고 있습니다.</p></div>:<StudioProduction snapshots={snapshots}/>):mode==="live"?<LiveStudio sources={sources} loading={snapshots===null}/>:<DemoStudio/>}
     <style jsx>{`.mode-switch{margin-bottom:18px}`}</style>
     <style jsx global>{`.studio-layout{display:grid;grid-template-columns:330px 1fr;gap:14px}.studio-layout>aside{padding:22px;align-self:start}.source-stack>small{font-size:11px;color:#828282;letter-spacing:.12em}.source-stack article{display:grid;grid-template-columns:52px 1fr 15px;gap:10px;padding:14px 0;border-bottom:1px solid var(--border);align-items:center}.source-stack article>span{font-size:11px;color:var(--accent);border:1px solid #d5d9ea;padding:5px;text-align:center}.source-stack article.off>span{color:#8a8a8a;border-color:var(--border)}.source-stack b{font-size:11px}.source-stack p{font-size:11px;color:#8a8a8a;margin:5px 0 0}.source-stack svg{width:13px;color:var(--accent)}.studio-form{display:grid;gap:15px;margin-top:22px}.output{min-height:700px;padding:38px;position:relative}.output>header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.output header small,.output section>small{font-size:11px;color:var(--accent);letter-spacing:.14em}.output h2{font-size:35px;font-weight:500;line-height:1.15;margin:12px 0}.output-actions{display:flex;gap:7px}.output-actions svg{width:15px}.output-meta{display:flex;gap:15px;align-items:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:13px 0;color:#787878;font-size:11px;flex-wrap:wrap}.output section{padding:24px 0;border-bottom:1px solid var(--border)}.output section>p{font-size:12px;line-height:1.9;color:#515151}.output blockquote{font-size:25px;line-height:1.4;margin:18px 0}.output blockquote em{font-style:normal;color:var(--accent)}.output ol{padding:0;list-style:none}.output li{display:grid;grid-template-columns:35px 1fr;gap:3px 12px;margin:15px 0}.output li span{grid-row:span 2;color:var(--accent);font-size:11px}.output li b{font-size:12px}.output li p{font-size:11px;color:var(--muted);margin:4px 0}.claims{display:grid;gap:10px;margin-top:12px}.claims article{display:grid;gap:7px;justify-items:start;padding:12px;border:1px solid var(--border);border-radius:6px}.claims p{font-size:12px;margin:0;color:#3d3d3d;line-height:1.6}.hooks{display:grid;gap:8px;margin-top:10px}.hooks blockquote{margin:0!important;font-size:20px!important}.refs{display:grid;gap:6px;margin-top:10px}.refs a,.refs div{display:grid;grid-template-columns:90px 1fr 14px;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:11px}.refs b{color:var(--accent)}.refs svg{width:12px;color:var(--accent)}.validation{background:#f4f5f9;padding:20px!important;margin-top:20px;border:1px solid #f4f5f9!important}.validation li{display:list-item;font-size:11px;color:#747474;margin:8px 0}.output-empty{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.output-empty svg{color:var(--accent);width:35px;height:35px}.output-empty h2{font-size:24px}.output-empty p{font-size:12px;color:var(--muted)}.toast{position:sticky;bottom:20px;margin:20px auto 0;width:max-content;background:var(--accent);color:#f4f5f9;padding:10px 15px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:7px}.toast svg{width:13px}@media(max-width:900px){.studio-layout{grid-template-columns:1fr}.output{padding:24px}.output h2{font-size:28px}.refs a,.refs div{grid-template-columns:1fr}}`}</style>
   </div>
@@ -38,9 +47,14 @@ function LiveStudio({sources,loading}:{sources:ReturnType<typeof buildInsightSou
   const [state,setState]=useState<"idle"|"loading"|"error">("idle");const [error,setError]=useState("");
   const [current,setCurrent]=useState<{payload:SavedPlanPayload;status:DataStatus;savedId?:string}|null>(null);
   const [toast,setToast]=useState("");
+  const [saveResult,setSaveResult]=useState<PersistenceResult|null>(null);const [saving,setSaving]=useState(false);
   useEffect(()=>{const frame=requestAnimationFrame(()=>{
     const plan=readQueryParam("plan");const collision=readQueryParam("collision");const lab=readQueryParam("lab");
-    if(plan){const item=getSavedItem(plan);if(item?.payload)setCurrent({payload:item.payload,status:"SAVED",savedId:item.id})}
+    if(plan){
+      const open=()=>{const item=getSavedItem(plan);if(item&&isPlanPayload(item.payload)){setCurrent({payload:item.payload,status:"SAVED",savedId:item.id});return true}return false};
+      // 이 브라우저에 없으면(다른 브라우저에서 저장) 계정 동기화 후 다시 찾는다.
+      if(!open())void syncAccount().then(()=>{if(!open())setToast("이 기획안을 이 브라우저와 계정에서 찾지 못했습니다.")});
+    }
     if(collision)setSourceChoice(`collision:${collision}`);
     if(lab)setLabChoice(lab);
   });return()=>cancelAnimationFrame(frame)},[]);
@@ -62,7 +76,10 @@ function LiveStudio({sources,loading}:{sources:ReturnType<typeof buildInsightSou
       setState("idle");
     }catch(reason){setError(reason instanceof Error?reason.message:"기획안 생성에 실패했습니다.");setState("error")}
   };
-  const save=()=>{if(!current)return;const item:SavedItem={id:current.savedId??`plan-${Date.now()}`,type:"plan",mode:"live",title:current.payload.plan.title,subtitle:`${current.payload.brief.platform} · ${current.payload.brief.format} · ${current.payload.trendNames.join(" × ")}`,createdAt:new Date().toISOString(),payload:current.payload};saveItem(item);void persistSavedItem(item);setCurrent({...current,savedId:item.id});setToast("Workspace에 저장했습니다.")};
+  const save=async()=>{if(!current)return;const item:SavedItem={id:current.savedId??`plan-${Date.now()}`,type:"plan",mode:"live",title:current.payload.plan.title,subtitle:`${current.payload.brief.platform} · ${current.payload.brief.format} · ${current.payload.trendNames.join(" × ")}`,createdAt:new Date().toISOString(),payload:current.payload};
+    setSaving(true);setCurrent({...current,savedId:item.id});
+    // 클라우드 저장 결과(실제 DB 응답)를 기다려 브라우저 저장과 따로 보여 준다.
+    const result=await saveItemEverywhere(item);setSaveResult(result);setSaving(false);setToast(result.cloud==="saved"?"Workspace와 계정에 저장했습니다.":result.cloud==="failed"?"브라우저에만 저장됨 · 클라우드 저장 실패":"Workspace(이 브라우저)에 저장했습니다.")};
   const copy=async()=>{if(!current)return;await navigator.clipboard.writeText([current.payload.plan.hooks[0],current.payload.plan.caption,current.payload.plan.cta].filter(Boolean).join("\n\n"));setToast("후킹 문구·캡션·CTA를 복사했습니다.")};
 
   if(loading)return <div className="state-box panel"><LoaderCircle className="spin"/><p>저장된 LIVE 분석을 불러오고 있습니다.</p></div>;
@@ -91,6 +108,7 @@ function LiveStudio({sources,loading}:{sources:ReturnType<typeof buildInsightSou
         <section><small>09 / CTA</small><p>{plan.cta}</p></section>
         <section><small>10 / REFERENCES · 서버 근거 원장</small><div className="refs">{current.payload.references.length?current.payload.references.map(item=>item.url?<a key={item.id} href={item.url} target="_blank" rel="noreferrer"><b>{item.id}</b><span>{item.title}</span><ExternalLink/></a>:<div key={item.id}><b>{item.id}</b><span>{item.title}</span><i/></div>):<p>인용된 참고 자료가 없습니다.</p>}</div></section>
         <section className="validation"><small>11 / VERIFY BEFORE PUBLISHING</small><ul>{plan.verifyBeforePublishing.map(item=><li key={item}>{item}</li>)}</ul>{current.payload.validation&&<p className="validation-log">SERVER VALIDATION · 근거 ID 제거 {current.payload.validation.removedEvidenceIds.length} · 상태 하향 {current.payload.validation.downgraded}</p>}</section>
+        {saving&&<p className="saving" role="status">클라우드에 저장하는 중…</p>}{saveResult&&<CloudSaveStatus result={saveResult}/>}
         {toast&&<div className="toast"><Check/>{toast}</div>}</>
       :state!=="error"&&<div className="output-empty"><PenLine/><h2>Insight-aware content starts here.</h2><p>왼쪽에서 출처를 확인한 후 기획안을 생성하세요. 1회 OpenAI 호출이 발생합니다.</p></div>}
     </section></div>;

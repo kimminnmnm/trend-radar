@@ -27,6 +27,8 @@ test.describe("Overview Instagram hashtag pulse", () => {
     await seed(page, []);
     const board = page.getByTestId("ig-pulse");
     await expect(board.getByText("NO SIGNAL")).toBeVisible();
+    await expect(board.getByTestId("ig-pulse-cloud-status")).toHaveText("LOCAL ONLY");
+    await expect(board.getByText("로그인하지 않아 이 브라우저에만 저장됩니다.")).toBeVisible();
     await expect(board.getByRole("button", { name: /START/ })).toBeVisible();
     await expect(board.locator(".board li")).toHaveCount(0);
   });

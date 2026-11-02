@@ -1,0 +1,394 @@
+{
+ "recordedAt": "2026-10-30",
+ "note": "V3 실측: 헤이세이 레트로 YouTube 썸네일 6장, /api/visual-dna 1회(OpenAI 비전, detail low).",
+ "trendId": "live-헤이세이-레트로",
+ "record": {
+  "result": {
+   "trend": "헤이세이 레트로 썸네일에서는 파스텔톤 캐릭터 스티커와 소품, 굵고 눈에 띄는 자막, 손으로 보여주는 수집·꾸미기 장면이 두드러집니다. 일부 썸네일은 다마고치·프리쿠라와 같은 레트로 관련 소품을 함께 제시합니다.",
+   "palette": [
+    {
+     "hex": "#f5a8cf",
+     "name": "파스텔 핑크",
+     "mediaIds": [
+      "youtube:jOQV9YxhIB8",
+      "youtube:m14xJwkM0MU",
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:-72jBz-tAZI"
+     ]
+    },
+    {
+     "hex": "#8fd8e8",
+     "name": "밝은 하늘색",
+     "mediaIds": [
+      "youtube:m14xJwkM0MU",
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY"
+     ]
+    },
+    {
+     "hex": "#f7e77b",
+     "name": "연노랑",
+     "mediaIds": [
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY",
+      "youtube:-72jBz-tAZI"
+     ]
+    },
+    {
+     "hex": "#ffffff",
+     "name": "흰색",
+     "mediaIds": [
+      "youtube:jOQV9YxhIB8",
+      "youtube:m14xJwkM0MU",
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY",
+      "youtube:-72jBz-tAZI"
+     ]
+    },
+    {
+     "hex": "#22202a",
+     "name": "짙은 차콜",
+     "mediaIds": [
+      "youtube:jOQV9YxhIB8",
+      "youtube:-72jBz-tAZI"
+     ]
+    }
+   ],
+   "dimensions": [
+    {
+     "dimension": "Color Palette",
+     "summary": "스티커와 캐릭터 소품에는 핑크·하늘색·노랑 등 밝은 색이 보이고, 썸네일 자막에는 흰색과 짙은색 대비가 사용됩니다.",
+     "features": [
+      {
+       "label": "파스텔 계열 소품 색",
+       "description": "스티커와 캐릭터 인쇄물에서 핑크, 하늘색, 노랑이 함께 보입니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:m14xJwkM0MU",
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      },
+      {
+       "label": "강한 자막 대비",
+       "description": "밝은 글자에 어두운 외곽선이나 그림자를 더해 배경과 구분한 자막이 보입니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:jOQV9YxhIB8",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Typography",
+     "summary": "정보형 썸네일에는 크고 굵은 한글 자막이, 상품 중심 이미지에는 작은 장식 글자와 캐릭터 로고가 보입니다.",
+     "features": [
+      {
+       "label": "굵은 제목 자막",
+       "description": "두꺼운 글자와 외곽선으로 제목을 크게 배치합니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:jOQV9YxhIB8",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Supported Hypothesis"
+      },
+      {
+       "label": "상품 인쇄 글자",
+       "description": "스티커 패키지와 바인더에 작고 다채로운 장식 글자와 로고가 포함되어 있습니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Texture",
+     "summary": "투명한 포장재와 반짝이거나 광택이 있는 스티커 표면이 일부 이미지에서 확인됩니다.",
+     "features": [
+      {
+       "label": "투명 포장과 광택",
+       "description": "스티커가 투명 포장지 안에 담겨 있으며 표면에 빛 반사가 보입니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:Ui-R1jWhoBo",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Composition",
+     "summary": "손에 든 소품을 화면 가까이 보여주는 구도와, 인물·자막·관련 이미지를 함께 배열한 정보형 구도가 함께 나타납니다.",
+     "features": [
+      {
+       "label": "손에 든 소품 클로즈업",
+       "description": "손으로 스티커나 소품을 잡아 화면 중앙 가까이 보여줍니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:m14xJwkM0MU",
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      },
+      {
+       "label": "인물과 제목의 병치",
+       "description": "인물 이미지와 큰 제목 자막, 관련 소품 사진을 한 화면에 함께 배치합니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:jOQV9YxhIB8",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Objects",
+     "summary": "캐릭터 스티커와 바인더가 소품 중심 이미지에서 반복되고, 일부 정보형 썸네일에는 휴대용 전자 완구와 사진 스티커가 제시됩니다.",
+     "features": [
+      {
+       "label": "캐릭터 스티커와 바인더",
+       "description": "캐릭터가 인쇄된 스티커, 스티커 시트와 바인더가 보입니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:m14xJwkM0MU",
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      },
+      {
+       "label": "레트로 관련 기기·사진 소품",
+       "description": "작은 휴대용 전자 기기와 인물 사진이 담긴 카드·이미지가 보입니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:jOQV9YxhIB8",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Visual Mood",
+     "summary": "밝고 장난스러우며 수집품을 들여다보는 즐거움을 강조하는 인상으로 읽힙니다.",
+     "features": [
+      {
+       "label": "귀엽고 활기찬 인상",
+       "description": "파스텔 색, 캐릭터 이미지, 눈에 띄는 자막이 경쾌한 분위기를 만듭니다.",
+       "basis": "inferred",
+       "mediaIds": [
+        "youtube:m14xJwkM0MU",
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Creative Hypothesis"
+      },
+      {
+       "label": "향수와 재발견의 인상",
+       "description": "레트로 관련 문구와 과거를 연상시키는 소품의 병치가 회고적인 분위기를 제안합니다.",
+       "basis": "inferred",
+       "mediaIds": [
+        "youtube:jOQV9YxhIB8",
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Creative Hypothesis"
+      }
+     ]
+    },
+    {
+     "dimension": "Visual Motifs",
+     "summary": "캐릭터를 빼곡히 배열한 스티커와 하트·별 같은 작은 장식 요소, 레트로 소품을 가리키는 자막이 반복됩니다.",
+     "features": [
+      {
+       "label": "캐릭터와 장식 아이콘의 반복",
+       "description": "캐릭터 그림 주위에 하트, 별 등 작은 장식 도형이 배치되어 있습니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:Ui-R1jWhoBo",
+        "youtube:fbDj630etqk",
+        "youtube:1YoKSBuYmGY"
+       ],
+       "status": "Supported Hypothesis"
+      },
+      {
+       "label": "레트로 소품을 강조하는 라벨",
+       "description": "다마고치, 프리쿠라 등 소품을 가리키는 짧은 자막과 이미지가 함께 제시됩니다.",
+       "basis": "observed",
+       "mediaIds": [
+        "youtube:-72jBz-tAZI"
+       ],
+       "status": "Supported Hypothesis"
+      }
+     ]
+    }
+   ],
+   "commonFeatures": [
+    {
+     "label": "파스텔톤 캐릭터 상품",
+     "description": "서로 다른 소품 중심 썸네일에서 밝은 파스텔색 캐릭터 스티커나 인쇄물이 보입니다.",
+     "dimension": "Color Palette",
+     "mediaIds": [
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY"
+     ]
+    },
+    {
+     "label": "손으로 상품을 들어 보여주는 구도",
+     "description": "손이 스티커나 소품을 잡고 화면 가까이 제시합니다.",
+     "dimension": "Composition",
+     "mediaIds": [
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY"
+     ]
+    },
+    {
+     "label": "스티커와 문구 소품",
+     "description": "스티커 시트나 꾸미기용 문구 상품이 주요 대상으로 나타납니다.",
+     "dimension": "Objects",
+     "mediaIds": [
+      "youtube:m14xJwkM0MU",
+      "youtube:Ui-R1jWhoBo",
+      "youtube:fbDj630etqk",
+      "youtube:1YoKSBuYmGY"
+     ]
+    }
+   ],
+   "dnaLinks": [
+    {
+     "dnaDimension": "Aesthetic",
+     "visualDimension": "Color Palette",
+     "note": "파스텔 색의 캐릭터 상품과 대비가 강한 자막이 밝고 눈에 띄는 시각 스타일을 이룹니다."
+    },
+    {
+     "dnaDimension": "Emotion",
+     "visualDimension": "Visual Mood",
+     "note": "캐릭터와 파스텔 색은 귀여움과 경쾌함을, 레트로 소품은 회고적 인상을 제안합니다."
+    },
+    {
+     "dnaDimension": "Behavior",
+     "visualDimension": "Composition",
+     "note": "손으로 상품을 가까이 보여주는 장면은 수집품을 소개하거나 꾸미는 행동을 시각화합니다."
+    },
+    {
+     "dnaDimension": "Object",
+     "visualDimension": "Objects",
+     "note": "스티커·바인더와 휴대용 전자 기기·사진 소품이 썸네일에서 반복적으로 제시됩니다."
+    },
+    {
+     "dnaDimension": "Culture",
+     "visualDimension": "Visual Motifs",
+     "note": "헤이세이 레트로라는 표기와 관련 소품이 일본 대중문화 회고라는 주제를 연결합니다."
+    },
+    {
+     "dnaDimension": "Audience",
+     "visualDimension": "Typography",
+     "note": "큰 제목과 짧은 강조 문구는 영상 주제와 상품을 빠르게 알아보도록 구성된 것으로 보입니다."
+    }
+   ],
+   "limitations": [
+    "분석은 제공된 공개 영상 썸네일 6장에 한정되며, 헤이세이 레트로 전체의 시각적 특징을 대표한다고 볼 수 없습니다.",
+    "썸네일의 축소 이미지와 일부 세로 영상 프레임으로 인해 작은 글자, 소재의 세부 질감과 정확한 색상은 제한적으로 판단했습니다.",
+    "제품의 실제 연식이나 영상 속 물건의 역사적 진위는 이미지 만으로 확인할 수 없습니다."
+   ]
+  },
+  "media": [
+   {
+    "mediaId": "youtube:jOQV9YxhIB8",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=jOQV9YxhIB8",
+    "thumbnailUrl": "https://i.ytimg.com/vi/jOQV9YxhIB8/hqdefault.jpg",
+    "title": "헤이세이 레트로란?🇯🇵일본어 팟캐스트 ＃일본어　＃일본",
+    "evidenceIds": [
+     "YT-02"
+    ],
+    "usageRights": "platform-embed"
+   },
+   {
+    "mediaId": "youtube:m14xJwkM0MU",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=m14xJwkM0MU",
+    "thumbnailUrl": "https://i.ytimg.com/vi/m14xJwkM0MU/hqdefault.jpg",
+    "title": "헤이세이 레트로 시즈쿠짱 아와와짱 스티커 바인더 꾸미기🫧 | 平成レトロ シールバインダー",
+    "evidenceIds": [
+     "YT-04"
+    ],
+    "usageRights": "platform-embed"
+   },
+   {
+    "mediaId": "youtube:Ui-R1jWhoBo",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=Ui-R1jWhoBo",
+    "thumbnailUrl": "https://i.ytimg.com/vi/Ui-R1jWhoBo/hqdefault.jpg",
+    "title": "しずくちゃん シールバインダー&平成レトロ ウォーターシール 헤이세이레트로 스티커 바인더&스티커 1탄",
+    "evidenceIds": [
+     "YT-05"
+    ],
+    "usageRights": "platform-embed"
+   },
+   {
+    "mediaId": "youtube:fbDj630etqk",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=fbDj630etqk",
+    "thumbnailUrl": "https://i.ytimg.com/vi/fbDj630etqk/hqdefault.jpg",
+    "title": "왁뿌 휘낭시에 토벌 실패했슴다🥹 #packing # #소품샵 #헤이세이레트로 #문구포장 #asmr",
+    "evidenceIds": [
+     "YT-08"
+    ],
+    "usageRights": "platform-embed"
+   },
+   {
+    "mediaId": "youtube:1YoKSBuYmGY",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=1YoKSBuYmGY",
+    "thumbnailUrl": "https://i.ytimg.com/vi/1YoKSBuYmGY/hqdefault.jpg",
+    "title": "Stickers San-X 🎀 Une touche rétro et kawaii dans tes carnets #sticker #kawaii #retro #nippon",
+    "evidenceIds": [
+     "YT-01"
+    ],
+    "usageRights": "platform-embed"
+   },
+   {
+    "mediaId": "youtube:-72jBz-tAZI",
+    "platform": "youtube",
+    "sourceUrl": "https://www.youtube.com/watch?v=-72jBz-tAZI",
+    "thumbnailUrl": "https://i.ytimg.com/vi/-72jBz-tAZI/hqdefault.jpg",
+    "title": "일본 Z세대는 왜 ‘헤이세이’에 빠졌을까? 다마고치·프리쿠라가 다시 유행하는 이유｜일본 문화 한스푼",
+    "evidenceIds": [
+     "YT-03"
+    ],
+    "usageRights": "platform-embed"
+   }
+  ],
+  "model": "gpt-6-luna",
+  "analyzedAt": "2026-10-30T01:18:03.185Z",
+  "promptVersion": "visual-dna-v1",
+  "validation": {
+   "removedMediaIds": [],
+   "downgraded": 0,
+   "droppedCommon": 0,
+   "droppedPalette": 0
+  }
+ }
+}

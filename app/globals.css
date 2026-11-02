@@ -365,3 +365,7 @@ input[type=checkbox],input[type=radio] { accent-color:#1f2fe0; border:0; }
   .mobile-logo i { background:#14161f; }
   .backdrop { background:rgba(20,22,31,.3); }
 }
+
+/* Instagram 사진 자동 채우기 상태(Overview·Discover) */
+.ig-fill{margin:0 0 10px;padding:6px 10px;font-size:12px;border:1.5px solid var(--ink);border-radius:6px;background:#fff}
+.ig-fill.done{background:#c9fbd9}.ig-fill.error{background:#ffe3e8;color:#a3122e}

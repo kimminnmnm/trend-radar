@@ -9,7 +9,7 @@ export const STUDIO_PROMPT_VERSION = "studio-live-v1";
 
 const normalize = (value: string) => value.toLocaleLowerCase("ko-KR").replace(/[\s#·_\-]/g, "");
 
-function prefixEvidenceIds(value: unknown, prefix: string): unknown {
+export function prefixEvidenceIds(value: unknown, prefix: string): unknown {
   if (Array.isArray(value)) return value.map((item) => prefixEvidenceIds(item, prefix));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, key === "evidenceIds" && Array.isArray(item) ? item.map((id) => `${prefix}:${String(id)}`) : prefixEvidenceIds(item, prefix)]));

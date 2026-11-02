@@ -9,6 +9,7 @@ import { useStored } from "@/lib/use-stored";
 import { trendPath } from "@/lib/live-trend";
 import { WinButtons } from "@/components/ui";
 import { JourneyBar } from "@/components/journey-bar";
+import { AccountSyncBar } from "@/components/account-sync-bar";
 
 const nav = [
   { href: "/", label: "Overview", desc: "지금 뜨는 해시태그·2030 순위", icon: Aperture },
@@ -63,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       {open && <button className="backdrop" aria-label="메뉴 닫기" onClick={() => setOpen(false)} />}
-      <main className="main-content"><JourneyBar />{children}</main>
+      <main className="main-content"><AccountSyncBar /><JourneyBar />{children}</main>
     </div>
   );
 }

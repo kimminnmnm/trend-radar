@@ -9,7 +9,9 @@ import type { TrendDna } from "@/lib/schemas";
 import type { ValidationLog } from "@/lib/signal";
 import { evidenceLookup } from "@/lib/signal";
 import { getLiveAnalyses, updateLiveAnalysis } from "@/lib/storage";
-import { persistLiveDna } from "@/lib/cloud-storage";
+import { persistLiveDna, type PersistenceResult } from "@/lib/cloud-storage";
+import { CloudSaveStatus } from "./cloud-save-status";
+import { VisualDnaPanel } from "./visual-dna-panel";
 import { CULTURE_ALIAS_RULES } from "@/lib/culture-alias-rules";
 import { describePipeline, runCulturePipeline, syncCultureLedgerLocal } from "@/lib/culture-pipeline-client";
 import { useStored } from "@/lib/use-stored";
@@ -42,6 +44,7 @@ function LiveDna({trend,snapshot,loading}:{trend:Trend;snapshot:LiveAnalysisSnap
   const [error,setError]=useState("");
   const [freshStatus,setFreshStatus]=useState<DataStatus|null>(null);
   const [message,setMessage]=useState("");
+  const [saveResult,setSaveResult]=useState<PersistenceResult|null>(null);
   const ledger=useMemo(()=>evidenceLookup(snapshot?.evidence),[snapshot?.evidence]);
 
   const run=async()=>{
@@ -61,7 +64,8 @@ function LiveDna({trend,snapshot,loading}:{trend:Trend;snapshot:LiveAnalysisSnap
       const result=await persistLiveDna({...snapshot,...patch});
       // PHASE 5: 메타데이터 버전 기록 → 기존 트렌드와 관계 계산 → 원장·Supabase 저장. 유료 API 호출 없음.
       const pipeline=await runCulturePipeline();
-      setMessage(`${result.message} ${describePipeline(pipeline)}`);
+      setSaveResult(result);
+      setMessage(describePipeline(pipeline));
     }catch(reason){setError(reason instanceof Error?reason.message:"DNA 분석에 실패했습니다.");setState("error")}
   };
 
@@ -78,6 +82,7 @@ function LiveDna({trend,snapshot,loading}:{trend:Trend;snapshot:LiveAnalysisSnap
     <aside className="live-context panel"><small>INPUT · LIVE WHY</small><strong>{snapshot.trendName}</strong><span>WHY 분석 {formatDateTime(snapshot.analyzedAt)} · 근거 NAVER {snapshot.evidence.length-igCount} · Instagram {igCount}</span><p>{snapshot.summary}</p></aside>
     <div className="dna-hero panel"><div className="atom-visual"><i/><i/><i/><Atom/></div><div><small>CULTURAL FINGERPRINT / LIVE</small><h2>{snapshot.trendName}</h2><p>{dna?"각 속성은 근거 원장 ID와 연결되며, 근거가 없는 속성은 Insufficient Evidence로 표시됩니다. 정량 점수가 아닌 해석 언어입니다.":"WHY 결과와 근거 원장을 OpenAI에 전달해 6차원 DNA를 생성합니다. 1회 API 호출이 발생합니다."}</p>
       <div className="hero-row"><DataBadge status={status} detail={dna?`${snapshot.dnaModel??""} · ${formatDateTime(snapshot.dnaGeneratedAt)}`:undefined}/><button className="button primary" onClick={run} disabled={state==="loading"}>{state==="loading"?<><LoaderCircle className="spin"/>Analyzing DNA…</>:dna?<><RotateCcw/>Re-analyze DNA</>:<><Play/>Run LIVE DNA analysis</>}</button></div>
+      {saveResult&&<CloudSaveStatus result={saveResult}/>}
       {message&&<p role="status" style={{color:"var(--mint)",fontSize: 11,marginTop:10}}>{message}</p>}
       {state==="error"&&<p role="alert" style={{color:"#952326",fontSize: 11,marginTop:10,display:"flex",gap:6,alignItems:"center"}}><AlertTriangle size={13}/>{error}{dna?" 아래는 이전에 저장된 DNA입니다.":""}</p>}
     </div></div>
@@ -88,6 +93,7 @@ function LiveDna({trend,snapshot,loading}:{trend:Trend;snapshot:LiveAnalysisSnap
       <section className="section composition panel"><div><small>DOMINANT PATTERN · LIVE</small><h2>{dna.dominantPattern.title}</h2><p>{dna.dominantPattern.explanation}</p></div><div><StatusPill status={dna.dominantPattern.status}/><EvidenceRefs ids={dna.dominantPattern.evidenceIds} evidence={ledger}/></div></section>
       <div className="dna-missing"><small>VERIFICATION GAPS</small><ul>{dna.missingEvidence.map(item=><li key={item}>{item}</li>)}</ul></div>
       {snapshot.dnaValidation&&<p className="validation-log">SERVER VALIDATION · 원장에 없는 근거 ID 제거 {snapshot.dnaValidation.removedEvidenceIds.length}개 · 상태 하향 {snapshot.dnaValidation.downgraded}건 · 프롬프트 {snapshot.dnaPromptVersion} · 임베딩 {snapshot.embedding?.length?"생성됨":"없음"}</p>}
+      <VisualDnaPanel snapshot={snapshot}/>
     </>}
   </>;
 }

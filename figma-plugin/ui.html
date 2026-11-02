@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+  body{margin:0;padding:12px 14px;font:12px/1.5 Inter,"Pretendard","Noto Sans KR",sans-serif;color:var(--figma-color-text,#14161f);background:var(--figma-color-bg,#fff)}
+  h1{font-size:13px;margin:0 0 6px}
+  p{margin:0 0 8px;color:var(--figma-color-text-secondary,#5d6170)}
+  .tabs{display:flex;gap:4px;margin-bottom:10px}
+  .tabs button{flex:1;margin:0;background:transparent;color:inherit;border:1px solid var(--figma-color-border,#c9cde0);font-weight:600}
+  .tabs button[aria-selected=true]{background:var(--figma-color-bg-brand,#1f2fe0);color:#fff;border-color:transparent}
+  button{margin-top:8px;width:100%;min-height:32px;border:0;border-radius:6px;background:var(--figma-color-bg-brand,#1f2fe0);color:#fff;font-weight:700;cursor:pointer;font:inherit;font-weight:700}
+  button.secondary{background:transparent;color:inherit;border:1px solid var(--figma-color-border,#c9cde0);font-weight:500}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  label.drop{display:block;border:1.5px dashed var(--figma-color-border,#c9cde0);border-radius:8px;padding:14px;text-align:center;cursor:pointer}
+  label.drop input{display:none}
+  textarea{width:100%;box-sizing:border-box;height:80px;margin-top:8px;font:11px monospace;border:1px solid var(--figma-color-border,#c9cde0);border-radius:6px;padding:6px;background:transparent;color:inherit}
+  input[type=url]{width:100%;box-sizing:border-box;font:inherit;padding:5px 6px;border:1px solid var(--figma-color-border,#c9cde0);border-radius:5px;background:transparent;color:inherit}
+  .list{display:grid;gap:4px;max-height:220px;overflow:auto;margin-top:6px}
+  .item{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:start;border:1px solid var(--figma-color-border,#c9cde0);border-radius:6px;padding:7px 8px;cursor:pointer}
+  .item[aria-checked=true]{border-color:var(--figma-color-border-brand-strong,#1f2fe0);box-shadow:0 0 0 1px var(--figma-color-border-brand-strong,#1f2fe0)}
+  .item.expired{opacity:.55;cursor:not-allowed}
+  .item b{font-family:ui-monospace,monospace}
+  .item small{grid-column:2;color:var(--figma-color-text-secondary,#5d6170)}
+  .row{display:flex;gap:6px;align-items:center;justify-content:space-between}
+  .row button{width:auto;padding:0 10px;margin-top:0;min-height:26px}
+  .status{margin-top:10px;white-space:pre-wrap}
+  .status.error{color:var(--figma-color-text-danger,#c0392b)}
+  .status.ok{color:var(--figma-color-text-success,#237a27)}
+  details{margin-top:10px}
+  summary{cursor:pointer;color:var(--figma-color-text-secondary,#5d6170)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+  <h1>TREND RADAR Studio Import</h1>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-remote" aria-selected="true">TREND RADAR에서 가져오기</button>
+    <button type="button" role="tab" id="tab-file" aria-selected="false">JSON 파일</button>
+  </div>
+
+  <section id="remote">
+    <div id="disconnected" hidden>
+      <p>Content Studio에서 “Figma로 보내기”한 작업을 바로 가져옵니다. 처음 한 번 계정을 연결하세요(브라우저 창이 열리고 로그인한 계정으로 허용).</p>
+      <button type="button" id="connect">TREND RADAR 연결</button>
+      <p id="connect-wait" hidden>브라우저에서 “이 Figma 플러그인 연결 허용”을 누르면 자동으로 이어집니다(10분 유효).</p>
+      <button type="button" class="secondary" id="cancel-connect" hidden>연결 취소</button>
+    </div>
+    <div id="connected" hidden>
+      <div class="row"><p style="margin:0">내가 보낸 작업(최근 7일)</p><button type="button" class="secondary" id="refresh">새로고침</button></div>
+      <div class="list" id="list" role="radiogroup" aria-label="보낸 작업"></div>
+      <button type="button" id="build-remote" disabled>카드뉴스 만들기</button>
+    </div>
+    <details>
+      <summary>설정</summary>
+      <p style="margin-top:6px">TREND RADAR 서버 주소(manifest의 허용 도메인에 있어야 합니다)</p>
+      <input type="url" id="server" value="http://localhost:3000" spellcheck="false">
+      <button type="button" class="secondary" id="save-server">서버 주소 저장</button>
+      <button type="button" class="secondary" id="disconnect" hidden>이 기기에서 연결 해제</button>
+    </details>
+  </section>
+
+  <section id="file" hidden>
+    <p>Content Studio의 “Figma JSON 내보내기” 파일을 불러옵니다.</p>
+    <label class="drop">.figma.json 파일 선택<input id="file-input" type="file" accept=".json,application/json"></label>
+    <textarea id="json" placeholder="또는 JSON을 여기에 붙여넣기"></textarea>
+    <div id="summary"></div>
+    <button type="button" id="build-file" disabled>프레임 만들기</button>
+  </section>
+
+  <div id="status" class="status" role="status"></div>
+  <button type="button" class="secondary" id="force-build" hidden>한 번 더 만들기(기존 프레임은 그대로 둠)</button>
+<script>
+  var SCHEMA = "trend-radar.figma-export/v1";
+  var SUCCESS = "Figma에 편집 가능한 카드뉴스가 생성되었습니다.";
+  var $ = function (id) { return document.getElementById(id); };
+  var auth = { token: null, server: "http://localhost:3000" };
+  var handoffs = [], selected = null, fileData = null, pending = null, polling = null;
+
+  function send(message) { parent.postMessage({ pluginMessage: message }, "*"); }
+  function textOf(value) { return typeof value === "string" ? value : value && typeof value.message === "string" ? value.message : JSON.stringify(value); }
+  function setStatus(text, kind) { $("status").textContent = textOf(text); $("status").className = "status" + (kind ? " " + kind : ""); }
+  function server() { return (auth.server || "").replace(/\/+$/, ""); }
+  function showTab(name) {
+    $("remote").hidden = name !== "remote"; $("file").hidden = name !== "file";
+    $("tab-remote").setAttribute("aria-selected", String(name === "remote")); $("tab-file").setAttribute("aria-selected", String(name === "file"));
+  }
+  function render() {
+    $("disconnected").hidden = Boolean(auth.token); $("connected").hidden = !auth.token; $("disconnect").hidden = !auth.token;
+    $("server").value = auth.server || "";
+  }
+
+  /** 서버 호출. 오류를 사용자 안내 문구로 바꾼다(연결 실패·인증 필요·만료). */
+  async function api(path, init) {
+    init = init || {};
+    var headers = { "Content-Type": "application/json" };
+    if (auth.token) headers.Authorization = "Bearer " + auth.token;
+    var response;
+    try { response = await fetch(server() + path, { method: init.method || "GET", headers: headers, body: init.body ? JSON.stringify(init.body) : undefined }); }
+    catch (error) { throw { code: "NETWORK", message: "연결 실패: TREND RADAR 서버(" + server() + ")에 연결하지 못했습니다. 서버 주소와 네트워크를 확인하세요." }; }
+    var body = await response.json().catch(function () { return {}; });
+    if (response.ok) return body;
+    if (response.status === 401 && body.error === "PLUGIN_AUTH_REQUIRED") { auth.token = null; send({ type: "clear-auth" }); render(); }
+    throw { code: body.error || ("HTTP_" + response.status), status: response.status, message: (response.status === 401 ? "인증 필요: " : response.status === 410 ? "작업 만료: " : "") + (body.message || ("요청 실패(HTTP " + response.status + ")")) };
+  }
+
+  function stopPolling() { if (polling) { clearInterval(polling); polling = null; } $("connect-wait").hidden = true; $("cancel-connect").hidden = true; $("connect").disabled = false; }
+  /** Figma 공식 OAuth-with-plugins 방식: 서버가 만든 쓰기 키로 브라우저 연결 페이지를 열고, 읽기 키로 결과를 폴링한다. */
+  async function connect() {
+    $("connect").disabled = true;
+    try {
+      var started = await api("/api/figma/pair", { method: "POST" });
+      window.open(started.connectUrl, "_blank");
+      $("connect-wait").hidden = false; $("cancel-connect").hidden = false;
+      setStatus("브라우저에서 연결을 허용하세요…");
+      var deadline = Date.now() + started.expiresInSec * 1000;
+      polling = setInterval(async function () {
+        if (Date.now() > deadline) { stopPolling(); setStatus("연결 요청이 만료됐습니다(10분). 다시 연결하세요.", "error"); return; }
+        try {
+          var result = await api("/api/figma/pair/poll", { method: "POST", body: { readKey: started.readKey } });
+          if (result.status === "connected") {
+            stopPolling();
+            auth.token = result.token; send({ type: "save-auth", token: result.token, server: server() });
+            render(); setStatus("연결했습니다.", "ok"); loadList();
+          }
+        } catch (error) { stopPolling(); setStatus(error.message, "error"); }
+      }, 2000);
+    } catch (error) { stopPolling(); setStatus(error.message, "error"); }
+  }
+
+  function fmt(iso) { var d = new Date(iso); return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+  function renderList() {
+    var list = $("list"); list.innerHTML = "";
+    if (!handoffs.length) { list.innerHTML = "<p>보낸 작업이 없습니다. Content Studio에서 “Figma로 보내기”를 누르세요.</p>"; }
+    handoffs.forEach(function (item) {
+      var row = document.createElement("div");
+      row.className = "item" + (item.expired ? " expired" : ""); row.setAttribute("role", "radio"); row.tabIndex = 0;
+      row.setAttribute("aria-checked", String(selected === item.id)); row.dataset.id = item.id;
+      row.innerHTML = "<b></b><span></span><small></small>";
+      row.children[0].textContent = item.code;
+      row.children[1].textContent = item.title || "(제목 없음)";
+      row.children[2].textContent = (item.format === "cardnews" ? "카드뉴스 " + item.unitCount + "장" : "숏폼 장면 " + item.unitCount + "개") + " · " + fmt(item.createdAt) + (item.expired ? " · 만료됨" : " · " + fmt(item.expiresAt) + "까지") + (item.importCount ? " · Figma에서 " + item.importCount + "회 만듦" : "");
+      if (!item.expired) row.addEventListener("click", function () { selected = item.id; renderList(); });
+      list.appendChild(row);
+    });
+    $("build-remote").disabled = !selected;
+  }
+  /** 가장 최근에 보낸(아직 유효한) 작업을 자동 선택한다. Figma가 외부에서 작업 ID를 넘겨받는 공식 방법은 없어 "최신 작업 자동 선택"으로 대신한다. */
+  async function loadList(note, quiet) {
+    if (!quiet) setStatus("작업 목록을 불러오는 중…");
+    try {
+      handoffs = (await api("/api/figma/handoffs")).handoffs || [];
+      var valid = handoffs.filter(function (item) { return !item.expired; });
+      if (!valid.some(function (item) { return item.id === selected; })) selected = valid.length ? valid[0].id : null;
+      renderList();
+      if (note) setStatus(note, "error");
+      else if (!quiet) setStatus(valid.length ? "가장 최근 작업을 선택했습니다. 코드를 Content Studio 화면과 확인하세요." : handoffs.length ? "모든 작업이 만료됐습니다. Content Studio에서 다시 보내세요." : "");
+    } catch (error) { renderList(); if (!quiet) setStatus(error.message, "error"); }
+  }
+
+  /** AI 이미지만 받는다(축소본 data URL 또는 Supabase 서명 링크). 실제 근거 이미지는 받지 않는다. */
+  async function fetchImages(data) {
+    var images = {}, failed = {};
+    var wanted = (data.assets || []).filter(function (a) { return a.status !== "REAL REFERENCE" && a.figmaImage && a.figmaImage.url; });
+    for (var i = 0; i < wanted.length; i += 1) {
+      var asset = wanted[i], url = asset.figmaImage.url;
+      setStatus("이미지 받는 중 " + (i + 1) + "/" + wanted.length);
+      if (!/^data:image\//.test(url) && !/^https:\/\/[a-z0-9-]+\.supabase\.co\//.test(url)) { failed[asset.id] = "허용되지 않은 주소"; continue; }
+      if (asset.figmaImage.expiresAt && Date.parse(asset.figmaImage.expiresAt) < Date.now()) { failed[asset.id] = "링크 만료"; continue; }
+      try {
+        var response = await fetch(url);
+        if (!response.ok) { failed[asset.id] = "HTTP " + response.status + (response.status === 400 || response.status === 403 ? " · 링크 만료 가능" : ""); continue; }
+        images[asset.id] = new Uint8Array(await response.arrayBuffer());
+      } catch (error) { failed[asset.id] = "이미지 로딩 실패"; }
+    }
+    return { images: images, failed: failed };
+  }
+  async function build(data, meta, force) {
+    var got = await fetchImages(data);
+    pending = { data: data, meta: meta, images: got.images, failed: got.failed };
+    setStatus("프레임 만드는 중…");
+    send({ type: "build", data: data, images: got.images, failed: got.failed, handoffId: meta.handoffId || null, code: meta.code || null, force: Boolean(force) });
+  }
+  async function buildRemote(force) {
+    var item = handoffs.find(function (h) { return h.id === selected; });
+    if (!item) return;
+    $("build-remote").disabled = true;
+    try {
+      var data = (await api("/api/figma/handoffs/" + item.id)).handoff;
+      if (!data || data.schema !== SCHEMA || !data.handoff || data.handoff.id !== item.id) throw { message: "데이터 유효성 검사 실패: 받은 작업 형식이 올바르지 않습니다." };
+      await build(data, { handoffId: item.id, code: item.code }, force);
+    } catch (error) { $("build-remote").disabled = false; setStatus(error.message, "error"); if (error.status === 410) loadList(error.message); }
+  }
+
+  function readFile(text) {
+    fileData = null; $("build-file").disabled = true; $("summary").innerHTML = "";
+    if (!text.trim()) { setStatus(""); return; }
+    try { fileData = JSON.parse(text); } catch (error) { setStatus("JSON을 읽지 못했습니다: " + error.message, "error"); return; }
+    if (fileData.schema !== SCHEMA) { setStatus("지원하지 않는 형식입니다: " + fileData.schema, "error"); fileData = null; return; }
+    var assets = fileData.assets || [], ai = assets.filter(function (a) { return a.status !== "REAL REFERENCE"; });
+    var withImage = ai.filter(function (a) { return a.figmaImage && a.figmaImage.url; });
+    var p = fileData.project || {};
+    var summary = document.createElement("ul");
+    [(p.title || "") + " · " + (fileData.slides || []).length + "개 · " + (p.canvas ? p.canvas.width + "×" + p.canvas.height : ""), "AI 이미지 " + withImage.length + "/" + ai.length + " 포함", "실제 근거 이미지 " + (assets.length - ai.length) + "개 · 링크 자리표시"].forEach(function (line) { var li = document.createElement("li"); li.textContent = line; summary.appendChild(li); });
+    $("summary").appendChild(summary);
+    setStatus(""); $("build-file").disabled = false;
+  }
+
+  $("tab-remote").onclick = function () { showTab("remote"); };
+  $("tab-file").onclick = function () { showTab("file"); };
+  $("connect").onclick = function () { connect(); };
+  $("cancel-connect").onclick = function () { stopPolling(); setStatus(""); };
+  $("refresh").onclick = function () { loadList(); };
+  $("build-remote").onclick = function () { buildRemote(false); };
+  $("save-server").onclick = function () { auth.server = $("server").value.trim(); send({ type: "save-server", server: server() }); setStatus("서버 주소를 저장했습니다.", "ok"); if (auth.token) loadList(); };
+  $("disconnect").onclick = function () { auth.token = null; send({ type: "clear-auth" }); render(); setStatus("이 기기에서 연결을 해제했습니다. 웹에서 연결 토큰은 30일 뒤 만료됩니다."); };
+  $("file-input").addEventListener("change", function (event) { var file = event.target.files[0]; if (file) file.text().then(function (text) { $("json").value = text; readFile(text); }); });
+  $("json").addEventListener("input", function (event) { readFile(event.target.value); });
+  $("force-build").onclick = function () { if (!pending) return; $("force-build").hidden = true; setStatus("다시 만드는 중…"); send({ type: "build", data: pending.data, images: pending.images, failed: pending.failed, handoffId: pending.meta.handoffId, code: pending.meta.code, force: true }); };
+  $("build-file").onclick = function () { if (fileData) { $("build-file").disabled = true; build(fileData, {}, false); } };
+
+  window.onmessage = function (event) {
+    var message = event.data && event.data.pluginMessage;
+    if (!message) return;
+    if (message.type === "init") {
+      auth = { token: message.auth && message.auth.token || null, server: message.auth && message.auth.server || auth.server };
+      render(); if (auth.token) loadList();
+      return;
+    }
+    $("build-remote").disabled = !selected; $("build-file").disabled = !fileData;
+    if (message.type === "exists") {
+      // Figma 플러그인 창에서는 confirm 대화상자를 믿을 수 없어 화면 안의 버튼으로 확인한다.
+      setStatus("이 페이지에 이미 같은 작업으로 만든 프레임이 " + message.count + "개 있어 만들지 않았습니다(중복 생성 방지). 그래도 만들려면 아래 버튼을 누르세요.");
+      $("force-build").hidden = false;
+      return;
+    }
+    if (message.type === "error") { setStatus((message.code === "RENDER" ? "일부 슬라이드 생성 실패: " : "") + message.message, "error"); return; }
+    if (message.type === "done") {
+      var r = message.report, fails = Object.keys(message.failedImages || {});
+      var fonts = Object.keys(r.fontFallbacks || {}).map(function (k) { return k + " → " + r.fontFallbacks[k]; });
+      var lines = [r.failedFrames && r.failedFrames.length ? "일부 슬라이드 생성 실패: " + r.failedFrames.map(function (f) { return f.name; }).join(", ") : SUCCESS,
+        "프레임 " + r.frames + " · 텍스트 " + r.texts + " · AI 이미지 " + r.images + " · 근거 자리표시 " + r.references + " · 이미지 없음 " + r.missing];
+      if (fails.length) lines.push("이미지 로딩 실패: " + fails.map(function (id) { return id + " (" + message.failedImages[id] + ")"; }).join(", "));
+      if (fonts.length) lines.push("폰트 대체: " + fonts.join(", "));
+      if (r.mode === "scene") lines.push("Studio 디자인 적용" + (r.fitted ? " · 글자 크기 자동 맞춤 " + r.fitted + "곳" : ""));
+      if (r.overflows && r.overflows.length) lines.push("글자 넘침(최소 크기에서도 김): " + r.overflows.join(", ") + " — 문구를 줄이거나 상자를 늘려 주세요.");
+      setStatus(lines.join("\n"), r.failedFrames && r.failedFrames.length ? "error" : "ok");
+      if (pending && pending.meta.handoffId) api("/api/figma/handoffs/" + pending.meta.handoffId, { method: "POST" }).then(function () { loadList(null, true); }).catch(function () {});
+    }
+  };
+</script>
+</body>
+</html>

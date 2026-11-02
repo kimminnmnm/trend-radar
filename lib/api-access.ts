@@ -61,3 +61,12 @@ export async function requirePaidAccess(request: Request): Promise<Access> {
   }
   return { mode, userId: user.id, clientKey: `user:${user.id}` };
 }
+
+/** 로그인 필수 기능(비용 없음): 접근 모드와 관계없이 Supabase 로그인 사용자와 그 액세스 토큰을 돌려준다. */
+export async function requireUser(request: Request) {
+  const token = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  if (!token) throw new AccessError("로그인이 필요합니다. Account에서 로그인하세요.", 401, "AUTH_REQUIRED");
+  const user = await verifySupabaseToken(token);
+  if (!user) throw new AccessError("로그인이 만료됐습니다. 다시 로그인하세요.", 401, "AUTH_REQUIRED");
+  return { user, token };
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { isPlanPayload } from "@/lib/saved-items-cloud";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
@@ -44,7 +45,7 @@ export function JourneyBar() {
     { key: "why", label: "② 왜 뜨나", href: trendPath(id, "why"), done: Boolean(current?.whyReport), active: pathname.endsWith("/why") },
     { key: "dna", label: "③ DNA 분해", href: trendPath(id, "dna"), done: Boolean(current?.dna), active: pathname.endsWith("/dna") },
     { key: "collision", label: "④ 섞어 보기", href: "/collision", done: collisions.some((item) => item.trendKeys.includes(id)), active: pathname === "/collision" },
-    { key: "studio", label: "⑤ 기획안", href: "/studio", done: saved.some((item) => item.payload?.trendKeys?.includes(id)), active: pathname === "/studio" },
+    { key: "studio", label: "⑤ 기획안", href: "/studio", done: saved.some((item) => isPlanPayload(item.payload) && item.payload.trendKeys.includes(id)), active: pathname === "/studio" },
   ];
   const next = steps.find((step) => !step.done);
   const nextLabel: Record<string, string> = { why: "WHY 분석 실행", dna: "DNA 분해하기", collision: "다른 트렌드와 섞어 보기", studio: "콘텐츠 기획안 만들기" };

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { briefBlock, imageBriefSchema, type ImageBrief } from "./image-brief";
 
 /*
  * C4 이미지 공통 정의(클라이언트·서버 공용).
@@ -42,13 +43,16 @@ export const imageRequestSchema = z.object({
   subject: z.string().trim().max(300).optional(),
   background: z.string().trim().max(300).optional(),
   colors: z.string().trim().max(200).optional(),
+  /** T7: 장면의 의미 구조(주체·행동·대상·문화 맥락·시각 방향·장면 목적·금지 해석). 없으면 기존 프롬프트 그대로. */
+  brief: imageBriefSchema.optional(),
   force: z.boolean().default(false),
 });
 export type ImageRequest = z.infer<typeof imageRequestSchema>;
 
 /** 사용자 설정을 덧붙인 최종 프롬프트. 글자·로고·실존 인물·저작권 캐릭터를 피하도록 고정 문구를 붙인다. */
-export function composeImagePrompt(request: Pick<ImageRequest, "prompt" | "purpose" | "style" | "subject" | "background" | "colors" | "aspect">) {
-  const parts = [request.prompt.trim()];
+export function composeImagePrompt(request: Pick<ImageRequest, "prompt" | "purpose" | "style" | "subject" | "background" | "colors" | "aspect" | "brief">) {
+  // T7: 의미 블록이 먼저, 편집자가 쓴 장면 문장은 그 안의 아이디어로.
+  const parts = request.brief ? [briefBlock(request.brief), `Editor's scene idea: ${request.prompt.trim()}`] : [request.prompt.trim()];
   if (request.subject) parts.push(`Main subject: ${request.subject}.`);
   if (request.background) parts.push(`Background: ${request.background}.`);
   if (request.colors) parts.push(`Color palette: ${request.colors}.`);
@@ -80,6 +84,8 @@ export type ImageAssetRef = {
   /** 사용 권한·출처 표시(피그마 내보내기에도 포함). */
   rights: string;
   inspired?: boolean;
+  /** T7: 생성 때 보낸 의미 구조(슬라이드별). */
+  brief?: ImageBrief;
 };
 
 export const rightsNote: Record<ImageStatus, string> = {

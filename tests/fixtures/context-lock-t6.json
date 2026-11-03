@@ -1,0 +1,1586 @@
+{
+ "recordedAt": "2026-11-02",
+ "note": "T6 실측: 현상 \"가상 메이크업을 현실에서 따라 하기\"(T5 A 분석)로 방향 제안 → 카드뉴스 제작. before = 주제(customTopic)만 전달(T5까지 동작), after = Context Lock 전달. 같은 디테일 조사 없이(research false). OpenAI 실제 응답.",
+ "lock": {
+  "enabled": true,
+  "selectedPhenomenonId": "conn-roblox-makeup-20261102~1norxo4",
+  "selectedPhenomenon": "가상 메이크업을 현실에서 따라 하기",
+  "parentKeyword": "메이크업",
+  "subject": "영상 제작자 또는 시청자",
+  "object": "현실의 메이크업 룩",
+  "direction": "Virtual → Real",
+  "coreBehavior": "로블록스 메이크업을 따라 해본다",
+  "culturalContext": "웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.",
+  "editorialFocus": "\"가상 메이크업을 현실에서 따라 하기\" 자체 — 로블록스 메이크업을 따라 해본다",
+  "observedEvidenceIds": [
+   "D-YT-04",
+   "WEB-01",
+   "WEB-02",
+   "WEB-03",
+   "YT-06",
+   "YT-10"
+  ],
+  "creativeHypothesis": "",
+  "prohibitedTopicDrift": [
+   {
+    "id": "history",
+    "label": "메이크업의 역사·기원 설명"
+   },
+   {
+    "id": "beginner",
+    "label": "메이크업 입문·초보자 가이드·준비물 안내"
+   },
+   {
+    "id": "purchase",
+    "label": "아이템·상품 구매 방법이나 가격 안내"
+   },
+   {
+    "id": "generic",
+    "label": "현상과 무관한 일반적인 현실의 메이크업 룩 방법 설명"
+   },
+   {
+    "id": "opposite",
+    "label": "게임·가상 공간 안에서 아이템·기능을 쓰는 방법(반대 방향)"
+   }
+  ],
+  "userMaterials": "",
+  "evidenceStatus": "EMERGING"
+ },
+ "before": {
+  "angles": {
+   "cached": false,
+   "generatedAt": "2026-11-02T07:35:55.625Z",
+   "promptVersion": "studio-angles-v4",
+   "mode": "editorial",
+   "angles": [
+    {
+     "angle_id": "angle-1",
+     "title": "아바타 눈빛, 아이라인으로 옮기기",
+     "hook": "게임 속 눈매를 그대로 그리기보다, 현실 얼굴에 맞게 한 단계씩 바꿔봐요.",
+     "editorial_perspective": "가상 룩을 현실 화장으로 옮기는 과정을 눈·눈썹·립처럼 작은 요소로 나눠 소개해요.",
+     "target_audience": "아바타 메이크업을 직접 따라 해보고 싶은 입문자예요.",
+     "reader_benefit": "어떤 요소부터 골라 현실 얼굴에 적용할지 순서를 알 수 있어요.",
+     "content_structure": [
+      "먼저 따라 하고 싶은 아바타 룩의 특징을 하나 골라요.",
+      "게임 화면에서 눈매와 색 조합을 관찰해요.",
+      "현실 얼굴에서는 아이라인 모양과 길이를 조절해요.",
+      "눈썹과 블러셔는 눈매를 해치지 않게 더해요.",
+      "마지막에 원본과 현실 버전을 나란히 비교해요."
+     ],
+     "suggested_visuals": [
+      "아바타 눈매와 현실 아이라인 비교 컷",
+      "눈 화장 단계를 표시한 얼굴 도식",
+      "같은 룩의 원본·재현 결과 나란히 보기"
+     ],
+     "research_requirements": [
+      "실제 재현 영상에서 어떤 메이크업 요소를 옮겼는지 확인해요.",
+      "소개할 아이라인 표현이 원본 룩과 맞는지 이미지로 대조해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-01",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "howto",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-2",
+     "title": "게임 광택 대신 현실 글로스로",
+     "hook": "화면에서 반짝이던 입술, 현실에서는 어떤 제품과 표현으로 바꿀까요?",
+     "editorial_perspective": "가상 화면의 과장된 광택을 현실 화장으로 옮길 때 생기는 차이를 보여줘요.",
+     "target_audience": "글로시 립이나 반짝이는 아바타 룩을 따라 해보고 싶은 사람이에요.",
+     "reader_benefit": "화면 효과를 그대로 복제하기보다 현실적인 표현으로 조정하는 감을 얻어요.",
+     "content_structure": [
+      "아바타 립에서 눈에 띄는 색과 광택을 짚어요.",
+      "게임 화면의 빛 표현과 실제 입술의 질감은 다를 수 있다고 알려요.",
+      "립 컬러와 글로스 표현을 나눠 선택해요.",
+      "광택을 더하고 싶은 정도에 따라 마무리를 달리해요.",
+      "완성 컷에서 화면 속 룩과 현실 룩의 차이를 보여줘요."
+     ],
+     "suggested_visuals": [
+      "아바타 입술과 현실 립 메이크업의 분할 화면",
+      "립 컬러와 광택 단계를 보여주는 손등 발색 컷",
+      "광택 표현을 달리한 세 가지 입술 클로즈업"
+     ],
+     "research_requirements": [
+      "참고할 재현 사례에서 글로시 립을 실제로 사용했는지 확인해요.",
+      "제품이나 발색을 언급한다면 실제 사용 제품과 색상을 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-04",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "comparison",
+     "research_anchor": "T1:WEB-04"
+    },
+    {
+     "angle_id": "angle-3",
+     "title": "아바타 룩 하나, 현실 화장 3단계",
+     "hook": "풀메이크업부터 시작하지 말고, 아바타의 포인트 세 가지만 먼저 골라요.",
+     "editorial_perspective": "따라 하기 부담을 낮추려고 룩 전체가 아니라 핵심 포인트만 추려 재현하는 카드뉴스예요.",
+     "target_audience": "화장 초보이거나 진한 메이크업이 부담스러운 사람이에요.",
+     "reader_benefit": "가지고 있는 화장품으로 작은 요소부터 시도할 수 있어요.",
+     "content_structure": [
+      "아바타 룩에서 가장 먼저 보이는 포인트를 찾아요.",
+      "색감·눈매·립 중 따라 할 세 가지를 정해요.",
+      "각 포인트를 현실 얼굴에 맞는 강도로 조절해요.",
+      "사용할 제품을 가진 것부터 점검해요.",
+      "한 가지 포인트만 남긴 가벼운 버전도 제안해요."
+     ],
+     "suggested_visuals": [
+      "아바타 룩에 포인트 세 곳을 표시한 이미지",
+      "세 단계별 메이크업 결과 컷",
+      "필수와 선택 제품을 구분한 화장대 컷"
+     ],
+     "research_requirements": [
+      "실제 튜토리얼에서 제시한 재현 순서와 사용 요소를 확인해요.",
+      "제품을 추천하거나 특정 룩을 예로 들 경우 출처와 사용 여부를 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-01",
+      "T1:WEB-04"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "guide",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-4",
+     "title": "“이 룩, 내 얼굴에도 될까?”",
+     "hook": "아바타에선 찰떡인 화장이 현실 얼굴에선 어떻게 보일지 직접 비교해봐요.",
+     "editorial_perspective": "완벽한 복제보다 직접 해보며 생기는 차이와 선택을 기록하는 체험형 구성으로 가요.",
+     "target_audience": "가상 메이크업 재현 과정과 결과가 궁금한 구경꾼이에요.",
+     "reader_benefit": "따라 할 때 어디서 달라지는지 알고, 자기 얼굴에 맞게 조정하는 관점을 얻어요.",
+     "content_structure": [
+      "재현할 아바타 룩을 고르고 선택 이유를 말해요.",
+      "화장 전 얼굴과 참고 이미지를 함께 보여줘요.",
+      "따라 하는 중 예상과 달랐던 지점을 기록해요.",
+      "현실 얼굴에 맞춰 바꾼 부분을 설명해요.",
+      "완성 결과와 원본의 닮은 점·다른 점을 정리해요."
+     ],
+     "suggested_visuals": [
+      "메이크업 전후와 아바타 참고 이미지의 3분할",
+      "중간 과정의 수정 전·후 컷",
+      "완성 룩의 닮은 점과 바꾼 점을 표시한 이미지"
+     ],
+     "research_requirements": [
+      "실제 재현 사례의 전후 이미지와 과정이 공개되어 있는지 확인해요.",
+      "체험 콘텐츠를 제작한다면 사용한 룩의 출처와 재현자의 설명을 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-01",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "experience",
+     "research_anchor": "T1:WEB-01"
+    },
+    {
+     "angle_id": "angle-5",
+     "title": "아바타 화장, 현실 버전은 이렇게 달라요",
+     "hook": "같은 가상 룩도 눈매를 살릴지, 립을 살릴지에 따라 현실 재현법이 달라져요.",
+     "editorial_perspective": "한 가지 정답을 정하지 않고, 아바타 룩의 포인트별로 현실에서 옮기는 선택지를 모아요.",
+     "target_audience": "여러 가상 메이크업을 보고 자기 취향대로 골라 해보고 싶은 사람이에요.",
+     "reader_benefit": "원본을 그대로 복사하지 않아도 자신에게 맞는 재현 방향을 찾을 수 있어요.",
+     "content_structure": [
+      "아바타 메이크업에서 눈·볼·입술 포인트를 구분해요.",
+      "눈매 중심으로 옮기는 방법을 보여줘요.",
+      "색감 중심으로 옮기는 방법을 보여줘요.",
+      "립이나 광택 중심으로 옮기는 방법을 보여줘요.",
+      "각 방식 중 자기 취향에 가까운 쪽을 고르게 해요."
+     ],
+     "suggested_visuals": [
+      "눈·볼·입술 포인트별 아바타 이미지",
+      "한 룩을 세 가지 포인트로 재해석한 보드",
+      "독자가 고를 수 있는 스타일 선택 카드"
+     ],
+     "research_requirements": [
+      "비교에 사용할 가상 룩과 실제 재현 이미지의 출처를 확인해요.",
+      "각 재현 방식이 실제 사례에서 확인된 내용인지, 편집 제안인지 구분해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-03",
+      "T1:WEB-04"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "curation",
+     "research_anchor": ""
+    }
+   ],
+   "validation": {
+    "structures": {
+     "statement": 2,
+     "contrast": 1,
+     "number-list": 1,
+     "quote": 1
+    },
+    "crowdedStructures": [],
+    "removedEvidenceIds": [],
+    "genericTitles": [],
+    "droppedDuplicates": [],
+    "downgradedFit": 0,
+    "anchored": 2,
+    "typeCount": 5,
+    "offTopic": []
+   },
+   "model": "gpt-6-luna"
+  },
+  "production": {
+   "mode": "live",
+   "cached": false,
+   "generatedAt": "2026-11-02T07:36:48.205Z",
+   "promptVersion": "studio-production-v4",
+   "plan": {
+    "detail_bank": [
+     {
+      "id": "D1",
+      "detail": "Merrell 쌍둥이는 Roblox 게임 Dress to Impress의 메이크업 룩을 현실에서 따라 하는 영상을 공개했어요.",
+      "example": "영상 제목은 「Recreating Dress to Impress Makeup!」이에요.",
+      "use": "첫 장에서 아바타 룩을 현실 화장으로 옮기는 장면을 보여줘요.",
+      "source_ids": [
+       "T1:WEB-01"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D2",
+      "detail": "게임 화면에서 현실 화장으로 옮길 때는 눈매, 눈썹, 립처럼 요소를 나눠 볼 수 있어요.",
+      "example": "먼저 눈매의 선과 색을 따로 살펴봐요.",
+      "use": "따라 할 룩을 작은 단위로 쪼개는 방법을 제안해요.",
+      "source_ids": [],
+      "status": "needs_check"
+     },
+     {
+      "id": "D3",
+      "detail": "Dress to Impress 룩의 현실 재현 사례에서 네온 섀도, 선명한 아이라인, 그래픽 디자인이 언급돼요.",
+      "example": "눈가에 그래픽 선이 있는 룩이라면 선의 방향부터 관찰해요.",
+      "use": "아바타 눈매에서 먼저 옮겨 볼 구체적인 표현을 골라요.",
+      "source_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D4",
+      "detail": "현실 얼굴에 맞춰 아이라인의 모양과 길이를 조절하는 방식으로 재현할 수 있어요.",
+      "example": "아바타의 긴 꼬리선을 내 눈매에 맞는 길이로 줄여 그려요.",
+      "use": "가상 룩을 그대로 복사하기보다 현실에 맞게 조정하는 단계를 설명해요.",
+      "source_ids": [],
+      "status": "needs_check"
+     },
+     {
+      "id": "D5",
+      "detail": "눈썹과 블러셔는 눈매 표현을 먼저 정한 뒤 더하는 순서로 구성할 수 있어요.",
+      "example": "아이라인과 섀도를 정한 뒤 눈썹 색과 블러셔를 맞춰요.",
+      "use": "눈매를 중심으로 색조를 얹는 순서를 알려줘요.",
+      "source_ids": [],
+      "status": "needs_check"
+     },
+     {
+      "id": "D6",
+      "detail": "Lemon8 게시물은 Roblox 메이크업을 보고 현실 버전을 따라 하며, 일상에서도 쓸 수 있는 룩을 만드는 과정을 소개해요.",
+      "example": "「Recreate Makeup Roblox: Tutorial Simple Bulu Mata & Glossy Lips」에서는 속눈썹과 글로시 립을 다뤄요.",
+      "use": "눈매 중심 룩에 속눈썹이나 립처럼 작은 마무리 요소를 더하는 예로 활용해요.",
+      "source_ids": [
+       "T1:WEB-04"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D7",
+      "detail": "원본 아바타 룩과 현실 재현 결과를 나란히 두면 옮긴 요소와 조정한 부분을 비교하기 쉬워요.",
+      "example": "아이라인 길이와 눈가 색을 같은 위치에 표시해 비교해요.",
+      "use": "마지막 장에서 재현 결과를 점검하는 방법을 제시해요.",
+      "source_ids": [],
+      "status": "needs_check"
+     }
+    ],
+    "storyline": [
+     {
+      "beat": "Merrell 쌍둥이의 Dress to Impress 메이크업 재현 사례로 가상 룩을 현실 화장으로 옮기는 그림을 먼저 보여줘요.",
+      "reader_gets": "이 콘텐츠에서 따라 해볼 대상과 결과물을 바로 알아요."
+     },
+     {
+      "beat": "룩 전체를 복사하지 않고 눈매, 눈썹, 립처럼 나눠 볼 수 있다고 안내해요.",
+      "reader_gets": "어떤 요소부터 고를지 기준을 얻어요."
+     },
+     {
+      "beat": "네온 섀도와 선명한 아이라인, 그래픽 선 중 눈매의 특징을 먼저 찾게 해요.",
+      "reader_gets": "게임 화면에서 현실로 가져올 포인트를 구체적으로 골라요."
+     },
+     {
+      "beat": "아바타의 선을 현실 눈매에 맞춰 길이와 모양을 조절하는 단계를 보여줘요.",
+      "reader_gets": "원본과 내 얼굴 사이에서 아이라인을 조정하는 방법을 알아요."
+     },
+     {
+      "beat": "눈매를 먼저 완성하고 눈썹과 블러셔를 더한 뒤, 속눈썹이나 글로시 립으로 마무리해요.",
+      "reader_gets": "눈매를 중심으로 색조를 더하는 순서를 가져가요."
+     },
+     {
+      "beat": "아바타 원본과 현실 버전을 나란히 비교해 다음 재현에 쓸 체크 포인트를 정리해요.",
+      "reader_gets": "무엇을 살리고 무엇을 조정했는지 확인하고 저장할 수 있어요."
+     }
+    ],
+    "title": "아바타의 그래픽 아이라인, 내 눈매엔 이렇게",
+    "concept_notice": "",
+    "summary": "Dress to Impress의 가상 메이크업 사례를 출발점으로, 눈매의 특징을 고르고 현실 눈매에 맞게 아이라인을 조정한 뒤 주변 색조를 더해 비교하는 6장 카드뉴스예요. 실제 튜토리얼 단계는 편집용 재현 가이드이며, 원본 룩의 세부 표현은 게시 전 대조가 필요해요.",
+    "claims": [
+     {
+      "text": "Merrell 쌍둥이는 Dress to Impress 메이크업 룩을 현실에서 재현하는 영상을 공개했어요.",
+      "evidence_ids": [
+       "T1:WEB-01"
+      ],
+      "status": "Supported Hypothesis"
+     },
+     {
+      "text": "Dress to Impress 룩의 현실 재현 사례에서 네온 섀도, 선명한 아이라인, 그래픽 디자인이 언급돼요.",
+      "evidence_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "Supported Hypothesis"
+     },
+     {
+      "text": "속눈썹과 글로시 립을 다룬 Roblox 메이크업 현실 재현 게시물이 있어요.",
+      "evidence_ids": [
+       "T1:WEB-04"
+      ],
+      "status": "Supported Hypothesis"
+     }
+    ],
+    "slides": [
+     {
+      "slide_id": "S1",
+      "number": 1,
+      "type": "cover",
+      "headline": "게임 속 그래픽 아이라인, 현실에선?",
+      "body": "Dress to Impress 메이크업을 현실 얼굴에 옮긴 사례가 있어요. 눈매의 선 하나부터 내 얼굴에 맞게 바꿔봐요.",
+      "supporting_text": "가상 룩 → 현실 눈매",
+      "visual_direction": "왼쪽에는 그래픽 아이라인이 강조된 아바타풍 일러스트, 오른쪽에는 현실 메이크업을 연상시키는 눈매 도식을 배치해요. 실제 인물이나 게임 화면을 그대로 복제하지 말고 텍스트 공간을 남겨요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 editorial beauty illustration, split composition: a stylized fashion-game avatar eye with a bold graphic eyeliner shape on the left, a realistic eye makeup diagram on the right adapting the line, clean neutral background, generous blank space at top for Korean headline, no text, no logos, no identifiable person.",
+      "layout_hint": "좌우 비교형, 상단 헤드라인 여백 확보",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-01",
+       "T1:WEB-03"
+      ],
+      "fact_checks": [
+       {
+        "text": "Merrell 쌍둥이는 Dress to Impress 메이크업 룩을 현실에서 재현하는 영상을 공개했어요.",
+        "evidence_ids": [
+         "T1:WEB-01"
+        ],
+        "status": "Supported Hypothesis"
+       },
+       {
+        "text": "관련 현실 재현 사례에서 네온 섀도, 선명한 아이라인, 그래픽 디자인이 언급돼요.",
+        "evidence_ids": [
+         "T1:WEB-03"
+        ],
+        "status": "Supported Hypothesis"
+       }
+      ],
+      "specific_detail": "Dress to Impress의 현실 재현 영상과 네온 섀도·선명한 아이라인·그래픽 디자인이라는 룩 요소를 활용해요.",
+      "reader_gets": "가상 눈매를 현실 화장으로 옮기는 주제를 한눈에 파악해요.",
+      "detail_ids": [
+       "D1",
+       "D3"
+      ],
+      "to_next": "먼저 룩 전체가 아니라 한 요소만 고르는 이유를 볼게요.",
+      "image": {
+       "prompt": "Vertical 4:5 editorial beauty illustration, split composition: a stylized fashion-game avatar eye with a bold graphic eyeliner shape on the left, a realistic eye makeup diagram on the right adapting the line, clean neutral background, generous blank space at top for Korean headline, no text, no logos, no identifiable person.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     },
+     {
+      "slide_id": "S2",
+      "number": 2,
+      "type": "intro",
+      "headline": "룩 전체 말고, 한 요소부터",
+      "body": "따라 하기 쉽게 나눠 보고 싶다면 눈매·눈썹·립 중 하나부터 골라봐요. 이 카드에서는 눈매의 선과 색부터 살펴볼게요.",
+      "supporting_text": "눈매 → 눈썹 → 립",
+      "visual_direction": "아바타 얼굴 도식에 눈매, 눈썹, 입술을 번호로 표시하고 눈매만 강조색으로 처리해요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 clean beauty infographic illustration of a stylized avatar face, three clearly separated callout zones for eyes, eyebrows, and lips, highlight only the eye area with a soft accent color, blank space for Korean labels, no text, no logos.",
+      "layout_hint": "얼굴 도식 중앙, 요소 번호를 주변에 배치",
+      "cta": "",
+      "evidence_ids": [],
+      "fact_checks": [
+       {
+        "text": "눈매·눈썹·립 중 하나씩 골라 살펴보는 것은 카드에서 제안하는 따라 하기 순서예요.",
+        "evidence_ids": [],
+        "status": "Creative Hypothesis"
+       }
+      ],
+      "specific_detail": "눈매, 눈썹, 립을 각각 따로 보는 순서를 제안해요.",
+      "reader_gets": "따라 할 룩의 요소를 어디서부터 나눠 볼지 알아요.",
+      "detail_ids": [
+       "D2"
+      ],
+      "to_next": "이제 화면에서 먼저 포착할 눈매의 특징을 골라요.",
+      "image": {
+       "prompt": "Vertical 4:5 clean beauty infographic illustration of a stylized avatar face, three clearly separated callout zones for eyes, eyebrows, and lips, highlight only the eye area with a soft accent color, blank space for Korean labels, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "요소를 나눠 보는 순서가 편집상 제안임을 밝혀, 일반적인 사실처럼 읽히지 않게 했어요."
+     },
+     {
+      "slide_id": "S3",
+      "number": 3,
+      "type": "detail",
+      "headline": "화면에서 선의 방향을 읽어요",
+      "body": "네온 섀도나 그래픽 아이라인이 보인다면, 먼저 선이 어디서 시작해 어느 쪽으로 뻗는지 살펴봐요. 한 번에 다 가져오기보다 눈매의 특징 하나를 고르면 편해요.",
+      "supporting_text": "관찰 포인트: 방향 · 색 · 길이",
+      "visual_direction": "아바타풍 눈매 도식 위에 아이라인 시작점과 꼬리 방향을 얇은 가이드로 표시해요. 실제 게임 장면처럼 오인되지 않게 독자적 도식으로 표현해요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 editorial eye-makeup diagram inspired by fashion game avatar styling, bold graphic eyeliner with a vivid accent shadow, subtle arrows indicating line direction and length, clean white background, empty caption space, no text, no logos.",
+      "layout_hint": "눈매 확대 도식과 3개 관찰 라벨",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-03"
+      ],
+      "fact_checks": [
+       {
+        "text": "Dress to Impress 룩의 현실 재현 사례에서 네온 섀도, 선명한 아이라인, 그래픽 디자인이 언급돼요.",
+        "evidence_ids": [
+         "T1:WEB-03"
+        ],
+        "status": "Supported Hypothesis"
+       }
+      ],
+      "specific_detail": "현실 재현 사례에서 언급된 네온 섀도, 선명한 아이라인, 그래픽 디자인 중 눈매의 선을 골라요.",
+      "reader_gets": "원본에서 따라 할 눈매의 핵심 특징을 고를 수 있어요.",
+      "detail_ids": [
+       "D3"
+      ],
+      "to_next": "골라낸 선을 실제 눈매에 맞춰 조정해볼게요.",
+      "image": {
+       "prompt": "Vertical 4:5 editorial eye-makeup diagram inspired by fashion game avatar styling, bold graphic eyeliner with a vivid accent shadow, subtle arrows indicating line direction and length, clean white background, empty caption space, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     },
+     {
+      "slide_id": "S4",
+      "number": 4,
+      "type": "tip",
+      "headline": "꼬리선은 내 눈매에 맞게",
+      "body": "가이드로 삼아볼 방법은 아바타 꼬리선의 방향을 참고하고 길이는 내 눈매에 맞춰 조절하는 거예요. 처음부터 원본을 그대로 옮기기보다 짧은 선으로 시작해봐요.",
+      "supporting_text": "방향은 참고하고 길이는 조절",
+      "visual_direction": "한 눈매 도식에 긴 원본선과 짧게 조정한 선을 겹쳐 보여줘요. 두 선을 명확히 구분하고 실제 시술 결과처럼 단정하지 않아요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 instructional beauty illustration showing one eye diagram with two eyeliner-tail options, a longer stylized graphic line and a shorter adapted line, clear visual distinction, neutral background, ample room for Korean text, no text, no logos.",
+      "layout_hint": "원본선과 조정선을 위아래로 비교",
+      "cta": "",
+      "evidence_ids": [],
+      "fact_checks": [
+       {
+        "text": "아이라인의 방향과 길이를 현실 눈매에 맞춰 조절하는 것은 카드에서 제안하는 메이크업 가이드예요.",
+        "evidence_ids": [],
+        "status": "Creative Hypothesis"
+       }
+      ],
+      "specific_detail": "아바타의 긴 그래픽 아이라인을 현실 눈매에 맞게 길이와 모양을 조절하는 편집상 예시예요.",
+      "reader_gets": "원본의 인상을 남기면서 내 눈매에 맞춰 선을 조정하는 방법을 알아요.",
+      "detail_ids": [
+       "D4"
+      ],
+      "to_next": "아이라인이 정해지면 눈썹과 볼 색을 차례로 더해요.",
+      "image": {
+       "prompt": "Vertical 4:5 instructional beauty illustration showing one eye diagram with two eyeliner-tail options, a longer stylized graphic line and a shorter adapted line, clear visual distinction, neutral background, ample room for Korean text, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "길이와 모양을 조절하는 내용을 검증된 기법처럼 단정하지 않고, 따라 해볼 가이드로 표현했어요."
+     },
+     {
+      "slide_id": "S5",
+      "number": 5,
+      "type": "list",
+      "headline": "눈매 다음은 눈썹과 한 끗",
+      "body": "이 카드의 순서대로 해본다면 아이라인을 먼저 정하고, 눈썹과 블러셔를 더해 톤을 맞춰봐요. 현실 재현 사례에는 속눈썹과 글로시 립을 다룬 튜토리얼도 있어요.",
+      "supporting_text": "눈매 → 눈썹·블러셔 → 속눈썹 또는 글로시 립",
+      "visual_direction": "세 단계 색조 바 형태와 눈 주변 미니 도식을 배치해요. 속눈썹과 립은 선택 항목으로 표현해요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 beauty editorial infographic with a three-step sequence: graphic eyeliner, coordinated brows and blush, optional lashes or glossy lips, elegant simple face diagrams, clean background and blank space for Korean typography, no text, no logos.",
+      "layout_hint": "세 단계 세로 흐름, 마지막 요소는 선택 표시",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-04"
+      ],
+      "fact_checks": [
+       {
+        "text": "아이라인 뒤에 눈썹과 블러셔를 더하는 순서는 카드에서 제안하는 구성 방식이에요.",
+        "evidence_ids": [],
+        "status": "Creative Hypothesis"
+       },
+       {
+        "text": "「Recreate Makeup Roblox: Tutorial Simple Bulu Mata & Glossy Lips」는 속눈썹과 글로시 립을 다뤄요.",
+        "evidence_ids": [
+         "T1:WEB-04"
+        ],
+        "status": "Verified Signal"
+       }
+      ],
+      "specific_detail": "눈매를 먼저 정한 다음 눈썹과 블러셔를 더하고, 속눈썹이나 글로시 립을 작은 마무리 요소로 활용해요.",
+      "reader_gets": "눈매를 중심으로 나머지 색조를 더하는 순서를 얻어요.",
+      "detail_ids": [
+       "D5",
+       "D6"
+      ],
+      "to_next": "마지막으로 원본과 결과를 나란히 놓고 무엇을 살렸는지 확인해요.",
+      "image": {
+       "prompt": "Vertical 4:5 beauty editorial infographic with a three-step sequence: graphic eyeliner, coordinated brows and blush, optional lashes or glossy lips, elegant simple face diagrams, clean background and blank space for Korean typography, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "눈썹과 블러셔를 더하는 순서는 편집상 제안으로 분명히 하고, 확인된 재현 사례는 따로 소개했어요."
+     },
+     {
+      "slide_id": "S6",
+      "number": 6,
+      "type": "cta",
+      "headline": "원본과 나란히, 포인트 확인",
+      "body": "마지막에는 원본과 내 재현 결과를 나란히 놓고 비교해봐요. 이 카드의 체크 기준은 아이라인의 방향과 길이, 눈가 색이에요.",
+      "supporting_text": "방향 · 길이 · 눈가 색",
+      "visual_direction": "아바타풍 원본 도식과 현실 메이크업 도식을 좌우로 배치하고, 비교할 세 항목을 하단 체크리스트로 보여줘요.",
+      "image_ref": "",
+      "image_prompt": "Vertical 4:5 side-by-side comparison layout: stylized fashion-game avatar eye makeup and a realistic adapted eye makeup illustration, subtle alignment guides for eyeliner direction, length, and color, clean neutral background, generous blank space for Korean text, no text, no logos, no real person.",
+      "layout_hint": "좌우 비교와 하단 체크리스트",
+      "cta": "다음에 따라 해볼 아바타 룩을 골라 이 순서로 비교해봐요. 저장해두면 편해요.",
+      "evidence_ids": [],
+      "fact_checks": [
+       {
+        "text": "원본과 재현 결과를 나란히 비교하는 것은 카드에서 제안하는 체크 방법이에요.",
+        "evidence_ids": [],
+        "status": "Creative Hypothesis"
+       }
+      ],
+      "specific_detail": "원본 아바타와 현실 재현 결과를 나란히 두고 아이라인 길이와 눈가 색을 비교해요.",
+      "reader_gets": "다음 룩에도 쓸 수 있는 비교 기준을 챙겨요.",
+      "detail_ids": [
+       "D7"
+      ],
+      "to_next": "카드 내용을 저장해 다음 아바타 룩을 고를 때 다시 활용해요.",
+      "image": {
+       "prompt": "Vertical 4:5 side-by-side comparison layout: stylized fashion-game avatar eye makeup and a realistic adapted eye makeup illustration, subtle alignment guides for eyeliner direction, length, and color, clean neutral background, generous blank space for Korean text, no text, no logos, no real person.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "비교 방법을 보편적으로 검증된 절차처럼 말하지 않고, 카드에서 활용할 체크 방식으로 제시했어요."
+     }
+    ],
+    "scenes": [],
+    "caption": "아바타의 그래픽 아이라인을 현실 눈매에 옮길 땐, 선의 방향을 고르고 길이부터 조절해봐요. 눈썹과 색조를 더한 뒤 원본과 나란히 비교하는 순서를 담았어요. 다음에 따라 해볼 룩을 정할 때 저장해두세요.",
+    "hashtags": [
+     "#가상메이크업",
+     "#로블록스메이크업",
+     "#DressToImpress",
+     "#아이라인",
+     "#아바타메이크업",
+     "#메이크업팁"
+    ],
+    "verify_before_publishing": [
+     "T1:WEB-01 원문 영상의 제목, 게시일, 실제 재현 장면을 확인해요.",
+     "T1:WEB-03 원문에서 네온 섀도, 아이라인, 그래픽 디자인 사례와 Dress to Impress의 연결을 확인해요.",
+     "T1:WEB-04 원문 게시물에서 속눈썹과 글로시 립 표현을 확인해요.",
+     "실제 적용 전 아이라인 형태가 참고할 아바타 원본 룩과 맞는지 이미지로 대조해요."
+    ],
+    "editor_notes": {
+     "fact_checks": [
+      "웹 검색 결과 요약에 기반한 세 출처는 원문 확인이 필요해요.",
+      "재현 단계와 비교 기준은 편집상 제안이며, 특정 얼굴형에 모두 맞는다고 표현하지 않아요."
+     ],
+     "research_gaps": [
+      "관측 구간 영상에서 실제 얼굴 재현 장면과 전후 변화를 확인할 원문 자료가 제한적이에요.",
+      "각 원본 아바타 룩의 아이라인 모양을 직접 대조할 이미지가 제공되지 않았어요.",
+      "참여 이유와 시청자 반응, 현상 자체의 반복 게시 추이는 확인되지 않았어요."
+     ],
+     "image_rights": [
+      "실제 게임 화면이나 크리에이터 영상을 사용하지 않고 독자적인 도식으로 제작해요.",
+      "크리에이터 이름과 영상 제목을 본문에 넣을 경우 표기와 원문 맥락을 확인해요."
+     ],
+     "ai_disclosure": "AI 제작 이미지는 실제 게임 화면이나 실제 메이크업 결과가 아닌 콘셉트용 도식으로 표시해요."
+    }
+   },
+   "validation": {
+    "removedEvidenceIds": [],
+    "removedImageRefs": 0,
+    "slideCountAdjusted": false,
+    "downgradedClaims": 0,
+    "timingFixed": 0,
+    "needsReview": [],
+    "reportPhrases": [],
+    "strippedRefs": 0,
+    "conceptNoticeAdded": false
+   },
+   "quality": {
+    "source": "rule-check",
+    "checks": [
+     {
+      "id": "facts",
+      "label": "사실 정확성(근거 없는 단정 없음)",
+      "pass": true,
+      "detail": "사실 8건 — 근거 있음 또는 단정하지 않음",
+      "group": "required"
+     },
+     {
+      "id": "topic",
+      "label": "주제 일치(방향·소재)",
+      "pass": true,
+      "detail": "방향 유사도 0.17 · 소재 이름 슬라이드 1, 2 · 근거 디테일 슬라이드 1, 3, 5",
+      "group": "required"
+     },
+     {
+      "id": "language",
+      "label": "언어 일관성",
+      "pass": true,
+      "detail": "섞임 없음",
+      "group": "required"
+     },
+     {
+      "id": "evidence",
+      "label": "근거 ID 유효성",
+      "pass": true,
+      "detail": "Detail Bank 근거 확인 3/7",
+      "group": "required"
+     },
+     {
+      "id": "duplicate",
+      "label": "중복 없음",
+      "pass": true,
+      "detail": "겹침 없음",
+      "group": "required"
+     },
+     {
+      "id": "specific",
+      "label": "소재 고유성(스왑 테스트)",
+      "pass": true,
+      "detail": "다른 소재에도 통하는 슬라이드 없음",
+      "group": "editorial"
+     },
+     {
+      "id": "detail-use",
+      "label": "Detail Bank 활용",
+      "pass": true,
+      "detail": "디테일 7개(근거 3) · 디테일 없는 본문 슬라이드 없음",
+      "group": "editorial"
+     },
+     {
+      "id": "not-report",
+      "label": "보도·분석 요약형 서술이 아님",
+      "pass": true,
+      "detail": "없음",
+      "group": "editorial"
+     },
+     {
+      "id": "title",
+      "label": "제목 구조",
+      "pass": true,
+      "detail": "구조: statement (좋은 후킹인지는 편집 리뷰가 판단)",
+      "group": "editorial"
+     },
+     {
+      "id": "flow",
+      "label": "슬라이드마다 독자가 얻는 것",
+      "pass": true,
+      "detail": "모두 있음",
+      "group": "editorial"
+     }
+    ],
+    "passed": 5,
+    "total": 5,
+    "failing": [],
+    "issues": [],
+    "hints": [],
+    "genericSentences": []
+   },
+   "review": {
+    "source": "ai-review",
+    "model": "gpt-6-luna",
+    "reviewedAt": "2026-11-02T07:36:48.205Z",
+    "scores": {
+     "hook": 4,
+     "specificity": 4,
+     "story": 4,
+     "save_share": 4,
+     "voice": 4
+    },
+    "summary": "아바타 눈매를 현실 메이크업으로 옮기는 흐름이 구체적이고 따라 하기 쉬워요. 다만 단계별 순서는 확인된 사실이 아니라 이 카드에서 제안하는 가이드임을 드러내도록 일부 문장을 다듬었어요.",
+    "patched": [
+     {
+      "unit": 2,
+      "reason": "요소를 나눠 보는 순서가 편집상 제안임을 밝혀, 일반적인 사실처럼 읽히지 않게 했어요."
+     },
+     {
+      "unit": 4,
+      "reason": "길이와 모양을 조절하는 내용을 검증된 기법처럼 단정하지 않고, 따라 해볼 가이드로 표현했어요."
+     },
+     {
+      "unit": 5,
+      "reason": "눈썹과 블러셔를 더하는 순서는 편집상 제안으로 분명히 하고, 확인된 재현 사례는 따로 소개했어요."
+     },
+     {
+      "unit": 6,
+      "reason": "비교 방법을 보편적으로 검증된 절차처럼 말하지 않고, 카드에서 활용할 체크 방식으로 제시했어요."
+     }
+    ],
+    "before": {
+     "passed": 4,
+     "total": 5,
+     "failing": [
+      "facts"
+     ]
+    }
+   },
+   "research": {
+    "requested": false,
+    "status": "skipped",
+    "count": 0
+   },
+   "model": "gpt-6-luna",
+   "references": [
+    {
+     "id": "T1:WEB-01",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Recreating Dress to Impress Makeup!",
+     "source": "YouTube — merrelltwins",
+     "url": "https://www.youtube.com/watch?v=G6vEvcrYCZ0",
+     "date": "2024-09-24",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "Merrell 쌍둥이는 Roblox 게임 Dress to Impress의 메이크업 룩을 현실에서 따라 해보는 영상을 공개했다. 설명에서 이를 “virtual-to-real transformation”이라고 표현한다. (발행 2024-09-24 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "T1:WEB-03",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Beauty in Blocks: How Roblox’s Dress to Impress Inspires Real-Life Makeup Trends",
+     "source": "G.URL",
+     "url": "https://gurlworld.com/beauty-in-blocks-how-robloxs-dress-to-impress-inspires-real-life-makeup-trends/",
+     "date": "2024-11-30",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "기사는 Roblox의 Dress to Impress 룩을 현실에서 재현하는 메이크업 아티스트와 뷰티 크리에이터 사례를 설명하고, Frederic Chen의 ‘Dress To Impress Roblox Makeup Tutorial’을 예로 든다. 네온 섀도, 선명한 아이라인, 그래픽 디자인 등을 게임에서 현실로 옮기는 흐름으로 다룬다. (발행 2024-11-30 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "T1:WEB-04",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Recreate Makeup Roblox: Tutorial Simple Bulu Mata & Glossy Lips",
+     "source": "Lemon8 — itsmetiinaaa",
+     "url": "https://www.lemon8-app.com/%40itsmetiinaaa/7418428884447724033?region=id",
+     "date": "2024-09",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "게시자는 Roblox 메이크업을 보고 현실 버전을 따라 해보기로 했다고 쓰며, 아바타처럼 보이되 일상에서도 사용할 수 있는 룩을 만드는 과정을 소개한다. (발행 2024-09 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    }
+   ]
+  },
+  "check": {
+   "drift": [],
+   "unanchored": [
+    3,
+    4
+   ],
+   "pass": false
+  }
+ },
+ "after": {
+  "angles": {
+   "cached": false,
+   "generatedAt": "2026-11-02T07:37:10.793Z",
+   "promptVersion": "studio-angles-v4",
+   "mode": "editorial",
+   "angles": [
+    {
+     "angle_id": "angle-1",
+     "title": "아바타 눈화장을 현실 얼굴에 옮기는 순간",
+     "hook": "화면 속 눈매를 현실 얼굴에 그리면, 어디까지 닮을까요?",
+     "editorial_perspective": "로블록스 메이크업을 현실에서 따라 하는 과정을 한 장면씩 좇아요. 결과보다 가상 룩의 특징을 실제 얼굴에 어떻게 옮기는지에 초점을 둬요.",
+     "target_audience": "게임 속 룩을 현실 메이크업으로 재현하는 콘텐츠가 궁금한 사람",
+     "reader_benefit": "가상 룩을 현실에서 따라 하는 영상이 어떤 재미를 주는지 구체적으로 살펴봐요.",
+     "content_structure": [
+      "로블록스 메이크업을 현실에서 따라 해보는 사례를 소개해요.",
+      "아바타 룩에서 눈에 띄는 표현을 골라요.",
+      "현실 얼굴에 옮길 때 달라지는 지점을 보여줘요.",
+      "재현 결과를 원본 이미지와 나란히 비교해요.",
+      "닮은 점과 달라진 점을 짚으며 마무리해요."
+     ],
+     "suggested_visuals": [
+      "아바타 룩과 현실 재현 결과를 좌우로 놓은 이미지",
+      "눈매의 가상 표현과 실제 표현을 표시한 간단한 도식",
+      "재현 과정의 전후 컷"
+     ],
+     "research_requirements": [
+      "D-YT-04 영상에서 실제 얼굴에 메이크업을 재현하는 장면이 나오는지 확인해요.",
+      "WEB-01의 재현 대상 룩과 영상의 결과를 확인해요.",
+      "사용한 표현이나 기법을 설명할 경우 영상에서 확인되는 내용만 적어요."
+     ],
+     "evidence_ids": [
+      "T1:D-YT-04",
+      "T1:WEB-01"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "howto",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-2",
+     "title": "아바타의 과장된 눈매, 현실에선 어떻게 달라질까",
+     "hook": "게임에서는 또렷했던 표현도 현실 얼굴에선 다르게 보일 수 있어요.",
+     "editorial_perspective": "가상 룩의 과장된 표현과 현실 재현의 차이를 비교해요. 똑같이 복제하는 법보다 매체가 바뀌며 생기는 변화를 보여줘요.",
+     "target_audience": "게임 아바타의 뷰티 표현과 현실 메이크업의 차이가 궁금한 사람",
+     "reader_benefit": "가상 룩을 실제로 따라 했을 때 무엇이 유지되고 무엇이 달라지는지 이해할 수 있어요.",
+     "content_structure": [
+      "게임 속 메이크업 표현이 현실과 다를 수 있다는 점을 짚어요.",
+      "재현 사례에서 비교할 특징을 하나씩 골라요.",
+      "화면 속 표현과 현실 얼굴의 표현을 나란히 보여줘요.",
+      "두 결과가 달라 보이는 이유를 확인 가능한 범위에서 설명해요.",
+      "재현을 ‘복사’가 아닌 ‘해석’으로 보는 관점을 제안해요."
+     ],
+     "suggested_visuals": [
+      "가상 룩과 현실 재현의 눈매 비교",
+      "화면 표현과 실제 얼굴 표현을 구분한 주석 이미지",
+      "같은 룩의 두 이미지를 겹쳐 보는 카드"
+     ],
+     "research_requirements": [
+      "WEB-03에서 언급한 가상 룩과 현실 메이크업 사례를 확인해요.",
+      "WEB-01의 원본과 재현 이미지를 확보해 비교 가능한 요소를 정해요.",
+      "색감이나 형태 차이를 설명할 때 실제 자료에서 확인되는 부분만 사용해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-01",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "comparison",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-3",
+     "title": "한 가지 로블록스 룩, 각자 추구미로 재현하기",
+     "hook": "같은 게임 메이크업도 현실에서 따라 하면 결과는 달라질 수 있어요.",
+     "editorial_perspective": "로블록스 메이크업을 각자의 취향으로 현실에 옮기는 모습을 살펴봐요. 여러 사람이 참여한 사례가 확인될 때만 비교 구성을 사용해요.",
+     "target_audience": "친구마다 다르게 해석하는 따라 하기 콘텐츠를 즐기는 사람",
+     "reader_benefit": "원본을 똑같이 복제하는 것 말고도 자기 취향을 섞어 재현하는 재미를 발견해요.",
+     "content_structure": [
+      "로블록스 메이크업을 현실에서 따라 하는 행동을 소개해요.",
+      "‘각자 추구미대로’라는 영상 제목에서 출발해요.",
+      "영상에 실제 참여자가 여러 명인지, 각자의 재현이 보이는지 확인해요.",
+      "확인된 경우 각 결과가 원본의 어떤 특징을 살렸는지 비교해요.",
+      "따라 하기와 자기식 해석이 만나는 지점을 정리해요."
+     ],
+     "suggested_visuals": [
+      "참여자별 재현 컷을 나란히 배치한 카드",
+      "각 결과에서 원본과 닮은 요소를 표시한 이미지",
+      "원본 룩과 재현 결과를 연결한 간단한 선 그래픽"
+     ],
+     "research_requirements": [
+      "YT-06에서 실제 얼굴에 재현하는 장면과 참여자 수를 확인해요.",
+      "영상 제목만으로 결과를 단정하지 말고 영상 본문에서 각자의 룩을 확인해요.",
+      "원본으로 삼은 로블록스 룩이 무엇인지 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:YT-06"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "people",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-4",
+     "title": "로블록스 메이크업 재현 영상, 닮은 포인트 찾기",
+     "hook": "완성 화면을 볼 때, 원본과 가장 먼저 비교할 곳은 어디일까요?",
+     "editorial_perspective": "여러 재현 사례를 모아 결과의 순위를 매기는 대신, 원본과 닮은 포인트를 찾아보는 카드뉴스예요. 실제 재현 장면이 확인되는 영상만 골라요.",
+     "target_audience": "짧은 영상으로 가상 룩과 현실 룩을 비교해 보고 싶은 사람",
+     "reader_benefit": "재현 영상을 볼 때 어떤 요소를 눈여겨볼지 기준을 얻어요.",
+     "content_structure": [
+      "로블록스 메이크업 재현 영상을 고르는 기준을 알려줘요.",
+      "각 영상에서 원본 룩과 현실 재현이 모두 확인되는지 살펴봐요.",
+      "눈매나 입술처럼 실제로 비교 가능한 표현을 골라요.",
+      "사례별로 닮은 점과 달라진 점을 소개해요.",
+      "결과를 점수화하지 않고 각 영상의 해석 차이로 마무리해요."
+     ],
+     "suggested_visuals": [
+      "원본과 재현을 함께 보여주는 사례 카드",
+      "비교 요소에만 표시를 넣은 이미지",
+      "영상별로 확인 가능한 포인트를 정리한 체크 카드"
+     ],
+     "research_requirements": [
+      "D-YT-04, WEB-01, WEB-03에서 실제 재현 결과가 확인되는지 각각 살펴봐요.",
+      "사례마다 원본 룩의 출처와 재현 장면을 확인해요.",
+      "비교에 쓸 이미지의 사용 가능 여부를 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:D-YT-04",
+      "T1:WEB-01",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "partial",
+     "angle_type": "curation",
+     "research_anchor": ""
+    },
+    {
+     "angle_id": "angle-5",
+     "title": "“게임 얼굴을 현실로?” 재현 콘텐츠의 보는 재미",
+     "hook": "아바타의 룩이 실제 얼굴에 나타나는 순간, 낯설고도 익숙해요.",
+     "editorial_perspective": "로블록스의 뷰티 표현이 현실 메이크업 제작과 만나는 장면을 독자 눈높이에서 풀어요. 관측 자료가 제한적이라는 점을 지키며 하나의 사례를 차분히 소개해요.",
+     "target_audience": "게임 문화와 뷰티 콘텐츠가 만나는 사례를 가볍게 알고 싶은 사람",
+     "reader_benefit": "가상 룩을 현실에서 재현하는 행동의 핵심과 콘텐츠로서의 재미를 이해해요.",
+     "content_structure": [
+      "Dress to Impress의 룩을 현실에서 재현한 사례가 보고됐다는 점을 소개해요.",
+      "아바타의 뷰티 표현이 현실 얼굴로 옮겨지는 장면을 보여줘요.",
+      "원본과 재현을 함께 볼 때 생기는 재미를 설명해요.",
+      "이 사례를 전체 게시물의 대표라고 볼 수는 없다는 점을 덧붙여요.",
+      "게임 속 표현과 현실의 제작 문화가 만나는 모습으로 마무리해요."
+     ],
+     "suggested_visuals": [
+      "Dress to Impress 룩과 현실 재현의 나란한 이미지",
+      "가상 룩에서 현실 재현으로 이어지는 두 단계 도식",
+      "사례의 출처와 확인 범위를 표시한 작은 주석"
+     ],
+     "research_requirements": [
+      "WEB-01과 WEB-03에서 실제 재현 사례의 맥락과 대상 룩을 확인해요.",
+      "웹 자료가 다루는 사례를 전체 게시물의 대표로 확대하지 않아요.",
+      "‘문화가 만난다’는 해석을 뒷받침할 수 있도록 자료의 설명을 확인해요."
+     ],
+     "evidence_ids": [
+      "T1:WEB-01",
+      "T1:WEB-03"
+     ],
+     "evidence_fit": "grounded",
+     "angle_type": "experience",
+     "research_anchor": "T1:WEB-03"
+    }
+   ],
+   "validation": {
+    "structures": {
+     "statement": 2,
+     "subject-comma-question": 1,
+     "howto": 1,
+     "quote": 1
+    },
+    "crowdedStructures": [],
+    "removedEvidenceIds": [],
+    "genericTitles": [],
+    "droppedDuplicates": [],
+    "downgradedFit": 0,
+    "anchored": 1,
+    "typeCount": 5,
+    "offTopic": [],
+    "lockDrift": []
+   },
+   "model": "gpt-6-luna"
+  },
+  "production": {
+   "mode": "live",
+   "cached": false,
+   "generatedAt": "2026-11-02T07:37:51.337Z",
+   "promptVersion": "studio-production-v4",
+   "plan": {
+    "detail_bank": [
+     {
+      "id": "D1",
+      "detail": "Merrell 쌍둥이는 Roblox 게임 Dress to Impress의 메이크업 룩을 현실에서 따라 하는 영상을 공개했어요.",
+      "example": "영상 제목은 「Recreating Dress to Impress Makeup!」이에요.",
+      "use": "가상 룩을 현실 얼굴에 옮기는 사례로 이야기를 열어요.",
+      "source_ids": [
+       "T1:WEB-01"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D2",
+      "detail": "Dress to Impress 룩을 현실에서 재현한 사례에는 과장된 속눈썹이 등장해요.",
+      "example": "아바타에서 두드러지는 속눈썹 표현을 현실 메이크업으로 옮긴 사례예요.",
+      "use": "가상 눈매에서 먼저 눈에 띄는 요소를 짚어요.",
+      "source_ids": [
+       "T1:WEB-02"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D3",
+      "detail": "같은 사례에서 그러데이션 입술도 재현 요소로 언급돼요.",
+      "example": "입술 안쪽과 바깥쪽의 색 차이를 살린 표현이에요.",
+      "use": "눈화장만이 아니라 아바타 룩의 다른 포인트도 현실로 옮긴다는 점을 보여줘요.",
+      "source_ids": [
+       "T1:WEB-02"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D4",
+      "detail": "Dress to Impress의 현실 재현 사례에는 네온 섀도가 포함돼요.",
+      "example": "게임의 강한 색감을 눈두덩에 옮긴 표현이에요.",
+      "use": "가상 화면의 색을 현실 얼굴에서 어떻게 읽을지 보여주는 시각 포인트예요.",
+      "source_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D5",
+      "detail": "선명한 아이라인은 Dress to Impress 룩을 현실로 옮기는 표현으로 소개돼요.",
+      "example": "눈의 윤곽을 또렷하게 잡아 아바타의 그래픽한 인상을 살리는 방식이에요.",
+      "use": "눈매 재현의 핵심 요소를 구체적으로 설명해요.",
+      "source_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D6",
+      "detail": "그래픽 디자인 요소도 게임 룩에서 현실 메이크업으로 옮겨지는 표현으로 언급돼요.",
+      "example": "눈 주변에 선이나 도형처럼 읽히는 장식을 더하는 형태예요.",
+      "use": "현실 얼굴이 단순한 색 재현을 넘어 화면 속 디자인을 따라가는 지점을 보여줘요.",
+      "source_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D7",
+      "detail": "쉐리 SHERRY의 영상 제목은 「로블록스 메이크업 따라해본다면?」이에요.",
+      "example": "제목 자체가 로블록스 룩을 현실에서 시험해 보는 형식으로 제시돼요.",
+      "use": "한국어권 영상 사례와 연결해 재현 콘텐츠의 형식을 짚어요.",
+      "source_ids": [
+       "T1:D-YT-04"
+      ],
+      "status": "verified"
+     },
+     {
+      "id": "D8",
+      "detail": "NARSTTYA_스쨔의 영상 제목은 「각자 추구미대로 한 #로블록스메이크업」이에요.",
+      "example": "제목은 각자의 취향에 맞춘 로블록스 메이크업을 내세워요.",
+      "use": "원본 룩을 그대로 복사하는 것뿐 아니라 개인 해석이 들어갈 수 있음을 보여줘요.",
+      "source_ids": [
+       "T1:YT-06"
+      ],
+      "status": "verified"
+     }
+    ],
+    "storyline": [
+     {
+      "beat": "가상 메이크업을 현실에서 재현한 구체적 사례로 시작해요.",
+      "reader_gets": "로블록스 룩을 실제 얼굴에 옮기는 콘텐츠가 어떤 장면인지 바로 이해해요."
+     },
+     {
+      "beat": "아바타 눈매에서 먼저 보이는 과장된 속눈썹을 살펴봐요.",
+      "reader_gets": "현실 재현에서 눈에 띄는 특징 하나를 알아봐요."
+     },
+     {
+      "beat": "네온 섀도와 선명한 아이라인으로 눈매의 그래픽한 느낌을 짚어요.",
+      "reader_gets": "색과 윤곽이 가상 룩의 인상을 만드는 방식을 구체적으로 봐요."
+     },
+     {
+      "beat": "눈 주변의 그래픽 디자인과 현실 얼굴의 차이를 살펴봐요.",
+      "reader_gets": "화면 속 디자인을 얼굴에 옮길 때 달라질 수 있는 지점을 이해해요."
+     },
+     {
+      "beat": "과장된 눈 표현과 그러데이션 입술을 나란히 놓고 룩의 조합을 읽어요.",
+      "reader_gets": "눈만이 아니라 얼굴 전체의 표현이 재현 대상이 된다는 점을 알아봐요."
+     },
+     {
+      "beat": "각자의 취향이 더해지는 재현의 재미를 정리해요.",
+      "reader_gets": "원본을 따라 하면서도 개인 해석이 들어가는 지점을 기억해요."
+     }
+    ],
+    "title": "로블록스 눈매를 현실 얼굴에 옮기면",
+    "concept_notice": "",
+    "summary": "Dress to Impress의 가상 메이크업을 현실 얼굴에 재현한 사례를 바탕으로, 과장된 속눈썹·네온 섀도·선명한 아이라인 같은 눈매 표현과 개인 해석의 재미를 살펴보는 카드뉴스예요.",
+    "claims": [
+     {
+      "text": "Merrell 쌍둥이는 Dress to Impress 메이크업 룩을 현실에서 재현하는 영상을 공개했어요.",
+      "evidence_ids": [
+       "T1:WEB-01"
+      ],
+      "status": "Supported Hypothesis"
+     },
+     {
+      "text": "보도된 재현 사례에는 과장된 속눈썹과 그러데이션 입술이 언급돼요.",
+      "evidence_ids": [
+       "T1:WEB-02"
+      ],
+      "status": "Supported Hypothesis"
+     },
+     {
+      "text": "네온 섀도, 선명한 아이라인, 그래픽 디자인이 현실 재현 표현으로 소개돼요.",
+      "evidence_ids": [
+       "T1:WEB-03"
+      ],
+      "status": "Supported Hypothesis"
+     },
+     {
+      "text": "한국어 영상 제목에는 ‘로블록스 메이크업 따라해본다면?’과 ‘각자 추구미대로 한’이라는 표현이 있어요.",
+      "evidence_ids": [
+       "T1:D-YT-04",
+       "T1:YT-06"
+      ],
+      "status": "Verified Signal"
+     }
+    ],
+    "slides": [
+     {
+      "slide_id": "S1",
+      "number": 1,
+      "type": "cover",
+      "headline": "로블록스 눈매를 현실에 그리면",
+      "body": "Dress to Impress의 메이크업 룩을 현실 얼굴에 재현한 영상이 있어요. 화면 속 과장된 눈매는 실제 얼굴에서 어떻게 보일까요?",
+      "supporting_text": "가상 룩 → 현실 재현",
+      "visual_direction": "화면 왼쪽에는 게임 아바타를 연상시키는 오리지널 3D 얼굴, 오른쪽에는 현실 재현을 암시하는 눈 부위 클로즈업을 배치해요. 실제 인물이나 영상 캡처를 모사하지 않고, 비교 영역에 텍스트 공간을 남겨요.",
+      "image_ref": "",
+      "image_prompt": "Editorial split composition for a 4:5 Korean Instagram card cover: an original stylized fashion-game avatar eye look on the left and a separate realistic makeup-inspired eye illustration on the right, bold dramatic lashes, clean studio lighting, no recognizable game interface or real person, generous clean negative space at top for Korean headline, no text, no logos.",
+      "layout_hint": "큰 제목은 상단, 가상과 현실을 암시하는 두 이미지는 하단 좌우 분할로 배치해요.",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-01"
+      ],
+      "fact_checks": [
+       {
+        "text": "Merrell 쌍둥이는 Dress to Impress 메이크업 룩을 현실에서 재현하는 영상을 공개했어요.",
+        "evidence_ids": [
+         "T1:WEB-01"
+        ],
+        "status": "Supported Hypothesis"
+       }
+      ],
+      "specific_detail": "Merrell 쌍둥이가 Dress to Impress 메이크업을 현실에서 재현한 영상 사례예요.",
+      "reader_gets": "가상 룩을 실제 얼굴에 옮기는 장면을 떠올리며 시작해요.",
+      "detail_ids": [
+       "D1"
+      ],
+      "to_next": "현실 얼굴에 옮겨지는 눈매의 첫 번째 포인트를 봐요.",
+      "image": {
+       "prompt": "Editorial split composition for a 4:5 Korean Instagram card cover: an original stylized fashion-game avatar eye look on the left and a separate realistic makeup-inspired eye illustration on the right, bold dramatic lashes, clean studio lighting, no recognizable game interface or real person, generous clean negative space at top for Korean headline, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     },
+     {
+      "slide_id": "S2",
+      "number": 2,
+      "type": "detail",
+      "headline": "먼저 눈에 띄는 속눈썹",
+      "body": "아바타의 과장된 속눈썹은 현실 재현에서도 눈에 띄는 포인트예요. 눈매의 크기와 인상을 한눈에 알아보게 만들죠.",
+      "supporting_text": "눈매 포인트 01 · 과장된 속눈썹",
+      "visual_direction": "아바타풍 눈 일러스트와 현실 재현풍 눈 일러스트를 위아래로 놓고, 속눈썹 부분만 가는 선으로 표시해요.",
+      "image_ref": "",
+      "image_prompt": "A clean editorial comparison of two original eye illustrations, one stylized avatar eye with exaggerated lashes and one realistic eye makeup interpretation, neutral background, subtle annotation lines pointing to lashes, ample blank space for Korean text, no labels, no logos.",
+      "layout_hint": "속눈썹 클로즈업을 크게 두고, 설명은 짧은 두 줄로 정리해요.",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-02"
+      ],
+      "fact_checks": [
+       {
+        "text": "현실 재현 사례에 과장된 속눈썹이 언급돼요.",
+        "evidence_ids": [
+         "T1:WEB-02"
+        ],
+        "status": "Supported Hypothesis"
+       }
+      ],
+      "specific_detail": "Dress to Impress 메이크업의 현실 재현 사례에 과장된 속눈썹이 언급돼요.",
+      "reader_gets": "가상 눈매의 인상을 만드는 구체적인 요소를 하나 짚어요.",
+      "detail_ids": [
+       "D2"
+      ],
+      "to_next": "속눈썹에 색과 윤곽이 더해지면 눈매가 어떻게 읽히는지 이어서 봐요.",
+      "image": {
+       "prompt": "A clean editorial comparison of two original eye illustrations, one stylized avatar eye with exaggerated lashes and one realistic eye makeup interpretation, neutral background, subtle annotation lines pointing to lashes, ample blank space for Korean text, no labels, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     },
+     {
+      "slide_id": "S3",
+      "number": 3,
+      "type": "detail",
+      "headline": "네온 색과 또렷한 라인을 현실로",
+      "body": "Dress to Impress 룩을 현실 얼굴에 따라 그릴 때, 네온 섀도와 선명한 아이라인이 눈매의 포인트가 돼요. 화면의 강한 색과 또렷한 윤곽을 실제 얼굴에 옮기는 거예요.",
+      "supporting_text": "현실 재현 포인트 · 색과 윤곽",
+      "visual_direction": "눈두덩의 네온 컬러와 또렷한 아이라인을 각각 다른 색의 얇은 가이드로 분리해 보여줘요. 과장된 전후 결과를 사실처럼 단정하지 않아요.",
+      "image_ref": "",
+      "image_prompt": "Original editorial eye-makeup illustration showing a vivid neon eyeshadow area and a crisp graphic eyeliner shape, split into two subtly annotated zones, fashion-game inspired but not copying any specific avatar, clean negative space for Korean text, no text, no logos.",
+      "layout_hint": "눈 일러스트를 중앙에 크게 두고 색과 선을 각각 짧은 라벨로 구분해요.",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-03"
+      ],
+      "fact_checks": [
+       {
+        "text": "Dress to Impress의 현실 재현 사례에 네온 섀도와 선명한 아이라인이 포함돼요.",
+        "evidence_ids": [
+         "T1:WEB-03"
+        ],
+        "status": "Verified Signal"
+       }
+      ],
+      "specific_detail": "네온 섀도와 선명한 아이라인이 Dress to Impress 룩의 현실 재현 요소로 소개돼요.",
+      "reader_gets": "색과 윤곽을 함께 보면 눈매의 그래픽한 인상이 어떻게 만들어지는지 알아봐요.",
+      "detail_ids": [
+       "D4",
+       "D5"
+      ],
+      "to_next": "색과 라인 다음에는 화면 속 장식이 얼굴에 어떻게 옮겨지는지 살펴봐요.",
+      "image": {
+       "prompt": "Original editorial eye-makeup illustration showing a vivid neon eyeshadow area and a crisp graphic eyeliner shape, split into two subtly annotated zones, fashion-game inspired but not copying any specific avatar, clean negative space for Korean text, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "네온 섀도와 아이라인을 실제 얼굴에 따라 그리는 사례로 연결해 선택한 현상이 드러나게 했어요."
+     },
+     {
+      "slide_id": "S4",
+      "number": 4,
+      "type": "highlight",
+      "headline": "눈 주변에 더해지는 그래픽",
+      "body": "가상 룩의 그래픽 디자인 요소도 현실 메이크업으로 옮겨져요. 단순히 색을 따라 하기보다, 화면 속 선과 모양을 얼굴 표현으로 번역하는 셈이에요.",
+      "supporting_text": "색만이 아니라 모양도 재현",
+      "visual_direction": "눈 주변에 얇은 그래픽 선과 도형을 얹은 오리지널 일러스트를 사용해요. 실제 얼굴 사진처럼 오해되지 않도록 드로잉 스타일로 표현해요.",
+      "image_ref": "",
+      "image_prompt": "Stylized editorial illustration of an original eye area with abstract graphic lines and small geometric accents translated into makeup, restrained bright palette, flat clean background, clear space for Korean headline, no real person, no text, no logos.",
+      "layout_hint": "그래픽 선이 눈 주변으로 이어지는 구도를 만들고, 문장은 한 덩어리로 짧게 배치해요.",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-03"
+      ],
+      "fact_checks": [
+       {
+        "text": "그래픽 디자인 요소가 현실 재현 표현으로 언급돼요.",
+        "evidence_ids": [
+         "T1:WEB-03"
+        ],
+        "status": "Supported Hypothesis"
+       }
+      ],
+      "specific_detail": "그래픽 디자인 요소도 Dress to Impress 룩에서 현실 메이크업으로 옮겨지는 표현으로 언급돼요.",
+      "reader_gets": "재현이 색 복사에 그치지 않고 화면 속 디자인 감각까지 다룬다는 점을 봐요.",
+      "detail_ids": [
+       "D6"
+      ],
+      "to_next": "눈 주변 표현을 입술 포인트와 함께 놓고 얼굴 전체의 조합을 봐요.",
+      "image": {
+       "prompt": "Stylized editorial illustration of an original eye area with abstract graphic lines and small geometric accents translated into makeup, restrained bright palette, flat clean background, clear space for Korean headline, no real person, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     },
+     {
+      "slide_id": "S5",
+      "number": 5,
+      "type": "example",
+      "headline": "눈매뿐 아니라 입술도 따라 해요",
+      "body": "Dress to Impress 룩을 현실에서 재현할 때는 눈화장에만 머물지 않아요. 과장된 속눈썹과 함께 그러데이션 입술도 표현 요소로 언급돼요. 눈과 입술을 함께 보면 가상 룩을 얼굴 전체로 옮기는 과정이 보여요.",
+      "supporting_text": "속눈썹 + 그러데이션 입술",
+      "visual_direction": "눈매와 입술을 한 얼굴 일러스트 안에 함께 보여줘요. 입술은 안쪽과 바깥쪽의 색 차이를 단순한 도식으로 표현해요.",
+      "image_ref": "",
+      "image_prompt": "Original editorial face illustration combining dramatic stylized lashes with a soft gradient lip, clearly a conceptual makeup drawing rather than a real-person transformation, balanced colors and uncluttered background, empty space for Korean copy, no text, no logos.",
+      "layout_hint": "얼굴 전체를 중앙에 놓고 눈과 입술에 각각 작은 포커스 표시를 둬요.",
+      "cta": "",
+      "evidence_ids": [
+       "T1:WEB-02"
+      ],
+      "fact_checks": [
+       {
+        "text": "Dress to Impress 현실 재현 사례에는 과장된 속눈썹과 그러데이션 입술이 등장해요.",
+        "evidence_ids": [
+         "T1:WEB-02"
+        ],
+        "status": "Verified Signal"
+       }
+      ],
+      "specific_detail": "현실 재현 사례에는 과장된 속눈썹과 함께 그러데이션 입술도 언급돼요.",
+      "reader_gets": "눈매 하나뿐 아니라 입술 표현까지 합쳐져 룩이 완성된다는 점을 이해해요.",
+      "detail_ids": [
+       "D2",
+       "D3"
+      ],
+      "to_next": "마지막으로 같은 가상 룩에도 개인 해석이 더해지는 장면을 볼게요.",
+      "image": {
+       "prompt": "Original editorial face illustration combining dramatic stylized lashes with a soft gradient lip, clearly a conceptual makeup drawing rather than a real-person transformation, balanced colors and uncluttered background, empty space for Korean copy, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": [],
+      "revised": "입술 표현을 현실 재현의 구체적인 사례로 제시해, 가상 메이크업을 따라 하는 행동과 연결했어요."
+     },
+     {
+      "slide_id": "S6",
+      "number": 6,
+      "type": "cta",
+      "headline": "따라 그려도 해석은 내 취향",
+      "body": "영상 제목처럼 각자의 추구미를 담는 방식도 있어요. 속눈썹, 색, 라인 중 무엇을 살렸는지 비교하면 재현의 재미가 더 잘 보여요.",
+      "supporting_text": "저장해두고 다음 재현 영상에서 찾아봐요",
+      "visual_direction": "같은 오리지널 아바타 눈매 옆에 서로 다른 해석 두 가지를 나란히 배치해요. 실제 제작 영상의 결과를 그대로 재현하는 방식은 피하고 개념 비교로 표현해요.",
+      "image_ref": "",
+      "image_prompt": "Three-panel editorial illustration: one original stylized avatar eye look followed by two distinct realistic makeup interpretations with different personal styling choices, clean 4:5 composition, plenty of negative space for Korean text, no real people, no text, no logos.",
+      "layout_hint": "왼쪽에 원본 느낌, 오른쪽에 해석 두 가지를 놓고 하단에 저장 CTA를 배치해요.",
+      "cta": "저장해두고 다음 재현 영상에서 눈매·색·라인을 비교해봐요.",
+      "evidence_ids": [
+       "T1:YT-06"
+      ],
+      "fact_checks": [
+       {
+        "text": "NARSTTYA_스쨔의 영상 제목은 각자의 취향을 반영한 로블록스 메이크업을 내세워요.",
+        "evidence_ids": [
+         "T1:YT-06"
+        ],
+        "status": "Verified Signal"
+       }
+      ],
+      "specific_detail": "NARSTTYA_스쨔의 영상 제목은 각자의 취향을 반영한 로블록스 메이크업을 내세워요.",
+      "reader_gets": "가상 룩을 따라 하면서도 개인 취향이 재현 결과에 들어갈 수 있다는 점을 기억해요.",
+      "detail_ids": [
+       "D8"
+      ],
+      "to_next": "저장해두고 다음에 가상 룩 재현 영상을 볼 때 어떤 요소를 옮겼는지 찾아봐요.",
+      "image": {
+       "prompt": "Three-panel editorial illustration: one original stylized avatar eye look followed by two distinct realistic makeup interpretations with different personal styling choices, clean 4:5 composition, plenty of negative space for Korean text, no real people, no text, no logos.",
+       "status": "idle",
+       "source": null
+      },
+      "review": []
+     }
+    ],
+    "scenes": [],
+    "caption": "아바타의 과장된 속눈썹부터 네온 섀도, 그래픽 라인까지. 로블록스 룩을 현실 얼굴에 옮길 때 어떤 표현이 살아나는지 짚어봤어요. 다음 재현 영상에서는 어떤 포인트를 살렸는지 찾아보세요.",
+    "hashtags": [
+     "#로블록스메이크업",
+     "#가상메이크업",
+     "#현실재현",
+     "#DressToImpress",
+     "#메이크업콘텐츠",
+     "#뷰티크리에이터",
+     "#게임문화"
+    ],
+    "verify_before_publishing": [
+     "T1:WEB-01의 원문 영상에서 실제 얼굴에 재현하는 장면과 구체적인 결과를 확인해요.",
+     "T1:WEB-02와 T1:WEB-03의 원문에서 속눈썹, 그러데이션 입술, 네온 섀도, 아이라인, 그래픽 디자인 설명을 확인해요.",
+     "T1:D-YT-04와 T1:YT-06의 원문 영상에서 제목과 실제 얼굴 재현 장면이 일치하는지 확인해요."
+    ],
+    "editor_notes": {
+     "fact_checks": [
+      "웹 자료의 본문은 요약 기반이므로, 실제 재현 장면과 각 표현의 대응을 원문으로 확인해요.",
+      "한국어 영상 제목은 확인된 제목으로만 사용했고, 실제 얼굴에 재현하는 장면이 확인됐다고 단정하지 않았어요."
+     ],
+     "research_gaps": [
+      "관측 구간 영상에서 실제 얼굴에 재현하는 장면과 전후 변화를 원문으로 확인할 자료가 부족해요.",
+      "제작자·시청자의 참여 이유와 반응을 직접 보여주는 인터뷰나 댓글 자료가 없어요.",
+      "현재 영상 사례와 과거 Dress to Impress 재현 사례의 관계는 확인되지 않았어요."
+     ],
+     "image_rights": [
+      "게임 화면, 원본 영상 캡처, 크리에이터 얼굴 사진은 사용하지 말고 오리지널 일러스트나 권리 확인된 이미지를 사용해요.",
+      "AI 콘셉트 이미지는 실제 재현 결과나 근거 이미지로 제시하지 않아요."
+     ],
+     "ai_disclosure": "AI 생성 이미지를 실제 사례의 증거처럼 사용하지 말고, 콘셉트 비주얼로 사용할 경우 플랫폼 정책에 따라 표시해요."
+    }
+   },
+   "validation": {
+    "removedEvidenceIds": [],
+    "removedImageRefs": 0,
+    "slideCountAdjusted": false,
+    "downgradedClaims": 0,
+    "timingFixed": 0,
+    "needsReview": [],
+    "reportPhrases": [],
+    "strippedRefs": 0,
+    "conceptNoticeAdded": false
+   },
+   "quality": {
+    "source": "rule-check",
+    "checks": [
+     {
+      "id": "facts",
+      "label": "사실 정확성(근거 없는 단정 없음)",
+      "pass": true,
+      "detail": "사실 6건 — 근거 있음 또는 단정하지 않음",
+      "group": "required"
+     },
+     {
+      "id": "topic",
+      "label": "주제 일치(방향·소재)",
+      "pass": true,
+      "detail": "방향 유사도 0.21 · 소재 이름 슬라이드 1, 3, 4, 5, 6 · 근거 디테일 슬라이드 1, 2, 3, 4, 5, 6",
+      "group": "required"
+     },
+     {
+      "id": "language",
+      "label": "언어 일관성",
+      "pass": true,
+      "detail": "섞임 없음",
+      "group": "required"
+     },
+     {
+      "id": "evidence",
+      "label": "근거 ID 유효성",
+      "pass": true,
+      "detail": "Detail Bank 근거 확인 8/8",
+      "group": "required"
+     },
+     {
+      "id": "duplicate",
+      "label": "중복 없음",
+      "pass": true,
+      "detail": "겹침 없음",
+      "group": "required"
+     },
+     {
+      "id": "context-lock",
+      "label": "현상 고정(Context Lock)",
+      "pass": true,
+      "detail": "이탈 슬라이드 없음 · 현상이 드러나지 않는 슬라이드 없음",
+      "group": "required"
+     },
+     {
+      "id": "specific",
+      "label": "소재 고유성(스왑 테스트)",
+      "pass": true,
+      "detail": "다른 소재에도 통하는 슬라이드 없음",
+      "group": "editorial"
+     },
+     {
+      "id": "detail-use",
+      "label": "Detail Bank 활용",
+      "pass": true,
+      "detail": "디테일 8개(근거 8) · 디테일 없는 본문 슬라이드 없음",
+      "group": "editorial"
+     },
+     {
+      "id": "not-report",
+      "label": "보도·분석 요약형 서술이 아님",
+      "pass": true,
+      "detail": "없음",
+      "group": "editorial"
+     },
+     {
+      "id": "title",
+      "label": "제목 구조",
+      "pass": true,
+      "detail": "구조: statement (좋은 후킹인지는 편집 리뷰가 판단)",
+      "group": "editorial"
+     },
+     {
+      "id": "flow",
+      "label": "슬라이드마다 독자가 얻는 것",
+      "pass": true,
+      "detail": "모두 있음",
+      "group": "editorial"
+     }
+    ],
+    "passed": 6,
+    "total": 6,
+    "failing": [],
+    "issues": [],
+    "hints": [],
+    "genericSentences": [
+     "6번: 따라 그려도 해석은 내 취향."
+    ]
+   },
+   "review": {
+    "source": "ai-review",
+    "model": "gpt-6-luna",
+    "reviewedAt": "2026-11-02T07:37:51.337Z",
+    "scores": {
+     "hook": 4,
+     "specificity": 4,
+     "story": 4,
+     "save_share": 3,
+     "voice": 4
+    },
+    "summary": "구체적인 재현 포인트가 잘 살아 있어요. 3번과 5번은 로블록스 룩을 실제 얼굴에 따라 하는 사례라는 연결을 더 분명히 했어요.",
+    "patched": [
+     {
+      "unit": 3,
+      "reason": "네온 섀도와 아이라인을 실제 얼굴에 따라 그리는 사례로 연결해 선택한 현상이 드러나게 했어요."
+     },
+     {
+      "unit": 5,
+      "reason": "입술 표현을 현실 재현의 구체적인 사례로 제시해, 가상 메이크업을 따라 하는 행동과 연결했어요."
+     }
+    ],
+    "before": {
+     "passed": 5,
+     "total": 6,
+     "failing": [
+      "context-lock"
+     ]
+    }
+   },
+   "research": {
+    "requested": false,
+    "status": "skipped",
+    "count": 0
+   },
+   "model": "gpt-6-luna",
+   "references": [
+    {
+     "id": "T1:D-YT-04",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 따라해본다면?",
+     "source": "YouTube Data API · 쉐리 SHERRY",
+     "url": "https://www.youtube.com/watch?v=Gw_q0E_tp50",
+     "date": "2026-10-19T09:16:17Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-19T09:16:17Z, 조회수 13,425회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "T1:YT-06",
+     "kind": "youtube_video",
+     "title": "각자 추구미대로 한 #로블록스메이크업",
+     "source": "YouTube Data API · NARSTTYA_스쨔",
+     "url": "https://www.youtube.com/watch?v=vRSmac00Ej8",
+     "date": "2026-10-16T11:20:36Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-16T11:20:36Z, 조회수 11,105회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "T1:WEB-01",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Recreating Dress to Impress Makeup!",
+     "source": "YouTube — merrelltwins",
+     "url": "https://www.youtube.com/watch?v=G6vEvcrYCZ0",
+     "date": "2024-09-24",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "Merrell 쌍둥이는 Roblox 게임 Dress to Impress의 메이크업 룩을 현실에서 따라 해보는 영상을 공개했다. 설명에서 이를 “virtual-to-real transformation”이라고 표현한다. (발행 2024-09-24 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "T1:WEB-02",
+     "kind": "web_source",
+     "title": "[사건] Pose 28, toxic themes and Lana lore: Exploring Gen Z’s obsession with Roblox’s Dress To Impress",
+     "source": "Screenshot",
+     "url": "https://screenshot-media.com/culture/gaming/roblox-dress-to-impress-explained/",
+     "date": "2024-08-05",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "기사는 2024년 7월 패션 인플루언서들이 Dress to Impress의 의상과 게임 고유의 메이크업 룩을 따라 하기 시작했다고 보도한다. 과장된 속눈썹과 그러데이션 입술을 재현한 사례도 언급한다. (발행 2024-08-05 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "T1:WEB-03",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Beauty in Blocks: How Roblox’s Dress to Impress Inspires Real-Life Makeup Trends",
+     "source": "G.URL",
+     "url": "https://gurlworld.com/beauty-in-blocks-how-robloxs-dress-to-impress-inspires-real-life-makeup-trends/",
+     "date": "2024-11-30",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "기사는 Roblox의 Dress to Impress 룩을 현실에서 재현하는 메이크업 아티스트와 뷰티 크리에이터 사례를 설명하고, Frederic Chen의 ‘Dress To Impress Roblox Makeup Tutorial’을 예로 든다. 네온 섀도, 선명한 아이라인, 그래픽 디자인 등을 게임에서 현실로 옮기는 흐름으로 다룬다. (발행 2024-11-30 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    }
+   ]
+  },
+  "check": {
+   "drift": [],
+   "unanchored": [],
+   "pass": true
+  }
+ }
+}

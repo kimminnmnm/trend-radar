@@ -14,7 +14,7 @@ import { saveCreativeEverywhere } from "@/lib/creative-cloud";
 import { rightsNote, type ImageAssetRef } from "@/lib/image-assets";
 import { AssetImage, ImageGenerator } from "./image-generator";
 import { getCollisions, getCreativeRuns, getSavedItems, saveCreativeRun } from "@/lib/storage";
-import { buildCreativeInputs, requestCreativeRun } from "@/lib/creative-request";
+import { buildCreativeInputs, requestCreativeRun, type SelectedConnectionInput } from "@/lib/creative-request";
 import { useStored } from "@/lib/use-stored";
 import type { LiveAnalysisSnapshot } from "@/lib/types";
 import { CloudSaveStatus } from "./cloud-save-status";
@@ -31,15 +31,15 @@ export function mergeCreativeRuns(local: CreativeRun[], savedPayloadRuns: Creati
   return [...byId.values()].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
 }
 
-export function CreativeCollision({ snapshots }: { snapshots: LiveAnalysisSnapshot[] }) {
+export function CreativeCollision({ snapshots, initialTrendIds = [], selectedConnection = null }: { snapshots: LiveAnalysisSnapshot[]; initialTrendIds?: string[]; selectedConnection?: SelectedConnectionInput | null }) {
   const ready = useMemo(() => snapshots.filter((item) => item.whyReport || item.dna), [snapshots]);
   const localRuns = useStored(getCreativeRuns);
   const savedItems = useStored(getSavedItems);
   const collisions = useStored(getCollisions);
   const ledgerState = useStored(readCultureLedger);
   const runs = useMemo(() => mergeCreativeRuns(localRuns ?? [], (savedItems ?? []).flatMap((item) => isCreativePayload(item.payload) ? [item.payload.run] : [])), [localRuns, savedItems]);
-  const [pickA, setPickA] = useState<string | null>(null);
-  const [pickB, setPickB] = useState<string | null>(null);
+  const [pickA, setPickA] = useState<string | null>(() => initialTrendIds.find((id) => ready.some((item) => item.trendId === id)) ?? null);
+  const [pickB, setPickB] = useState<string | null>(() => initialTrendIds.find((id) => id !== initialTrendIds[0] && ready.some((item) => item.trendId === id)) ?? null);
   const aKey = pickA ?? ready[0]?.trendId ?? "";
   const bKey = pickB ?? ready.find((item) => item.trendId !== aKey)?.trendId ?? "";
   const [runId, setRunId] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export function CreativeCollision({ snapshots }: { snapshots: LiveAnalysisSnapsh
   const [toast, setToast] = useState("");
   const router = useRouter();
 
-  const inputs = useMemo(() => buildCreativeInputs(snapshots, aKey, bKey, ledgerState, collisions ?? []), [aKey, bKey, snapshots, ledgerState, collisions]);
+  const inputs = useMemo(() => buildCreativeInputs(snapshots, aKey, bKey, ledgerState, collisions ?? [], selectedConnection), [aKey, bKey, snapshots, ledgerState, collisions, selectedConnection]);
 
   const persist = (next: CreativeRun) => { saveCreativeRun(next); setRunId(next.id); };
 
@@ -102,6 +102,7 @@ export function CreativeCollision({ snapshots }: { snapshots: LiveAnalysisSnapsh
       <label>TREND A<select value={aKey} onChange={(event) => { setPickA(event.target.value); setRunId(null); setIdeaId(null); }} data-testid="creative-a">{ready.map((item) => <option key={item.trendId} value={item.trendId}>{item.trendName}</option>)}</select></label>
       <label>TREND B<select value={bKey} onChange={(event) => { setPickB(event.target.value); setRunId(null); setIdeaId(null); }} data-testid="creative-b">{ready.filter((item) => item.trendId !== aKey).map((item) => <option key={item.trendId} value={item.trendId}>{item.trendName}</option>)}</select></label>
       {inputs && <div className="inputs" data-testid="creative-inputs"><small>INPUTS · 저장된 분석 재사용</small><p>{inputs.report.used.map((item) => <span key={item} className="ok">{item}</span>)}</p>{inputs.report.missing.length > 0 && <p className="missing">없음: {inputs.report.missing.join(", ")} — 없는 정보는 만들지 않습니다.</p>}</div>}
+      {selectedConnection && <div className="inputs" data-testid="creative-selected-connection"><small>FROM TREND WEB · {selectedConnection.verificationStatus}</small><p><span className="ok">{selectedConnection.direction}</span>{selectedConnection.title}</p><p>{selectedConnection.context}</p></div>}
       <div className="signals" data-testid="creative-shared"><small>SHARED SIGNALS {run ? "· 생성 결과" : "· DNA 라벨 미리보기"}</small>
         {run ? signalsShared.map((item) => <SignalRow key={item.text} item={item}/>) : inputs?.preview.shared.length ? inputs.preview.shared.map((item) => <p key={item.label}><b className="tag dna">DNA</b>{item.label} <em>{item.dimension}</em></p>) : <p className="none">DNA 라벨이 겹치는 속성이 없습니다.</p>}
         {!run && inputs?.relation && <p><b className="tag map">CULTURE MAP</b>{inputs.relation.type}{inputs.relation.score !== null ? ` · 점수 ${Math.round(inputs.relation.score * 100)}` : ""}{inputs.relation.sharedAttributes.length ? ` · ${inputs.relation.sharedAttributes.join(", ")}` : ""}</p>}

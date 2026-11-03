@@ -1,5 +1,7 @@
 import type { SavedCreativePayload } from "./creative-collision";
 import type { SavedStudioProjectPayload } from "./content-production";
+import type { SavedPhenomenonPayload } from "./discovery";
+import type { SavedTrendWebPayload } from "./trend-web";
 import type { AnalysisStatus, CollisionAnalysis, ContentPlan, EvidenceItem, LabReview, SeriesStats, TrendAnalysis, TrendDna } from "./schemas";
 import type { YouTubeCollection } from "./youtube";
 import type { ValidationLog } from "./signal";
@@ -51,7 +53,7 @@ export type SavedItem = {
   /** 소유 계정(Supabase user id). 없으면 로그인 없이 저장한 로컬 항목. */
   ownerId?: string;
   /** insight 유형에는 LIVE 인사이트와 V4.5 Creative Collision 결과가 들어간다(saved_items item_type 제약 때문에 새 유형을 만들지 않음). */
-  payload?: SavedPlanPayload | SavedInsightPayload | SavedCreativePayload | SavedStudioProjectPayload;
+  payload?: SavedPlanPayload | SavedInsightPayload | SavedCreativePayload | SavedStudioProjectPayload | SavedPhenomenonPayload | SavedTrendWebPayload;
 };
 
 /** LIVE WHY 분석에서 저장한 인사이트. 분석 원본은 trendId·analyzedAt으로 다시 찾는다. */

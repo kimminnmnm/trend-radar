@@ -7,6 +7,7 @@ import { contentModeInfo, REPORT_PHRASES, type ContentAngle, type ContentMode } 
 import { applyPatches, editorialQualityGate, revertRegressions, type EditorialReview, type QualityReport } from "./editorial-quality";
 import type { EvidenceItem, TrendContext } from "./schemas";
 import { collectWebEvidence } from "./web-evidence";
+import { lockInstructions, type EditorialContextLock } from "./editorial-lock";
 
 export type AngleResearchResult = { requested: boolean; status: "skipped" | "live" | "error"; count: number; message?: string };
 
@@ -92,26 +93,27 @@ const reviewInstructions = [
   VOICE,
 ].join(" ");
 
-export async function createProductionPlan(trends: TrendContext[], concept: CreativeConcept | undefined, settings: ProductionSettings, assets: Array<{ id: string; status: string; title: string }>, angle?: ContentAngle, customTopic = "", options: { research?: boolean } = {}): Promise<{ plan: ProductionPlan; validation: ProductionValidation; quality: QualityReport | null; review: EditorialReview | null; research: AngleResearchResult; model: string; references: EvidenceItem[] }> {
+export async function createProductionPlan(trends: TrendContext[], concept: CreativeConcept | undefined, settings: ProductionSettings, assets: Array<{ id: string; status: string; title: string }>, angle?: ContentAngle, customTopic = "", options: { research?: boolean; lock?: EditorialContextLock } = {}): Promise<{ plan: ProductionPlan; validation: ProductionValidation; quality: QualityReport | null; review: EditorialReview | null; research: AngleResearchResult; model: string; references: EvidenceItem[] }> {
   const mode = settingsMode(settings);
   const topic = customTopic.trim();
+  const lock = options.lock?.enabled ? options.lock : undefined;
   // 5단계: 선택한 방향에 맞는 자료 조사(사용자가 켰을 때만, 웹 검색 1회). 실제 조회한 URL만 원장에 넣는다(AR-xx).
   let angleResearch: EvidenceItem[] = [];
   let research: AngleResearchResult = { requested: Boolean(options.research), status: "skipped", count: 0 };
   if (options.research && angle && mode !== "report" && trends[0]) {
     try {
-      const { items } = await collectWebEvidence(trends[0].name, new Date().toISOString(), { topic: topic || angle.title, needs: [angle.reader_benefit, ...angle.research_requirements].filter(Boolean).slice(0, 6) });
+      const { items } = await collectWebEvidence(trends[0].name, new Date().toISOString(), { topic: lock ? `${lock.selectedPhenomenon} — ${angle.title}` : topic || angle.title, needs: [...(lock ? [lock.coreBehavior] : []), angle.reader_benefit, ...angle.research_requirements].filter(Boolean).slice(0, 6) });
       angleResearch = items.map((item) => ({ ...item, id: `T1:${item.id}` }));
       research = { requested: true, status: "live", count: items.length };
     } catch (error) { research = { requested: true, status: "error", count: 0, message: error instanceof Error ? error.message.slice(0, 200) : "방향 맞춤 자료 조사에 실패했습니다." }; }
   }
-  const context = buildProductionContext(trends, mode, angle, angleResearch);
-  const input = `${context.prompt}\nCREATIVE_CONCEPT: ${JSON.stringify(concept ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nSELECTED_ANGLE: ${JSON.stringify(angle ?? null)}\nSETTINGS: ${JSON.stringify(settings)}\nAVAILABLE_ASSETS: ${JSON.stringify(assets)}`;
-  const instructions = mode === "report" ? reportInstructions(settings, Boolean(concept)) : editorialInstructions(settings, mode, Boolean(concept), topic);
-  const subjectTerms = [...trends.flatMap((trend) => [trend.name, ...trend.keywords]), ...(concept ? [concept.title] : [])];
+  const context = buildProductionContext(trends, mode, angle, angleResearch, lock ? lock.observedEvidenceIds.map((id) => `T1:${id}`) : []);
+  const input = `${context.prompt}\nCREATIVE_CONCEPT: ${JSON.stringify(concept ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nSELECTED_ANGLE: ${JSON.stringify(angle ?? null)}\nSETTINGS: ${JSON.stringify(settings)}\nAVAILABLE_ASSETS: ${JSON.stringify(assets)}${lock ? `\nCONTEXT_LOCK: ${JSON.stringify({ phenomenon: lock.selectedPhenomenon, parent_keyword: lock.parentKeyword, subject: lock.subject, core_behavior: lock.coreBehavior, object: lock.object, direction: lock.direction, cultural_context: lock.culturalContext, editorial_focus: lock.editorialFocus, observed_evidence_ids: lock.observedEvidenceIds.map((id) => `T1:${id}`), creative_hypothesis: lock.creativeHypothesis, prohibited_topic_drift: lock.prohibitedTopicDrift.map((item) => item.label) })}\nUSER_MATERIALS: ${lock.userMaterials || "(none)"}` : ""}`;
+  const instructions = (mode === "report" ? reportInstructions(settings, Boolean(concept)) : editorialInstructions(settings, mode, Boolean(concept), topic)) + (lock ? ` ${lockInstructions(lock, "production")}` : "");
+  const subjectTerms = [...trends.flatMap((trend) => [trend.name, ...trend.keywords]), ...(concept ? [concept.title] : []), ...(lock ? [lock.selectedPhenomenon] : [])];
   const vocabulary = [...context.ledger.filter((item) => item.kind !== "naver_series").flatMap((item) => [item.title, item.excerpt]), ...trends.flatMap((trend) => trend.dna?.dimensions.flatMap((dimension) => dimension.attributes.map((attribute) => attribute.label)) ?? []), ...(concept ? [concept.concept, concept.visualBrief] : [])];
   const ledgerIds = context.ledger.map((item) => item.id), assetIds = assets.map((item) => item.id);
-  const gate = (plan: ProductionPlan, removedEvidenceIds: string[]) => editorialQualityGate(plan, { subjectTerms, angle, vocabulary, removedEvidenceIds });
+  const gate = (plan: ProductionPlan, removedEvidenceIds: string[]) => editorialQualityGate(plan, { subjectTerms, angle, vocabulary, removedEvidenceIds, lock });
   const { data, model } = await callStructured({ name: "content_production", jsonSchema: planJsonSchema, validator: productionPlanSchema, instructions, input, maxOutputTokens: 14000, timeoutMs: 200_000 });
   let result = validateProduction(data, settings, ledgerIds, assetIds, { concept: Boolean(concept) });
   let quality: QualityReport | null = mode === "report" ? null : gate(result.plan, result.validation.removedEvidenceIds);
@@ -119,7 +121,7 @@ export async function createProductionPlan(trends: TrendContext[], concept: Crea
   // 편집 리뷰 1회: 참고 점수를 매기고, 필수 검증 실패와 편집 신호가 걸린 슬라이드·제목만 고쳐 쓴다(전체 재생성 아님).
   if (quality) {
     const draft = { title: result.plan.title, slides: result.plan.slides.map(({ number, type, headline, body, supporting_text, detail_ids, reader_gets }) => ({ number, type, headline, body, supporting_text, detail_ids, reader_gets })), scenes: result.plan.scenes.map(({ time_range, on_screen_text, voice_over, detail_ids }, index) => ({ number: index + 1, time_range, on_screen_text, voice_over, detail_ids })), caption: result.plan.caption };
-    const reviewInput = `SELECTED_ANGLE: ${JSON.stringify(angle ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nDETAIL_BANK: ${JSON.stringify(result.plan.detail_bank ?? [])}\nRESEARCH_IDS: ${JSON.stringify(ledgerIds.filter((id) => !id.includes("NAVER")))}\nDRAFT: ${JSON.stringify(draft)}\nREQUIRED_ISSUES: ${JSON.stringify(quality.issues)}\nEDITORIAL_HINTS: ${JSON.stringify(quality.hints)}\nGENERIC_SENTENCES: ${JSON.stringify(quality.genericSentences.slice(0, 8))}`;
+    const reviewInput = `SELECTED_ANGLE: ${JSON.stringify(angle ?? null)}\nUSER_TOPIC: ${topic || "(none)"}${lock ? `\nCONTEXT_LOCK: keep every patched slide on "${lock.selectedPhenomenon}" (${lock.coreBehavior}); never write about: ${lock.prohibitedTopicDrift.map((item) => item.label).join(" / ")}` : ""}\nDETAIL_BANK: ${JSON.stringify(result.plan.detail_bank ?? [])}\nRESEARCH_IDS: ${JSON.stringify(ledgerIds.filter((id) => !id.includes("NAVER")))}\nDRAFT: ${JSON.stringify(draft)}\nREQUIRED_ISSUES: ${JSON.stringify(quality.issues)}\nEDITORIAL_HINTS: ${JSON.stringify(quality.hints)}\nGENERIC_SENTENCES: ${JSON.stringify(quality.genericSentences.slice(0, 8))}`;
     try {
       const reviewed = await callStructured({ name: "editorial_review", jsonSchema: reviewJsonSchema, validator: reviewSchema, instructions: reviewInstructions, input: reviewInput, maxOutputTokens: 6000, timeoutMs: 150_000 });
       const before = { passed: quality.passed, total: quality.total, failing: quality.failing };

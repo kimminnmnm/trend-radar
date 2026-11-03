@@ -96,6 +96,8 @@ export function toFigmaExport(project: StudioProject, exportedAt = new Date().to
     /** 제작자 전용. Figma에서도 게시용 프레임과 다른 EDITOR NOTES 프레임에 둔다. */
     editorNotes: {
       summary: plan?.summary ?? "",
+      /** T8: 편집 맥락 잠금(현상·핵심 행동·근거 상태·다루지 않을 주제). 이전 JSON에는 없다. */
+      contextLock: project.contextLock?.enabled ? [`선택한 현상: ${project.contextLock.selectedPhenomenon} (상위 키워드 ${project.contextLock.parentKeyword} · ${project.contextLock.evidenceStatus})`, `핵심 행동: ${project.contextLock.coreBehavior || "—"}`, `편집 초점: ${project.contextLock.editorialFocus || "—"}`, `관측 근거: ${project.contextLock.observedEvidenceIds.join(", ") || "없음(근거 부족)"}`, ...(project.contextLock.creativeHypothesis ? [`창작 가설(사실 아님): ${project.contextLock.creativeHypothesis}`] : []), `다루지 않을 주제: ${project.contextLock.prohibitedTopicDrift.map((item) => item.label).join(" / ")}`] : [],
       claims: (plan?.claims ?? []).map((claim) => ({ text: claim.text, status: claim.status, evidenceIds: claim.evidence_ids })),
       needsReview: [...(plan?.slides ?? []).map((slide) => ({ unitId: slide.slide_id, label: `슬라이드 ${slide.number}`, items: slide.review ?? [] })), ...(plan?.scenes ?? []).map((scene) => ({ unitId: scene.scene_id, label: scene.time_range, items: scene.review ?? [] }))].filter((item) => item.items.length),
       factChecks: plan?.editor_notes?.fact_checks ?? [],

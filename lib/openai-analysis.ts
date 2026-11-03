@@ -1,7 +1,9 @@
 import "server-only";
-import { trendAnalysisSchema, type EvidenceItem, type SeriesStats, type TrendAnalysis, type WhyContext } from "./schemas";
+import { z } from "zod";
+import { trendAnalysisSchema, whyInsightSchema, type EvidenceItem, type PhenomenonContext, type SeriesStats, type TrendAnalysis, type WhyContext, type WhyPhenomenon } from "./schemas";
 import type { NaverTrendSignal } from "./naver";
 import { callStructured, js } from "./openai-client";
+import { phenomenonAnchorTerms } from "./discovery";
 import { ledgerForPrompt } from "./evidence-ledger";
 import { enforceStatus, sanitizeIds, type ValidationLog } from "./signal";
 
@@ -106,4 +108,57 @@ export async function analyzeTrendWithOpenAI(trend: string, signal: NaverTrendSi
   const { data, model } = await callStructured({ name: "trend_why_analysis", jsonSchema: analysisJsonSchema, validator: trendAnalysisSchema, instructions, input, maxOutputTokens: 5000 });
   const { report, validation } = validateWhyReport(data, evidence);
   return { report, model, analyzedAt: new Date().toISOString(), promptVersion: TREND_WHY_PROMPT_VERSION, validation };
+}
+
+/* ── T5: Context-Aware WHY — 선택한 현상 자체를 분석 ── */
+export const PHENOMENON_WHY_PROMPT_VERSION = "why-phenomenon-v1";
+
+const phenomenonJsonSchema = { ...analysisJsonSchema, properties: { ...analysisJsonSchema.properties, phenomenon: js.obj({ who: js.obj({ summary: js.str, status: js.status, evidenceIds: js.strArr }), how: js.obj({ summary: js.str, status: js.status, evidenceIds: js.strArr }) }) }, required: [...analysisJsonSchema.required, "phenomenon"] };
+const phenomenonModelSchema = trendAnalysisSchema.omit({ phenomenon: true }).extend({ phenomenon: z.object({ who: whyInsightSchema, how: whyInsightSchema }) });
+
+const phenomenonInstructions = (context: PhenomenonContext) => [
+  "PHENOMENON MODE. The user selected ONE specific phenomenon inside a broader parent keyword. Analyze this phenomenon itself — its subject, action, object and direction — not the parent keyword in general, not the parent keyword's history, and not a different direction of the same concepts.",
+  `Selected phenomenon: "${context.title}". Parent keyword: ${context.keyword}. Subject: ${context.subject || "(not extracted)"}. Action: ${context.action || context.coreBehavior || "(not extracted)"}. Object: ${context.object || "(not extracted)"}. Direction: ${context.direction || "(not specified)"}. Cultural context noted at discovery: ${context.culturalContext || "(none)"}. Observed window: ${context.window.from}~${context.window.to}. Server evidence status at discovery: ${context.verificationStatus} (${context.independentSources} independent source(s)).`,
+  "Map the sections as follows. WHAT (what): what concretely happens in this phenomenon. WHO (phenomenon.who): who does what — creators, viewers, players, brands — only as the evidence shows. HOW (phenomenon.how): how it is expressed and shared — formats, platforms, titles, recurring patterns. CULTURAL CONTEXT (context.background): which cultures or communities this exact behavior connects. WHY NOW (triggers): the interest background visible in the current evidence; temporal coincidence is not causation and you must not assert why it spread. EVIDENCE: cite ledger ids everywhere.",
+  "Origin is optional in this mode. If the ledger does not show where this phenomenon started, set origin.summary to a short note that the analysis focuses on the phenomenon's current form and its first origin was not verified, with empty evidenceIds. Never fill origin, background or what with the parent keyword's general history.",
+  "D-xx items were collected during discovery specifically for this phenomenon and are reused here. Evidence that only concerns the parent keyword in general, or a different direction, must not be cited as support for claims about this phenomenon; mention it only to contrast.",
+  context.verificationStatus === "OBSERVED" ? "The phenomenon is observed in independent sources; still do not call it popular, viral or rising unless a cited source says so." : "The phenomenon is an early or limited signal. Describe it as such. Never call it a trend, popular, viral or rising. Say what evidence is missing.",
+  "If the ledger has little about the selected direction, keep the analysis short and list the gaps in missingEvidence instead of substituting general facts. Unsupported sections must use Insufficient Evidence with empty evidenceIds.",
+].join(" ");
+
+export { phenomenonAnchorTerms };
+/** 서버 결정적 검사: WHAT·대표 요약이 현상 핵심어를 담는지, 상위 키워드의 역사·기원 설명으로 이탈했는지, 근거가 약한데 유행으로 단정했는지. */
+export function checkPhenomenonFocus(report: Pick<TrendAnalysis, "what" | "overview">, context: PhenomenonContext) {
+  const anchorTerms = phenomenonAnchorTerms(context);
+  const text = `${report.what?.summary ?? ""} ${report.overview?.summary ?? ""}`;
+  const hits = anchorTerms.filter((term) => text.toLowerCase().includes(term.toLowerCase()));
+  const anchored = anchorTerms.length === 0 || hits.length >= Math.min(2, anchorTerms.length);
+  const warnings: string[] = [];
+  if (!anchored) warnings.push(`WHAT·대표 요약에 선택한 현상의 핵심어(${anchorTerms.join(", ")})가 거의 없습니다. 주제가 이탈했을 수 있습니다.`);
+  if (/역사|기원|유래|시초/.test(text)) warnings.push("WHAT·대표 요약이 현상 대신 역사·기원을 설명하고 있을 수 있습니다.");
+  if (context.verificationStatus !== "OBSERVED" && /유행|급상승|바이럴|인기를 끌|대세/.test(text)) warnings.push("근거가 제한적인 현상인데 유행·인기로 표현한 문장이 있습니다.");
+  return { anchorTerms, anchored, warnings };
+}
+
+export async function analyzePhenomenonWithOpenAI(context: PhenomenonContext, signal: NaverTrendSignal | null, evidence: EvidenceItem[], stats: SeriesStats[], reusedEvidenceIds: string[]): Promise<WhyResult> {
+  const input = [
+    `분석 대상(선택한 현상): ${context.title}`,
+    `상위 키워드: ${context.keyword}`,
+    signal ? `NAVER 요청 조건: ${signal.startDate}~${signal.endDate}, 단위 ${signal.timeUnit}, 키워드 그룹 ${signal.series.map((s) => s.title).join(", ")}` : "NAVER: 이 현상의 검색어로는 수집하지 못함(검색 관심도 근거 없음)",
+    signal ? `서버 계산 통계(NAVER, 같은 요청 내 비교만 유효): ${JSON.stringify(stats)}` : "",
+    signal ? `NAVER 원시 시계열: ${JSON.stringify(signal.series.map((s) => ({ title: s.title, data: s.data })))}` : "",
+    `EVIDENCE LEDGER: ${JSON.stringify(ledgerForPrompt(evidence))}`,
+  ].filter(Boolean).join("\n");
+  const { data, model } = await callStructured({ name: "phenomenon_why_analysis", jsonSchema: phenomenonJsonSchema, validator: phenomenonModelSchema, instructions: `${instructions} ${phenomenonInstructions(context)}`, input, maxOutputTokens: 5000 });
+  const { phenomenon: lens, ...rest } = data;
+  const { report, validation } = validateWhyReport({ ...rest, trend: context.title }, evidence);
+  const valid = new Set(evidence.map((item) => item.id));
+  const removed: string[] = [];
+  const counter = { downgraded: 0 };
+  const insight = (item: z.infer<typeof whyInsightSchema>) => { const evidenceIds = sanitizeIds(item.evidenceIds, valid, removed); return { ...item, evidenceIds, status: enforceStatus(item.status, evidenceIds, counter) }; };
+  const phenomenon: WhyPhenomenon = { context, who: insight(lens.who), how: insight(lens.how), reusedEvidenceIds, checks: checkPhenomenonFocus(report, context) };
+  return {
+    report: { ...report, phenomenon }, model, analyzedAt: new Date().toISOString(), promptVersion: PHENOMENON_WHY_PROMPT_VERSION,
+    validation: { ...validation, removedEvidenceIds: [...new Set([...validation.removedEvidenceIds, ...removed])], downgraded: validation.downgraded + counter.downgraded },
+  };
 }

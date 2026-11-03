@@ -8,9 +8,11 @@ import { deleteSavedItem, isInsightPayload, isPlanPayload, latestByClientId, loa
 import { signedInClient } from "@/lib/cloud-storage";
 import { isCreativePayload } from "@/lib/creative-collision";
 import { isStudioProjectPayload, productionFormatLabels } from "@/lib/content-production";
+import { isPhenomenonPayload, phenomenonQuery, phenomenonTrendId } from "@/lib/discovery";
 import { getSavedItems, getSavedTombstones } from "@/lib/storage";
 import { useStored } from "@/lib/use-stored";
 import { trendPath } from "@/lib/live-trend";
+import { isTrendWebPayload } from "@/lib/trend-web";
 import type { SavedItem } from "@/lib/types";
 import { DataBadge, SectionHeading } from "./ui";
 
@@ -79,15 +81,19 @@ export function SavedItemsSection({ index }: { index: string }) {
       const creative = isCreativePayload(item.payload) ? item.payload : null;
       const creativeIdea = creative ? creative.run.result.ideas.find((idea) => idea.id === creative.selectedIdeaId) ?? creative.run.result.ideas[0] : null;
       const project = isStudioProjectPayload(item.payload) ? item.payload.project : null;
-      const open = project ? `/studio?project=${encodeURIComponent(project.id)}` : isPlanPayload(item.payload) ? `/studio?plan=${encodeURIComponent(item.id)}` : isInsightPayload(item.payload) ? trendPath(item.payload.trendId, "why") : creative ? `/studio?creative=${encodeURIComponent(creative.run.id)}${creativeIdea ? `&idea=${encodeURIComponent(creativeIdea.id)}` : ""}` : null;
+      const phen = isPhenomenonPayload(item.payload) ? item.payload : null;
+      const trendWeb = isTrendWebPayload(item.payload) ? item.payload : null;
+      const open = trendWeb ? `/?trendWeb=${encodeURIComponent(trendWeb.session.id)}` : phen ? `${trendPath(phenomenonTrendId(phen.context), "why")}?${phenomenonQuery(phen.context)}` : project ? `/studio?project=${encodeURIComponent(project.id)}` : isPlanPayload(item.payload) ? `/studio?plan=${encodeURIComponent(item.id)}` : isInsightPayload(item.payload) ? trendPath(item.payload.trendId, "why") : creative ? `/studio?creative=${encodeURIComponent(creative.run.id)}${creativeIdea ? `&idea=${encodeURIComponent(creativeIdea.id)}` : ""}` : null;
       return <article className="panel card" key={item.id} data-testid="saved-item">
-        <div className="row">{item.type === "insight" ? <Lightbulb size={16}/> : <FileText size={16}/>}<small>{creative ? "CREATIVE COLLISION" : project ? `STUDIO PROJECT · ${productionFormatLabels[project.settings.format]}` : item.type.toUpperCase()}</small><DataBadge status={item.mode === "live" ? "SAVED" : "DEMO"}/><span className={`where ${state.cls}`} data-testid="saved-item-state">{state.label}</span></div>
+        <div className="row">{item.type === "insight" ? <Lightbulb size={16}/> : <FileText size={16}/>}<small>{phen ? `PHENOMENON · ${phen.context.verificationStatus}` : creative ? "CREATIVE COLLISION" : project ? `STUDIO PROJECT · ${productionFormatLabels[project.settings.format]}` : item.type.toUpperCase()}</small><DataBadge status={item.mode === "live" ? "SAVED" : "DEMO"}/><span className={`where ${state.cls}`} data-testid="saved-item-state">{state.label}</span></div>
         <h2>{item.title}</h2><p>{item.subtitle}</p>
         {isInsightPayload(item.payload) && <p className="summary">{item.payload.summary}</p>}
         {project && <p className="summary" data-testid="saved-project">{project.mode === "creative" ? "Creative Collision 아이디어" : "단일 트렌드"} · {project.plan ? (project.settings.format === "cardnews" ? `${project.plan.slides.length}장` : `장면 ${project.plan.scenes.length}개`) : "기획 전"} · 이미지 {project.assets.filter((asset) => asset.status !== "REAL REFERENCE").length}개</p>}
+        {phen && <p className="summary" data-testid="saved-phenomenon">{phen.context.coreBehavior} · 관측 {phen.context.window.from}~{phen.context.window.to} · 근거 {phen.context.evidenceIds.join(", ")}</p>}
         {creativeIdea && <p className="summary" data-testid="saved-creative">{creativeIdea.creativity_level} · {creativeIdea.concept_line}</p>}
+        {trendWeb && <p className="summary" data-testid="saved-trend-web">노드 {trendWeb.session.graph.nodes.length}개 · 연결 {trendWeb.session.graph.edges.length}개 · 선택 {trendWeb.session.selectedNodeIds.length}/2</p>}
         {item.payload && !open && <p className="broken">저장된 내용이 불완전해 열 수 없습니다.</p>}
-        {open && <Link className="open" href={open}>{project ? "Studio에서 이어서 작업" : isPlanPayload(item.payload) ? "Open plan" : creative ? "Content Studio에서 제작" : "WHY 분석 열기"} <ArrowRight size={12}/></Link>}
+        {open && <Link className="open" href={open}>{trendWeb ? "Open Trend Web" : phen ? "이 현상 WHY 분석" : project ? "Studio에서 이어서 작업" : isPlanPayload(item.payload) ? "Open plan" : creative ? "Content Studio에서 제작" : "WHY 분석 열기"} <ArrowRight size={12}/></Link>}
         <footer><time>{new Date(item.updatedAt ?? item.createdAt).toLocaleString("ko-KR")}</time>
           {confirming === item.id ? <div className="confirm" role="group" aria-label="삭제 범위 선택">
             <button type="button" onClick={() => void remove(item, "local")} disabled={busy !== null}>이 브라우저에서만</button>

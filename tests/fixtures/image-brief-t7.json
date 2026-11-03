@@ -1,0 +1,71 @@
+{
+ "recordedAt": "2026-11-02",
+ "note": "T7 실측: 같은 잘못된 프롬프트(명세 예시: 화장품 UI 앞의 로블록스풍 캐릭터)로 before=의미 구조 없이, after=T7 의미 구조와 함께, after2=사람을 사진처럼 그리지 말라는 지시를 보강한 뒤 다시 생성. /api/images 실제 응답의 최종 프롬프트·모델 수정 프롬프트(이미지 파일은 저장소에 넣지 않음). 사람이 이미지를 보고 판정: before=캐릭터+화장품 선택 UI(오답), after=아바타 눈화장↔현실 얼굴 재현 비교(정답 구도, 오른쪽 얼굴이 사진처럼 사실적), after2=같은 비교 구도·오른쪽도 일러스트 질감.",
+ "before": {
+  "request": {
+   "prompt": "A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look",
+   "aspect": "4:5",
+   "purpose": "cover"
+  },
+  "prompt": "A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look Production asset for social content (카드뉴스 표지, 4:5); leave clean space for headline text added later in design. Do not render any text, letters or logos. No real people. No copyrighted characters or brand marks; if a character is implied, design an original inspired look.",
+  "revisedPrompt": "Create a polished vertical 4:5 social-content cover image in the visual language of a colorful blocky avatar dress-up game, but with an entirely original character and interface. Show one friendly, original Roblox-like block-built game character standing slightly left of center, full body, in a vibrant cosmetics makeover room. Character has geometric cube head and limbs, custom outfit in lavender, coral, and teal, playful original hairstyle and cheerful neutral expression; clearly stylized 3D game avatar, not a real person. Behind and around the character, show a clean colorful game-screen cosmetics selection UI: rounded panels, rows of small makeup/accessory icons such as blush compact, lipstick, eye shadow palette, hairstyle silhouettes, sparkle effects, color swatches, simple abstract buttons, no legible text anywhere. Composition leaves generous uncluttered clean space in the upper-right/top area for a headline to be added later. Bright premium game art, glossy polished 3D rendering, soft studio lighting, saturated pastel palette, crisp details, balanced layout, social media cover production asset. No text, no letters, no numerals, no logos, no brands, no watermark, no copyrighted character likeness.",
+  "model": "gpt-6-luna · image_generation",
+  "status": "AI PRODUCTION ASSET"
+ },
+ "after": {
+  "request": {
+   "prompt": "A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look",
+   "aspect": "4:5",
+   "purpose": "cover",
+   "brief": {
+    "subject": "영상 제작자 또는 시청자",
+    "action": "로블록스 메이크업을 따라 해본다",
+    "object": "현실의 메이크업 룩",
+    "culturalContext": "웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.",
+    "visualDirection": "Prefer an editorial comparison that shows the virtual look and its real-life interpretation together. 화면 왼쪽에는 게임 아바타를 연상시키는 오리지널 3D 얼굴, 오른쪽에는 현실 재현을 암시하는 눈 부위 클로즈업을 배치해요. 실제 인물이나 영상 캡처를 모사하지 않고, 비교 영역에 텍스트 공간을 남겨요.",
+    "scenePurpose": "cover card — headline \"로블록스 눈매를 현실에 그리면\" — 가상 룩을 실제 얼굴에 옮기는 장면을 떠올리며 시작해요.",
+    "forbidden": [
+     "a fake screenshot, video frame or candid photo that looks like documentary evidence of a real event, a real creator or a real person's result",
+     "official brand logos, platform logos or copyrighted characters",
+     "a generic stock image about \"메이크업\" that does not show \"가상 메이크업을 현실에서 따라 하기\"",
+     "vintage or historical imagery about the origin of 메이크업",
+     "an item shop, price tag, checkout or store screen",
+     "a tutorial, sign-up or installation screen",
+     "a game character simply standing in front of a cosmetics or makeup menu UI (that is in-game item use, the opposite direction)"
+    ]
+   }
+  },
+  "prompt": "SCENE PURPOSE: cover card — headline \"로블록스 눈매를 현실에 그리면\" — 가상 룩을 실제 얼굴에 옮기는 장면을 떠올리며 시작해요.. SUBJECT: 영상 제작자 또는 시청자. ACTION: 로블록스 메이크업을 따라 해본다. OBJECT: 현실의 메이크업 룩. CULTURAL CONTEXT: 웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.. VISUAL DIRECTION: Prefer an editorial comparison that shows the virtual look and its real-life interpretation together. 화면 왼쪽에는 게임 아바타를 연상시키는 오리지널 3D 얼굴, 오른쪽에는 현실 재현을 암시하는 눈 부위 클로즈업을 배치해요. 실제 인물이나 영상 캡처를 모사하지 않고, 비교 영역에 텍스트 공간을 남겨요.. The image must show this subject doing this action with this object — the behavior itself, not a generic picture of the topic. This is an AI-generated editorial illustration or concept, not a record of a real case: anonymous, clearly illustrated or stylized people only. DO NOT DEPICT (forbidden misinterpretations): a fake screenshot, video frame or candid photo that looks like documentary evidence of a real event, a real creator or a real person's result; official brand logos, platform logos or copyrighted characters; a generic stock image about \"메이크업\" that does not show \"가상 메이크업을 현실에서 따라 하기\"; vintage or historical imagery about the origin of 메이크업; an item shop, price tag, checkout or store screen; a tutorial, sign-up or installation screen; a game character simply standing in front of a cosmetics or makeup menu UI (that is in-game item use, the opposite direction). Editor's scene idea: A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look Production asset for social content (카드뉴스 표지, 4:5); leave clean space for headline text added later in design. Do not render any text, letters or logos. No real people. No copyrighted characters or brand marks; if a character is implied, design an original inspired look.",
+  "revisedPrompt": "Create a polished editorial illustration for a vertical 4:5 social-media cover card, with no text, letters, numbers, logos, or UI. Concept: someone recreating an exaggerated video-game avatar eye-makeup look in real life. Show a clear side-by-side comparison in one cohesive composition: LEFT, an original playful 3D game-avatar-inspired face, with simple geometric/blocky features and bold fantasy eye makeup (dramatic elongated eyeliner, vivid violet-pink shadow, glossy highlight), clearly an invented character and not any copyrighted character. RIGHT, a tightly framed, clearly illustrated/stylized anonymous real-world face around the eye, with a hand using a fine makeup brush to carefully recreate the same distinctive eye look; the action of applying makeup must be evident. Mirror the color and eye-shape motif across both sides so the virtual-to-real transformation reads instantly. Editorial beauty-art direction, sophisticated soft studio lighting, saturated lilac, coral and electric blue accents, clean cream background, refined textures, high visual clarity. Leave generous uncluttered negative space across the upper portion for a headline to be added later, and a small calm separation zone between the two comparison panels. Not a screenshot, not a photo, not documentary evidence; no recognizable real person. No game menus, cosmetics-selection interface, product branding, or store elements.",
+  "model": "gpt-6-luna · image_generation",
+  "status": "AI PRODUCTION ASSET"
+ },
+ "after2": {
+  "request": {
+   "prompt": "A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look",
+   "aspect": "4:5",
+   "purpose": "cover",
+   "brief": {
+    "subject": "영상 제작자 또는 시청자",
+    "action": "로블록스 메이크업을 따라 해본다",
+    "object": "현실의 메이크업 룩",
+    "culturalContext": "웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.",
+    "visualDirection": "Prefer an editorial comparison that shows the virtual look and its real-life interpretation together. 화면 왼쪽에는 게임 아바타를 연상시키는 오리지널 3D 얼굴, 오른쪽에는 현실 재현을 암시하는 눈 부위 클로즈업을 배치해요. 실제 인물이나 영상 캡처를 모사하지 않고, 비교 영역에 텍스트 공간을 남겨요.",
+    "scenePurpose": "cover card — headline \"로블록스 눈매를 현실에 그리면\" — 가상 룩을 실제 얼굴에 옮기는 장면을 떠올리며 시작해요.",
+    "forbidden": [
+     "a fake screenshot, video frame or candid photo that looks like documentary evidence of a real event, a real creator or a real person's result",
+     "official brand logos, platform logos or copyrighted characters",
+     "a generic stock image about \"메이크업\" that does not show \"가상 메이크업을 현실에서 따라 하기\"",
+     "vintage or historical imagery about the origin of 메이크업",
+     "an item shop, price tag, checkout or store screen",
+     "a tutorial, sign-up or installation screen",
+     "a game character simply standing in front of a cosmetics or makeup menu UI (that is in-game item use, the opposite direction)"
+    ]
+   }
+  },
+  "prompt": "SCENE PURPOSE: cover card — headline \"로블록스 눈매를 현실에 그리면\" — 가상 룩을 실제 얼굴에 옮기는 장면을 떠올리며 시작해요.. SUBJECT: 영상 제작자 또는 시청자. ACTION: 로블록스 메이크업을 따라 해본다. OBJECT: 현실의 메이크업 룩. CULTURAL CONTEXT: 웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.. VISUAL DIRECTION: Prefer an editorial comparison that shows the virtual look and its real-life interpretation together. 화면 왼쪽에는 게임 아바타를 연상시키는 오리지널 3D 얼굴, 오른쪽에는 현실 재현을 암시하는 눈 부위 클로즈업을 배치해요. 실제 인물이나 영상 캡처를 모사하지 않고, 비교 영역에 텍스트 공간을 남겨요.. The image must show this subject doing this action with this object — the behavior itself, not a generic picture of the topic. This is an AI-generated editorial illustration or concept, not a record of a real case: anonymous people drawn in a clearly illustrated, painterly or 3D-rendered style — never photorealistic skin, pores or camera-like portraits that could pass as a real person's photo. DO NOT DEPICT (forbidden misinterpretations): a fake screenshot, video frame or candid photo that looks like documentary evidence of a real event, a real creator or a real person's result; official brand logos, platform logos or copyrighted characters; a generic stock image about \"메이크업\" that does not show \"가상 메이크업을 현실에서 따라 하기\"; vintage or historical imagery about the origin of 메이크업; an item shop, price tag, checkout or store screen; a tutorial, sign-up or installation screen; a game character simply standing in front of a cosmetics or makeup menu UI (that is in-game item use, the opposite direction). Editor's scene idea: A Roblox-style blocky game character standing in front of a colorful cosmetics and makeup selection UI with icons, game screen look Production asset for social content (카드뉴스 표지, 4:5); leave clean space for headline text added later in design. Do not render any text, letters or logos. No real people. No copyrighted characters or brand marks; if a character is implied, design an original inspired look.",
+  "revisedPrompt": "Create a polished vertical 4:5 social-media editorial cover illustration, no text, no letters, no logos. Concept: translating an exaggerated virtual game-avatar eye look into real-life makeup. Show a clear side-by-side comparison in one cohesive composition: LEFT half, an original cute blocky 3D game-inspired avatar face (not any existing character), with dramatic graphic winged eyeliner, vivid pastel eyeshadow and large stylized eyes; RIGHT half, a close-up of an anonymous illustrated human eye area with the same look being carefully recreated using a makeup brush held by a hand. The right-side face must be unmistakably painterly/illustrated, with simplified smooth shapes and visibly non-photorealistic skin—no pores, no camera-photo realism, no identifiable real person. Make the action of applying the matching makeup legible, with brush touching eyelid. The virtual and real interpretations should visually correspond across the split. Bright playful fashion-editorial palette, glossy 3D on avatar side and soft painterly illustration on real-life side, clean sophisticated lighting, energetic but tasteful. Reserve generous uncluttered negative space in the upper third for a headline to be added later; don't put important details there. No UI, no cosmetic selection menu, no screenshot framing, no fake documentary/video frame, no product packaging, no brand marks, no text. Original AI-generated editorial illustration.",
+  "model": "gpt-6-luna · image_generation",
+  "status": "AI PRODUCTION ASSET"
+ }
+}

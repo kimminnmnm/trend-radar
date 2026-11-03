@@ -48,6 +48,38 @@ export const whyInsightSchema = z.object({
   evidenceIds: z.array(z.string()),
 });
 
+/**
+ * T5: WHY가 넘겨받는 "선택한 현상" 맥락. 키워드 문자열이 아니라 현상 ID·주체·행동·대상·방향·문화 맥락·관측 기간·근거 ID·근거 상태.
+ * keyword = Parent Keyword. 발견(T1) 후보는 주체·대상을 따로 뽑지 않으므로 빈 값일 수 있다(지어내지 않음).
+ */
+export const phenomenonContextSchema = z.object({
+  phenomenonId: z.string().trim().min(1).max(120),
+  keyword: z.string().trim().min(1).max(60),
+  title: z.string().trim().min(1).max(80),
+  subject: z.string().max(120).default(""),
+  action: z.string().max(300).default(""),
+  object: z.string().max(120).default(""),
+  direction: z.string().max(60).default(""),
+  culturalContext: z.string().max(400).default(""),
+  coreBehavior: z.string().max(300).default(""),
+  window: z.object({ days: z.number().int().min(1).max(365), from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+  evidenceIds: z.array(z.string().regex(/^[A-Za-z0-9:_-]{1,40}$/)).max(12).default([]),
+  verificationStatus: z.enum(["OBSERVED", "EMERGING", "INSUFFICIENT EVIDENCE"]),
+  independentSources: z.number().int().min(0).max(99).default(0),
+  searchTerms: z.array(z.string().trim().min(1).max(40)).max(5).default([]),
+  origin: z.enum(["phenomenon", "connection"]).default("phenomenon"),
+});
+export type PhenomenonContext = z.infer<typeof phenomenonContextSchema>;
+/** T5: 현상 모드 WHY의 추가 결과. WHO·HOW와 서버의 주제 고정 검사. 리포트 JSON 안에 저장돼 새로고침·클라우드 복원에도 남는다. */
+export const whyPhenomenonSchema = z.object({
+  context: phenomenonContextSchema,
+  who: whyInsightSchema,
+  how: whyInsightSchema,
+  reusedEvidenceIds: z.array(z.string()).default([]),
+  checks: z.object({ anchorTerms: z.array(z.string()), anchored: z.boolean(), warnings: z.array(z.string()) }).default({ anchorTerms: [], anchored: true, warnings: [] }),
+});
+export type WhyPhenomenon = z.infer<typeof whyPhenomenonSchema>;
+
 export const trendAnalysisSchema = z.object({
   trend: z.string().min(1),
   /** Added in WHY v5. Optional so saved v1-v4 reports remain readable without re-analysis. */
@@ -60,6 +92,8 @@ export const trendAnalysisSchema = z.object({
   futureScenarios: z.array(z.object({ title: z.string(), explanation: z.string(), status: z.literal("Creative Hypothesis") })),
   missingEvidence: z.array(z.string()),
   context: whyContextSchema.optional(),
+  /** T5: 선택한 현상 분석일 때만. 없으면 기존 키워드 분석. */
+  phenomenon: whyPhenomenonSchema.optional(),
 });
 export type TrendAnalysis = z.infer<typeof trendAnalysisSchema>;
 

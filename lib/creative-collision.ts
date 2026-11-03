@@ -115,7 +115,7 @@ export const creativeTrendInputSchema: z.ZodType<CreativeTrendInput> = z.object(
   visualDna: z.object({ palette: z.array(z.string().max(80)).max(8), common: z.array(z.string().max(200)).max(8), dimensions: z.array(z.object({ dimension: z.string().max(40), summary: z.string().max(600) })).max(8) }).nullable(),
   evidence: z.array(z.object({ id: z.string().max(40), kind: z.string().max(30), title: z.string().max(200), excerpt: z.string().max(400) })).max(24),
 });
-export type CreativeRelationInput = { type: string; score: number | null; sharedAttributes: string[]; signals: number } | null;
+export type CreativeRelationInput = { type: string; score: number | null; sharedAttributes: string[]; signals: number; selectedConnectionId?: string; selectedPhenomenon?: string; subject?: string; action?: string; object?: string; direction?: string; culturalContext?: string; evidenceIds?: string[]; verificationStatus?: string } | null;
 export type CreativePriorInput = { title: string; opportunities: string[]; tensions: string[] } | null;
 
 export function toCreativeTrendInput(snapshot: LiveAnalysisSnapshot, ref: "A" | "B"): CreativeTrendInput {

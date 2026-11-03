@@ -8,6 +8,7 @@ import { imageStatuses } from "@/lib/image-assets";
 import { createProductionPlan } from "@/lib/openai-production";
 import { contentAngleSchema } from "@/lib/editorial";
 import { trendContextSchema } from "@/lib/schemas";
+import { editorialContextLockSchema } from "@/lib/editorial-lock";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ const requestSchema = z.object({
   customTopic: z.string().trim().max(200).default(""),
   /** ENGINE V2 5단계: 선택한 방향에 맞는 자료를 웹에서 추가 조사(웹 검색 1회 추가). */
   research: z.boolean().default(false),
+  /** T6: 편집 맥락 잠금. 있으면 모든 슬라이드가 선택한 현상에 고정되고 품질 게이트가 이탈을 검사한다. */
+  contextLock: editorialContextLockSchema.optional(),
   force: z.boolean().default(false),
 }).refine((value) => value.trends.length > 0 || value.concept, { message: "트렌드 분석 또는 Creative Collision 아이디어가 필요합니다." })
   .refine((value) => value.settings.format !== "shortform" || value.settings.aspect === "9:16", { message: "숏폼은 9:16만 지원합니다." })
@@ -39,10 +42,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return invalidRequest(parsed.error.issues);
   let access;
   try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
-  const { trends, concept, settings, assets, angle, customTopic, research, force } = parsed.data;
-  const cacheKey = hashKey({ v: PRODUCTION_PROMPT_VERSION, trends: trends.map((trend) => [trend.key, trend.analyzedAt]), concept, settings, angle, customTopic, research, assets: assets.map((item) => item.id) });
+  const { trends, concept, settings, assets, angle, customTopic, research, force, contextLock } = parsed.data;
+  const cacheKey = hashKey({ v: PRODUCTION_PROMPT_VERSION, trends: trends.map((trend) => [trend.key, trend.analyzedAt]), concept, settings, angle, customTopic, research, contextLock: contextLock ?? null, assets: assets.map((item) => item.id) });
   try {
-    const { value, cached } = await runGuarded(access.clientKey, cacheKey, 12 * 60 * 60 * 1000, () => createProductionPlan(trends, concept, settings, assets, angle, customTopic, { research }), { bypassCache: force, cost: research ? 2 : 1 });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, 12 * 60 * 60 * 1000, () => createProductionPlan(trends, concept, settings, assets, angle, customTopic, { research, lock: contextLock }), { bypassCache: force, cost: research ? 2 : 1 });
     return NextResponse.json({ mode: "live", cached, generatedAt: new Date().toISOString(), promptVersion: PRODUCTION_PROMPT_VERSION, ...value }, { headers: noStore });
   } catch (error) {
     return errorResponse(error, "콘텐츠 제작 기획 생성에 실패했습니다.");

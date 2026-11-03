@@ -110,6 +110,7 @@ function buildFigmaPlan(data) {
     project.conceptNotice ? "콘셉트 안내(게시물에 표시): " + project.conceptNotice : "",
     "형식: " + (project.format || "") + " · " + W + "×" + H + (project.brand ? " · 브랜드 " + project.brand : ""),
     editor && editor.summary ? "\n요약\n" + editor.summary : "",
+    editor ? list("CONTEXT LOCK · 현상 고정", editor.contextLock || []) : "",
     editor ? list("스토리라인", editor.storyline || []) : "",
     editor ? list("Detail Bank(소재 고유 디테일)", editor.detailBank || []) : "",
     editor ? list("품질 검사(필수 검증 / 편집 신호)", editor.qualityGate || []) : "",

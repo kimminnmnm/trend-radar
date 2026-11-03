@@ -1,4 +1,5 @@
 import { ideaSimilarity } from "./creative-collision";
+import { checkLockUnits, driftHits, lockEvidenceLimited, type EditorialContextLock } from "./editorial-lock";
 import { isGenericTitle, titleStructure, type ContentAngle } from "./editorial";
 import type { ProductionPlan } from "./content-production";
 
@@ -74,7 +75,7 @@ const unitsOf = (plan: ProductionPlan): Unit[] => plan.slides.length
  * (V2 실측: 모델 문구가 일반어여서 "다른 팀에도 통하는 팁"이 통과됐다). Detail Bank는 근거가 확인된 항목만 더한다.
  * removedEvidenceIds: 서버 검증이 지운 가짜 근거 ID(근거 유효성).
  */
-export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms: string[]; angle?: ContentAngle; vocabulary?: string[]; removedEvidenceIds?: string[] }): QualityReport {
+export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms: string[]; angle?: ContentAngle; vocabulary?: string[]; removedEvidenceIds?: string[]; lock?: EditorialContextLock }): QualityReport {
   const units = unitsOf(plan);
   const subjectTerms = [...new Set(input.subjectTerms.flatMap((term) => [term, term.replace(/\s+/g, ""), ...term.split(/\s+/)]).filter((term) => term.length >= 2))].sort((a, b) => b.length - a.length);
   const bank = plan.detail_bank ?? [];
@@ -115,6 +116,17 @@ export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms
     if (ideaSimilarity(unit.body, other.body) >= 0.45 || sameDetail) { repeats.push(`${unit.n}↔${other.n}`); issues.push({ unit: other.n, problem: `${unit.n}번과 내용이 겹침: 다른 디테일로 새 정보를 주기` }); }
   }));
   required("duplicate", "중복 없음", !repeats.length, repeats.length ? `겹치는 슬라이드 ${repeats.join(", ")}` : "겹침 없음");
+  // T6 현상 고정: 잠근 현상에서 벗어난 슬라이드(금지 이탈 규칙)와 현상이 드러나지 않는 슬라이드(마지막 CTA 제외 1장까지 허용).
+  if (input.lock?.enabled) {
+    const lock = input.lock;
+    const locked = checkLockUnits(units.map((unit) => ({ n: unit.n, text: `${unit.head} ${unit.body}` })), lock);
+    locked.drift.forEach((unit) => issues.push({ unit: unit.n, problem: `잠근 현상에서 벗어남(${unit.hits.join(", ")}): "${lock.selectedPhenomenon}"의 행동·사례로 다시 쓰기` }));
+    const titleDrift = driftHits(plan.title, lock);
+    if (titleDrift.length) issues.push({ unit: "title", problem: `제목이 잠근 현상에서 벗어남(${titleDrift.join(", ")})` });
+    if (locked.unanchored.length > 1) locked.unanchored.forEach((n) => issues.push({ unit: n, problem: `선택한 현상 "${lock.selectedPhenomenon}"이 드러나지 않음: 이 현상의 행동·사례로 연결하기` }));
+    required("context-lock", "현상 고정(Context Lock)", locked.pass && !titleDrift.length, `이탈 슬라이드 ${locked.drift.map((unit) => `${unit.n}(${unit.hits.join("·")})`).join(", ") || "없음"}${titleDrift.length ? " · 제목 이탈" : ""} · 현상이 드러나지 않는 슬라이드 ${locked.unanchored.join(", ") || "없음"}`);
+    if (lockEvidenceLimited(lock)) editorial("lock-gaps", "근거 부족을 알림(주제 유지)", (plan.editor_notes?.research_gaps ?? []).length > 0, `현상을 직접 보여 주는 근거 ${lock.observedEvidenceIds.length}건 · 편집 메모의 조사 필요 항목 ${(plan.editor_notes?.research_gaps ?? []).length}개`);
+  }
 
   /* ---------- B. 편집 신호(참고, 통과 여부는 편집 리뷰가 판단) ---------- */
   const genericSentences = units.flatMap((unit) => sentences(`${unit.head}. ${unit.body}`).filter((sentence) => isGenericSentence(sentence, subjectTerms, specificTerms)).map((sentence) => `${unit.n}번: ${sentence}`));

@@ -3,7 +3,8 @@ import { syncProjectSlideImages, type StudioProject } from "./content-production
 import type { DismissedTag } from "./ig-pulse-view";
 import type { SavedItemTombstone, CultureRelationFeedback, CultureRelationRecord, CultureVersionRecord, IgPulseReport, InstagramManualSearchRecord, LiveAnalysisSnapshot, NowTrendReport, SavedCollision, SavedItem, SavedLabReview, WatchCandidate } from "./types";
 import { isLiveTrendId, liveTrendId } from "./live-trend";
-import type { DiscoveryReport, SavedPhenomenon } from "./discovery";
+import { connectionContextOf, connectionPayloadOf, isPhenomenonPayload, phenomenonPayloadOf, type ConnectionRun, type DiscoveryReport, type SavedPhenomenonPayload } from "./discovery";
+import type { TrendWebSession } from "./trend-web";
 
 const KEY = "trend-radar-workspace";
 const LIVE_KEY = "trend-radar-live-analyses";
@@ -134,30 +135,41 @@ export function saveNowReport(report: NowTrendReport) {
   return write(NOW_KEY, [report, ...previous].slice(0, 5));
 }
 
-/* T4: 세부 현상 발견 결과(최근 20개)와 저장한 현상. 계정 격리는 다른 저장 항목과 같은 규칙. */
+/* T4: 세부 현상 발견 결과(최근 20개). 계정 격리는 다른 저장 항목과 같은 규칙. 현상 저장은 Workspace(saveItem)로 한다. */
 const DISCOVERY_KEY = "trend-radar-discoveries";
-const PHENOMENA_KEY = "trend-radar-phenomena";
+const CONNECTION_RUNS_KEY = "trend-radar-connection-runs";
+const TREND_WEB_KEY = "trend-radar-trend-web-sessions";
+/** T8: 두 키워드 연결 결과(최근 10개). */
+export function getConnectionRuns(): ConnectionRun[] { return read<ConnectionRun>(CONNECTION_RUNS_KEY).filter(visibleTo(getSessionOwner())).sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt)); }
+export function saveConnectionRun(run: ConnectionRun) {
+  const item = { ...run, ownerId: run.ownerId ?? getSessionOwner() ?? undefined };
+  return write(CONNECTION_RUNS_KEY, [item, ...read<ConnectionRun>(CONNECTION_RUNS_KEY).filter((saved) => saved.id !== item.id)].slice(0, 10));
+}
 export function getDiscoveryReports(): DiscoveryReport[] { return read<DiscoveryReport>(DISCOVERY_KEY).filter(visibleTo(getSessionOwner())).sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt)); }
 export function saveDiscoveryReport(report: DiscoveryReport) {
   const item = { ...report, ownerId: report.ownerId ?? getSessionOwner() ?? undefined };
   return write(DISCOVERY_KEY, [item, ...read<DiscoveryReport>(DISCOVERY_KEY).filter((saved) => saved.id !== item.id)].slice(0, 20));
 }
-export function getSavedPhenomena(): SavedPhenomenon[] { return read<SavedPhenomenon>(PHENOMENA_KEY).filter(visibleTo(getSessionOwner())); }
-export function savePhenomenon(item: SavedPhenomenon) {
-  const next = { ...item, ownerId: item.ownerId ?? getSessionOwner() ?? undefined };
-  return write(PHENOMENA_KEY, [next, ...read<SavedPhenomenon>(PHENOMENA_KEY).filter((saved) => !(saved.key === next.key && sameSlot(saved, next)))].slice(0, 100));
+/** W9: 그래프·두 노드 선택·선택 연결을 브라우저에서 복원한다. Workspace 저장은 SavedItem으로 별도 동기화한다. */
+export function getTrendWebSessions(): TrendWebSession[] { return read<TrendWebSession>(TREND_WEB_KEY).filter(visibleTo(getSessionOwner())).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)); }
+export function saveTrendWebSession(session: TrendWebSession) {
+  const item = { ...session, selectedNodeIds: [...new Set(session.selectedNodeIds)].slice(0, 2), ownerId: session.ownerId ?? getSessionOwner() ?? undefined };
+  return write(TREND_WEB_KEY, [item, ...read<TrendWebSession>(TREND_WEB_KEY).filter((saved) => !(saved.id === item.id && visibleTo(getSessionOwner())(saved)))].slice(0, 20));
 }
-export function removePhenomenon(key: string) { const owner = getSessionOwner(); return write(PHENOMENA_KEY, read<SavedPhenomenon>(PHENOMENA_KEY).filter((item) => !(item.key === key && visibleTo(owner)(item)))); }
-/** 저장한 현상 또는 저장된 발견 결과에서 현상 하나를 찾는다(WHY·Studio 진입용). */
-export function findPhenomenon(key: string): SavedPhenomenon | null {
-  const saved = getSavedPhenomena().find((item) => item.key === key);
+/** Workspace에 저장한 현상 또는 저장된 발견 결과에서 현상을 찾는다(WHY·Studio 진입용). */
+export function findPhenomenon(phenomenonId: string): SavedPhenomenonPayload | null {
+  const saved = getSavedItems().map((item) => item.payload).find((payload): payload is SavedPhenomenonPayload => isPhenomenonPayload(payload) && payload.context.phenomenonId === phenomenonId);
   if (saved) return saved;
-  const [reportId, signalId] = key.split("~");
+  if (phenomenonId.startsWith("conn-")) {
+    const runId = phenomenonId.slice(5).split("~")[0];
+    const run = getConnectionRuns().find((item) => item.id === runId);
+    const connection = run?.connections.find((item) => connectionContextOf(run, item).phenomenonId === phenomenonId);
+    return run && connection ? connectionPayloadOf(run, connection) : null;
+  }
+  const [reportId, signalId] = phenomenonId.split("~");
   const report = getDiscoveryReports().find((item) => item.id === reportId);
   const signal = report?.signals.find((item) => item.signalId === signalId);
-  if (!report || !signal) return null;
-  const ids = new Set(signal.evidenceIds);
-  return { key, reportId, keyword: report.keyword, window: report.window, signal, evidence: report.ledger.filter((item) => ids.has(item.id)), savedAt: report.generatedAt };
+  return report && signal ? phenomenonPayloadOf(report, signal) : null;
 }
 
 const IG_PULSE_KEY = "trend-radar-ig-pulse";
@@ -257,7 +269,7 @@ export function saveRelationFeedback(item: CultureRelationFeedback) {
 }
 
 export function clearLocalAnalysisData() {
-  const keys = [KEY, LIVE_KEY, COLLISION_KEY, LAB_KEY, WATCH_KEY, NOW_KEY, IG_PULSE_KEY, IG_TRACK_KEY, IG_QUOTA_AUDIT_KEY, IG_DISMISSED_KEY, IG_MANUAL_SEARCH_KEY, CULTURE_VERSIONS_KEY, CULTURE_RELATIONS_KEY, RELATION_FEEDBACK_KEY, SAVED_TOMBSTONE_KEY, CREATIVE_KEY, STUDIO_PROJECT_KEY, DISCOVERY_KEY, PHENOMENA_KEY];
+  const keys = [KEY, LIVE_KEY, COLLISION_KEY, LAB_KEY, WATCH_KEY, NOW_KEY, IG_PULSE_KEY, IG_TRACK_KEY, IG_QUOTA_AUDIT_KEY, IG_DISMISSED_KEY, IG_MANUAL_SEARCH_KEY, CULTURE_VERSIONS_KEY, CULTURE_RELATIONS_KEY, RELATION_FEEDBACK_KEY, SAVED_TOMBSTONE_KEY, CREATIVE_KEY, STUDIO_PROJECT_KEY, DISCOVERY_KEY, CONNECTION_RUNS_KEY, TREND_WEB_KEY];
   try {
     keys.forEach((key) => localStorage.removeItem(key));
     window.dispatchEvent(new Event(STORAGE_EVENT));

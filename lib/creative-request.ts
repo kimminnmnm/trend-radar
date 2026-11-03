@@ -11,14 +11,15 @@ import type { LiveAnalysisSnapshot, SavedCollision } from "./types";
  * — 같은 두 트렌드면 같은 요청(같은 서버 캐시 키)이 나간다.
  */
 export type CreativeInputs = NonNullable<ReturnType<typeof buildCreativeInputs>>;
+export type SelectedConnectionInput = { id: string; title: string; subject?: string; action?: string; object?: string; direction: string; context: string; evidenceIds?: string[]; verificationStatus: string; evidenceCount: number };
 
-export function buildCreativeInputs(snapshots: LiveAnalysisSnapshot[], aKey: string, bKey: string, ledger: Parameters<typeof currentRelationRecords>[0] | null | undefined, collisions: SavedCollision[]) {
+export function buildCreativeInputs(snapshots: LiveAnalysisSnapshot[], aKey: string, bKey: string, ledger: Parameters<typeof currentRelationRecords>[0] | null | undefined, collisions: SavedCollision[], selected?: SelectedConnectionInput | null) {
   const a = snapshots.find((item) => item.trendId === aKey), b = snapshots.find((item) => item.trendId === bKey);
   if (!a || !b || a.trendId === b.trendId) return null;
   const ta = toCreativeTrendInput(a, "A"), tb = toCreativeTrendInput(b, "B");
   const pair = snapshots.filter((item) => item.trendId === a.trendId || item.trendId === b.trendId);
   const rel = buildCultureGraph(pair, [], ledger ? currentRelationRecords(ledger, pair) : undefined).relations[0];
-  const relation: CreativeRelationInput = rel ? { type: relationTypeLabels[rel.primary.type].ko, score: rel.score, sharedAttributes: rel.sharedAttributes.map((item) => item.canonicalLabel).slice(0, 12), signals: rel.edges.length } : null;
+  const relation: CreativeRelationInput = rel || selected ? { type: selected?.verificationStatus ?? relationTypeLabels[rel!.primary.type].ko, score: rel?.score ?? null, sharedAttributes: [...(selected ? [selected.subject, selected.action, selected.object, selected.direction, selected.title] : []), ...(rel?.sharedAttributes.map((item) => item.canonicalLabel) ?? [])].filter((item): item is string => Boolean(item)).slice(0, 12), signals: Math.max(rel?.edges.length ?? 0, selected?.evidenceCount ?? 0), ...(selected ? { selectedConnectionId: selected.id, selectedPhenomenon: selected.title, subject: selected.subject, action: selected.action, object: selected.object, direction: selected.direction, culturalContext: selected.context, evidenceIds: selected.evidenceIds, verificationStatus: selected.verificationStatus } : {}) } : null;
   const priorRun = collisions.find((item) => item.trendKeys.length === 2 && item.trendKeys.includes(a.trendId) && item.trendKeys.includes(b.trendId));
   const prior: CreativePriorInput = priorRun ? { title: priorRun.result.title, opportunities: priorRun.result.creativeOpportunities.map((item) => `${item.title}: ${item.concept}`.slice(0, 400)).slice(0, 6), tensions: priorRun.result.culturalTensions.map((item) => `${item.title}: ${item.description}`.slice(0, 400)).slice(0, 6) } : null;
   return { a: ta, b: tb, relation, prior, report: inputReport(ta, tb, relation, prior), preview: previewSignals(ta, tb) };

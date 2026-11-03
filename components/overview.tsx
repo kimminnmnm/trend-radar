@@ -16,6 +16,7 @@ import { NowTrending } from "./now-trending";
 import { HappeningNow } from "./happening-now";
 import { IgPulse } from "./ig-pulse";
 import { Onboarding } from "./onboarding";
+import { TrendWeb } from "./trend-web";
 
 const formatKoreanDate = (value: string) => new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul",
@@ -54,6 +55,7 @@ export function Overview() {
     <IgPulse/>
     <NowTrending/>
     <HappeningNow/>
+    <TrendWeb/>
 
     <div className="signal-strip panel"><div className="live"><i/> {live.length ? "LIVE OBSERVATORY" : "OBSERVATORY READY"}</div><div className="marquee">{live.length ? live.slice(0, 4).map((item, index) => <span key={item.id}>{index > 0 && <b>×</b>}{item.trendName}</span>) : <span>NAVER 스캔 결과와 데모 예시는 섞어서 표시하지 않습니다.</span>}</div><small>{live.length ? `LIVE ${live.length} · NAVER + INSTAGRAM + WEB + OPENAI` : "NO LIVE ANALYSIS YET"}</small></div>
 

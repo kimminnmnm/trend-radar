@@ -5,6 +5,7 @@ import { ideaSimilarity } from "./creative-collision";
 import { angleResultSchema, ANGLE_COUNT, angleTypes, contentModeInfo, evidenceFits, GENERIC_TITLE_PATTERNS, MAX_ANCHORED_ANGLES, needsAngleRegeneration, validateAngles, type ContentAngle, type ContentMode } from "./editorial";
 import type { CreativeConcept } from "./content-production";
 import type { EvidenceItem, TrendContext } from "./schemas";
+import { driftHits, lockAnchored, lockInstructions, type EditorialContextLock } from "./editorial-lock";
 
 /*
  * EDITORIAL RESEARCH (ENGINE V2).
@@ -39,10 +40,12 @@ export function researchForAngle(ledger: EvidenceItem[], angle: ContentAngle | u
 }
 
 /** 제작용: 소재 기본 정보 + 방향에 맞는 자료(방향 맞춤 추가 조사 결과가 있으면 맨 앞). TREND REPORT는 기존 분석 전체. */
-export function buildProductionContext(trends: TrendContext[], mode: ContentMode, angle: ContentAngle | undefined, angleResearch: EvidenceItem[] = []) {
+export function buildProductionContext(trends: TrendContext[], mode: ContentMode, angle: ContentAngle | undefined, angleResearch: EvidenceItem[] = [], priorityIds: string[] = []) {
   if (mode === "report") return buildMultiContext(trends);
   const ledger = [...angleResearch, ...ledgerOf(trends)];
-  const research = [...angleResearch, ...researchForAngle(ledgerOf(trends), angle, Math.max(4, 8 - angleResearch.length))];
+  // T6: 잠근 현상을 직접 보여 주는 근거는 방향 유사도와 관계없이 먼저 넣는다.
+  const priority = ledgerOf(trends).filter((item) => priorityIds.includes(item.id));
+  const research = [...angleResearch, ...priority, ...researchForAngle(ledgerOf(trends), angle, Math.max(4, 8 - angleResearch.length)).filter((item) => !priorityIds.includes(item.id))].slice(0, Math.max(8, angleResearch.length + priority.length));
   const limits = trends.flatMap((trend) => [...(trend.why.missingEvidence ?? []), ...(trend.why.origin?.evidenceIds?.length ? [] : ["기원(최초 시작점)은 수집 자료로 확인되지 않음"])]);
   return { ledger, research, prompt: JSON.stringify({ subjects: trends.map((trend, index) => subjectBasics(trend, `T${index + 1}`)), research_for_angle: research.map(({ id, kind, title, date, source, excerpt }) => ({ id, kind, title, date, source, excerpt })), internal_limits: limits }) };
 }
@@ -80,20 +83,23 @@ const angleInstructions = (mode: ContentMode, hasConcept: boolean, customTopic: 
   FACT_RULE,
 ].filter(Boolean).join(" ");
 
-export async function createAngles(trends: TrendContext[], concept: CreativeConcept | undefined, mode: ContentMode, settings: { format: string; target: string; goal: string; tone?: string }, customTopic = "") {
+export async function createAngles(trends: TrendContext[], concept: CreativeConcept | undefined, mode: ContentMode, settings: { format: string; target: string; goal: string; tone?: string }, customTopic = "", lock?: EditorialContextLock) {
   const context = buildAngleContext(trends, mode);
   const topic = customTopic.trim();
   const input = `MODE: ${contentModeInfo[mode].label}\n${context.prompt}\nCREATIVE_CONCEPT: ${JSON.stringify(concept ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nFORMAT: ${settings.format}\nUSER_TARGET: ${settings.target || "(none)"}\nUSER_TONE: ${settings.tone || "(none)"}\nUSER_GOAL: ${settings.goal || "(none)"}`;
   const ids = context.ledger.map((item) => item.id);
   const call = async (extra = "") => {
-    const { data, model } = await callStructured({ name: "content_angles", jsonSchema: angleJsonSchema, validator: angleResultSchema, instructions: angleInstructions(mode, Boolean(concept), topic) + extra, input, maxOutputTokens: 5000, timeoutMs: 120_000 });
-    return { ...validateAngles(data, ids, topic), model };
+    const { data, model } = await callStructured({ name: "content_angles", jsonSchema: angleJsonSchema, validator: angleResultSchema, instructions: angleInstructions(mode, Boolean(concept), topic) + (lock ? ` ${lockInstructions(lock, "angles")}` : "") + extra, input: lock ? `${input}\nCONTEXT_LOCK: ${JSON.stringify({ phenomenon: lock.selectedPhenomenon, parent_keyword: lock.parentKeyword, core_behavior: lock.coreBehavior, editorial_focus: lock.editorialFocus, prohibited: lock.prohibitedTopicDrift.map((item) => item.label), user_materials: lock.userMaterials })}` : input, maxOutputTokens: 5000, timeoutMs: 120_000 });
+    const validated = validateAngles(data, ids, topic);
+    // T6: 잠근 현상에서 벗어난 방향(금지 이탈 규칙·현상 핵심어 없음) → 한 번 다시 만든다.
+    const lockDrift = lock?.enabled ? validated.angles.filter((angle) => { const text = `${angle.title} ${angle.hook} ${angle.editorial_perspective}`; return driftHits(text, lock).length > 0 || !lockAnchored(`${text} ${angle.content_structure.join(" ")}`, lock); }).map((angle) => angle.title) : [];
+    return { ...validated, validation: { ...validated.validation, ...(lock?.enabled ? { lockDrift } : {}) }, model };
   };
   let result = await call();
   // 방향 부족·뻔한 제목·리서치 사건 중심 방향 과다·유형 부족·지정 주제 이탈이면 한 번만 다시 만든다.
   if (needsAngleRegeneration(result, topic)) {
     const v = result.validation;
-    const retry = await call(` RETRY — fix these problems from the previous answer: ${[v.genericTitles.length ? `template titles (${v.genericTitles.join(" / ")})` : "", (v.anchored ?? 0) > MAX_ANCHORED_ANGLES ? `${v.anchored} angles were built on single research items (max ${MAX_ANCHORED_ANGLES})` : "", !topic && (v.typeCount ?? 5) < 4 ? `only ${v.typeCount} reader-experience types` : "", v.offTopic?.length ? `angles off the user topic (${v.offTopic.join(" / ")})` : "", result.angles.length < 4 ? "too few distinct angles" : "", v.crowdedStructures?.length ? `too many titles with the same structure (${v.crowdedStructures.join(", ")})` : ""].filter(Boolean).join("; ")}.`);
+    const retry = await call(` RETRY — fix these problems from the previous answer: ${[v.genericTitles.length ? `template titles (${v.genericTitles.join(" / ")})` : "", (v.anchored ?? 0) > MAX_ANCHORED_ANGLES ? `${v.anchored} angles were built on single research items (max ${MAX_ANCHORED_ANGLES})` : "", !topic && (v.typeCount ?? 5) < 4 ? `only ${v.typeCount} reader-experience types` : "", v.offTopic?.length ? `angles off the user topic (${v.offTopic.join(" / ")})` : "", v.lockDrift?.length ? `angles that left the locked phenomenon or hit prohibited drift (${v.lockDrift.join(" / ")})` : "", result.angles.length < 4 ? "too few distinct angles" : "", v.crowdedStructures?.length ? `too many titles with the same structure (${v.crowdedStructures.join(", ")})` : ""].filter(Boolean).join("; ")}.`);
     result = { ...retry, validation: { ...retry.validation, regenerated: true } };
   }
   return { angles: result.angles as ContentAngle[], validation: result.validation, model: result.model };

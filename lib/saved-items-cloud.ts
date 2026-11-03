@@ -6,6 +6,8 @@ import { addSavedTombstone, getSavedItems, getSavedTombstones, removeItem, remov
 import { getSupabaseBrowserClient } from "./supabase-browser";
 import { isCreativePayload } from "./creative-collision";
 import { isStudioProjectPayload } from "./content-production";
+import { isPhenomenonPayload } from "./discovery";
+import { isTrendWebPayload } from "./trend-web";
 import { removeStoredAssets } from "./asset-storage";
 
 /** 저장 항목이 참조하는 계정 저장소 이미지 경로. */
@@ -36,7 +38,7 @@ export function isInsightPayload(payload: unknown): payload is SavedInsightPaylo
   const p = payload as Partial<SavedInsightPayload> | null | undefined;
   return Boolean(p && p.kind === "live-insight" && typeof p.trendId === "string" && typeof p.summary === "string");
 }
-const safePayload = (payload: unknown): SavedItem["payload"] => isPlanPayload(payload) || isInsightPayload(payload) || isCreativePayload(payload) || isStudioProjectPayload(payload) ? payload : undefined;
+const safePayload = (payload: unknown): SavedItem["payload"] => isPlanPayload(payload) || isInsightPayload(payload) || isCreativePayload(payload) || isStudioProjectPayload(payload) || isPhenomenonPayload(payload) || isTrendWebPayload(payload) ? payload : undefined;
 
 export type CloudSavedItem = { rowId: string; item: SavedItem; updatedAt: string; deletedAt?: string; legacy: boolean };
 type Row = { id: string; item_type: string; title: string; subtitle: string; payload: Record<string, unknown> | null; created_at: string };

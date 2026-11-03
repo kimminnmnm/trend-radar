@@ -1,0 +1,2341 @@
+{
+ "recordedAt": "2026-11-02",
+ "note": "T5 실측: /api/analyze 현상 모드(why-phenomenon-v1). A=메이크업→가상 메이크업 현실 재현(발견 근거 1건, YouTube·웹 추가 검색), B=로블록스→게임 안 메이크업 룩 만들기(발견 근거 9건 재사용, 새 검색 없음), C=빼빼로데이→먼작귀 빼빼로 만들기(근거 2건, 추가 검색). NAVER·YouTube Data API·OpenAI 웹 검색 실제 응답. Instagram 미사용.",
+ "A": {
+  "request": {
+   "trend": "가상 메이크업을 현실에서 따라 하기",
+   "keywords": [
+    "가상 메이크업을 현실에서 따라 하기"
+   ],
+   "periodMonths": 3,
+   "includeInstagram": false,
+   "includeYouTube": true,
+   "includeWeb": true,
+   "force": false,
+   "phenomenon": {
+    "phenomenonId": "conn-roblox-makeup-20261102~1norxo4",
+    "keyword": "메이크업",
+    "title": "가상 메이크업을 현실에서 따라 하기",
+    "subject": "영상 제작자 또는 시청자",
+    "action": "로블록스 메이크업을 따라 해본다",
+    "object": "현실의 메이크업 룩",
+    "direction": "Virtual → Real",
+    "culturalContext": "로블록스 게임의 가상 뷰티 표현과 현실 메이크업 재현 콘텐츠",
+    "coreBehavior": "로블록스 메이크업을 따라 해본다",
+    "window": {
+     "days": 90,
+     "from": "2026-08-04",
+     "to": "2026-11-02"
+    },
+    "evidenceIds": [
+     "YT-04"
+    ],
+    "verificationStatus": "EMERGING",
+    "independentSources": 1,
+    "searchTerms": [
+     "로블록스 메이크업",
+     "가상 메이크업을 현실에서 따라 하기"
+    ],
+    "origin": "connection"
+   },
+   "phenomenonEvidence": [
+    {
+     "id": "YT-04",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 따라해본다면?",
+     "source": "YouTube Data API · 쉐리 SHERRY",
+     "url": "https://www.youtube.com/watch?v=Gw_q0E_tp50",
+     "date": "2026-10-19T09:16:17Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-19T09:16:17Z, 조회수 13,425회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    }
+   ]
+  },
+  "status": 200,
+  "response": {
+   "mode": "live",
+   "cached": false,
+   "provenance": {
+    "sources": [
+     "NAVER DataLab",
+     "Discovery evidence (reused)",
+     "YouTube Data API v3",
+     "Web sources (OpenAI web search)",
+     "OpenAI"
+    ],
+    "demo": false
+   },
+   "naver": {
+    "source": "live_naver_datalab",
+    "sourceName": "NAVER DataLab Search Trend",
+    "collectedAt": "2026-11-02T07:07:19.168Z",
+    "startDate": "2026-07-27",
+    "endDate": "2026-11-02",
+    "timeUnit": "week",
+    "title": "로블록스 메이크업",
+    "keywords": [
+     "로블록스 메이크업"
+    ],
+    "data": [
+     {
+      "period": "2026-10-05",
+      "ratio": 0.65
+     },
+     {
+      "period": "2026-10-12",
+      "ratio": 3.225
+     },
+     {
+      "period": "2026-10-19",
+      "ratio": 6.55
+     },
+     {
+      "period": "2026-10-26",
+      "ratio": 4.45
+     }
+    ],
+    "series": [
+     {
+      "title": "로블록스 메이크업",
+      "keywords": [
+       "로블록스 메이크업"
+      ],
+      "data": [
+       {
+        "period": "2026-10-05",
+        "ratio": 0.65
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 3.225
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 6.55
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 4.45
+       }
+      ]
+     },
+     {
+      "title": "가상 메이크업을 현실에서 따라 하기",
+      "keywords": [
+       "가상 메이크업을 현실에서 따라 하기"
+      ],
+      "data": []
+     },
+     {
+      "title": "메이크업",
+      "keywords": [
+       "메이크업"
+      ],
+      "data": [
+       {
+        "period": "2026-07-27",
+        "ratio": 67.6
+       },
+       {
+        "period": "2026-08-03",
+        "ratio": 70
+       },
+       {
+        "period": "2026-08-10",
+        "ratio": 73.7
+       },
+       {
+        "period": "2026-08-17",
+        "ratio": 78.35
+       },
+       {
+        "period": "2026-08-24",
+        "ratio": 78.075
+       },
+       {
+        "period": "2026-08-31",
+        "ratio": 78.7
+       },
+       {
+        "period": "2026-09-07",
+        "ratio": 83.775
+       },
+       {
+        "period": "2026-09-14",
+        "ratio": 74.125
+       },
+       {
+        "period": "2026-09-21",
+        "ratio": 67.025
+       },
+       {
+        "period": "2026-09-28",
+        "ratio": 80.375
+       },
+       {
+        "period": "2026-10-05",
+        "ratio": 84.25
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 90.9
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 95.05
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 100
+       }
+      ]
+     }
+    ],
+    "methodology": "요청 기간 중 검색 관심도가 가장 높은 시점을 100으로 환산한 상대 지수이며 절대 검색량이 아닙니다."
+   },
+   "signalStats": [
+    {
+     "title": "로블록스 메이크업",
+     "points": 4,
+     "mean": 3.7,
+     "peak": {
+      "period": "2026-10-19",
+      "ratio": 6.6
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 4.5
+     },
+     "earlyAvg": 0.7,
+     "recentAvg": 4.5,
+     "direction": "상승",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "가상 메이크업을 현실에서 따라 하기",
+     "points": 0,
+     "mean": 0,
+     "peak": {
+      "period": "-",
+      "ratio": 0
+     },
+     "latest": {
+      "period": "-",
+      "ratio": 0
+     },
+     "earlyAvg": 0,
+     "recentAvg": 0,
+     "direction": "데이터 부족",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "메이크업",
+     "points": 14,
+     "mean": 80.1,
+     "peak": {
+      "period": "2026-10-26",
+      "ratio": 100
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 100
+     },
+     "earlyAvg": 72.4,
+     "recentAvg": 92.6,
+     "direction": "상승",
+     "partialLastExcluded": false
+    }
+   ],
+   "instagram": {
+    "status": "skipped",
+    "hashtag": "가상메이크업을현실에서따라하기",
+    "count": 0,
+    "message": "현상 분석에서는 Instagram 해시태그 검색을 쓰지 않습니다(주간 할당량 보호)."
+   },
+   "youtube": {
+    "status": "live",
+    "query": "로블록스 메이크업",
+    "collectedAt": "2026-11-02T07:07:19.175Z",
+    "period": {
+     "publishedAfter": "2026-08-04T07:07:19.175Z",
+     "publishedBefore": "2026-11-02T07:07:19.175Z"
+    },
+    "videos": [
+     {
+      "id": "s5hkyFvI4ZY",
+      "title": "로블록스 메이크업 나왔습니다",
+      "channelTitle": "유플라 yoofla",
+      "publishedAt": "2026-10-23T08:30:12Z",
+      "viewCount": 13006,
+      "url": "https://www.youtube.com/watch?v=s5hkyFvI4ZY",
+      "description": "makeup #makeuptutorial #viral #shorts #メイク #메이크업 #transition #makeuptransition.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/s5hkyFvI4ZY/hqdefault.jpg"
+     },
+     {
+      "id": "anw9sUGr-QM",
+      "title": "역대급 로블록스 메이크업 TOP5",
+      "channelTitle": "뇌삭제연구소",
+      "publishedAt": "2026-10-28T07:03:28Z",
+      "viewCount": 26685,
+      "url": "https://www.youtube.com/watch?v=anw9sUGr-QM",
+      "description": "thiri9198 @imaasiagirl2 @ornkamony @maimefan0 @kimw0nie 좋아요와 구독은 연구소 지원비.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/anw9sUGr-QM/hqdefault.jpg"
+     },
+     {
+      "id": "Gw_q0E_tp50",
+      "title": "로블록스 메이크업 따라해본다면?",
+      "channelTitle": "쉐리 SHERRY",
+      "publishedAt": "2026-10-19T09:16:17Z",
+      "viewCount": 13425,
+      "url": "https://www.youtube.com/watch?v=Gw_q0E_tp50",
+      "thumbnailUrl": "https://i.ytimg.com/vi/Gw_q0E_tp50/hqdefault.jpg"
+     },
+     {
+      "id": "n8d1A_eYI48",
+      "title": "로블록스 메이크업!!!",
+      "channelTitle": "근환TV",
+      "publishedAt": "2026-10-21T10:13:58Z",
+      "viewCount": 24182,
+      "url": "https://www.youtube.com/watch?v=n8d1A_eYI48",
+      "thumbnailUrl": "https://i.ytimg.com/vi/n8d1A_eYI48/hqdefault.jpg"
+     },
+     {
+      "id": "M5HPCXbSeIQ",
+      "title": "주사위 6뜬 날 #로블록스메이크업",
+      "channelTitle": "혜찌Hyezzi",
+      "publishedAt": "2026-10-27T09:50:29Z",
+      "viewCount": 58398,
+      "url": "https://www.youtube.com/watch?v=M5HPCXbSeIQ",
+      "thumbnailUrl": "https://i.ytimg.com/vi/M5HPCXbSeIQ/hqdefault.jpg"
+     },
+     {
+      "id": "vRSmac00Ej8",
+      "title": "각자 추구미대로 한 #로블록스메이크업",
+      "channelTitle": "NARSTTYA_스쨔",
+      "publishedAt": "2026-10-16T11:20:36Z",
+      "viewCount": 11105,
+      "url": "https://www.youtube.com/watch?v=vRSmac00Ej8",
+      "thumbnailUrl": "https://i.ytimg.com/vi/vRSmac00Ej8/hqdefault.jpg"
+     },
+     {
+      "id": "SAR8Hs6pfpY",
+      "title": "로블록스 메이크업 #makeup",
+      "channelTitle": "달씨Darcie",
+      "publishedAt": "2026-10-25T02:32:15Z",
+      "viewCount": 21652,
+      "url": "https://www.youtube.com/watch?v=SAR8Hs6pfpY",
+      "thumbnailUrl": "https://i.ytimg.com/vi/SAR8Hs6pfpY/hqdefault.jpg"
+     },
+     {
+      "id": "nepFrIfBYpE",
+      "title": "로블록스에서 화장하기🩷 (게임이름:페이스카드) # #생활음계 #vlog #브이로그 #로블 #로블계 #화장 #메이크업 #16년생",
+      "channelTitle": "챙",
+      "publishedAt": "2026-10-18T09:01:15Z",
+      "viewCount": 5806,
+      "url": "https://www.youtube.com/watch?v=nepFrIfBYpE",
+      "thumbnailUrl": "https://i.ytimg.com/vi/nepFrIfBYpE/hqdefault.jpg"
+     },
+     {
+      "id": "9zx4QWLlPXU",
+      "title": "요즘 유행하는 로블럭스 메이크업",
+      "channelTitle": "람누끼",
+      "publishedAt": "2026-10-21T11:19:09Z",
+      "viewCount": 28814,
+      "url": "https://www.youtube.com/watch?v=9zx4QWLlPXU",
+      "thumbnailUrl": "https://i.ytimg.com/vi/9zx4QWLlPXU/hqdefault.jpg"
+     },
+     {
+      "id": "H5d8yxmA47Y",
+      "title": "로블록스 메이크업 웜톤버전✨",
+      "channelTitle": "시온이야",
+      "publishedAt": "2026-10-24T11:39:25Z",
+      "viewCount": 8166,
+      "url": "https://www.youtube.com/watch?v=H5d8yxmA47Y",
+      "description": "로블록스 #메이크업 #트렌지션 #트랜지션 #makeup #웜톤 #올영 #올리브영.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/H5d8yxmA47Y/hqdefault.jpg"
+     }
+    ],
+    "hourlyDistribution": [
+     {
+      "hour": 0,
+      "count": 0
+     },
+     {
+      "hour": 1,
+      "count": 0
+     },
+     {
+      "hour": 2,
+      "count": 0
+     },
+     {
+      "hour": 3,
+      "count": 0
+     },
+     {
+      "hour": 4,
+      "count": 0
+     },
+     {
+      "hour": 5,
+      "count": 0
+     },
+     {
+      "hour": 6,
+      "count": 0
+     },
+     {
+      "hour": 7,
+      "count": 0
+     },
+     {
+      "hour": 8,
+      "count": 0
+     },
+     {
+      "hour": 9,
+      "count": 0
+     },
+     {
+      "hour": 10,
+      "count": 0
+     },
+     {
+      "hour": 11,
+      "count": 1
+     },
+     {
+      "hour": 12,
+      "count": 0
+     },
+     {
+      "hour": 13,
+      "count": 0
+     },
+     {
+      "hour": 14,
+      "count": 0
+     },
+     {
+      "hour": 15,
+      "count": 0
+     },
+     {
+      "hour": 16,
+      "count": 1
+     },
+     {
+      "hour": 17,
+      "count": 1
+     },
+     {
+      "hour": 18,
+      "count": 3
+     },
+     {
+      "hour": 19,
+      "count": 1
+     },
+     {
+      "hour": 20,
+      "count": 3
+     },
+     {
+      "hour": 21,
+      "count": 0
+     },
+     {
+      "hour": 22,
+      "count": 0
+     },
+     {
+      "hour": 23,
+      "count": 0
+     }
+    ],
+    "methodology": "최근 90일, 한국 지역·한국어 관련성 조건으로 관련도순 최대 10개 공개 영상을 수집한 검색 표본입니다. 전체 YouTube 트렌드나 인과관계를 대표하지 않습니다.",
+    "cache": {
+     "hit": false,
+     "ttlSeconds": 21600
+    },
+    "quota": {
+     "searchCalls": 1,
+     "detailCalls": 1,
+     "dailySearchUsed": 1,
+     "dailySearchLimit": 20
+    }
+   },
+   "report": {
+    "trend": "가상 메이크업을 현실에서 따라 하기",
+    "what": {
+     "summary": "선택된 현상은 로블록스 게임·아바타의 메이크업 룩을 현실 얼굴에 재현하는 행동이다. 웹 자료에는 Dress to Impress의 룩을 현실에서 따라 한 사례가 보고되어 있다. 다만 이번 관측 구간의 영상 표본은 대부분 ‘로블록스 메이크업’을 다루며, 실제 얼굴에 재현하는 장면인지 제목만으로 확인되지 않는 경우가 많다. NAVER의 현상명 검색어는 데이터가 없고, ‘로블록스 메이크업’은 비교 요청 내 상대 지수 기준 평균 3.7, 최고 6.6으로 관측됐다.",
+     "status": "Supported Hypothesis",
+     "evidenceIds": [
+      "WEB-01",
+      "WEB-02",
+      "WEB-03",
+      "NAVER-01",
+      "D-YT-04"
+     ]
+    },
+    "overview": {
+     "summary": "이 행동의 구체적인 표현은 게임의 과장된 메이크업 요소를 현실 얼굴에 옮기는 재현이다. 과장된 속눈썹과 그러데이션 입술, 네온 섀도와 선명한 아이라인 등이 웹 자료에서 사례로 언급된다. 다만 현재 표본은 로블록스 메이크업 관련 영상 제목과 상대 검색 관심도에 한정되어, 관측 구간 안에서 현실 재현이 얼마나 이뤄졌는지는 확인하기 어렵다.",
+     "status": "Supported Hypothesis",
+     "evidenceIds": [
+      "WEB-02",
+      "WEB-03",
+      "NAVER-01",
+      "D-YT-04"
+     ]
+    },
+    "origin": {
+     "summary": "분석은 현상의 현재 형태에 초점을 둔다. 이 행동이 처음 시작된 시점이나 최초 제작자는 확인되지 않았다.",
+     "evidenceIds": []
+    },
+    "triggers": [
+     {
+      "title": "로블록스 메이크업 관련 관심의 관측",
+      "explanation": "NAVER에서 ‘로블록스 메이크업’ 상대 검색 지수는 2026-10-05부터 10-26까지 관측됐으며, 최고치는 10-19였다. 같은 시기 YouTube 검색 표본에도 관련 제목이 여럿 보인다. 이는 관심과 게시물의 동시 관측이지, 검색 증가가 현실 재현 행동을 일으켰다는 증거는 아니다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "NAVER-01",
+       "D-YT-04",
+       "YT-01",
+       "YT-04",
+       "YT-09"
+      ]
+     },
+     {
+      "title": "현실 재현과 직접 연결되는 영상 제목",
+      "explanation": "관측 표본 중 ‘로블록스 메이크업 따라해본다면?’이라는 제목이 있다. 제목은 따라 하기 형식과의 연결 가능성을 보여주지만, 영상 내용이 현실 메이크업 재현인지 여부는 이 자료만으로 확정할 수 없다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "D-YT-04"
+      ]
+     }
+    ],
+    "timeline": [
+     {
+      "date": "2026-10-05",
+      "label": "‘로블록스 메이크업’ NAVER 주간 상대 지수가 0.65로 관측됐다.",
+      "evidenceIds": [
+       "NAVER-01"
+      ]
+     },
+     {
+      "date": "2026-10-19",
+      "label": "‘로블록스 메이크업’ 상대 지수가 관측 구간 최고치인 6.6을 기록했고, ‘로블록스 메이크업 따라해본다면?’ 영상이 게시됐다. 두 관측의 동시성만으로 인과관계를 판단할 수 없다.",
+      "evidenceIds": [
+       "NAVER-01",
+       "D-YT-04"
+      ]
+     },
+     {
+      "date": "2026-10-26",
+      "label": "‘로블록스 메이크업’ 상대 지수는 4.5로 관측됐다.",
+      "evidenceIds": [
+       "NAVER-01"
+      ]
+     }
+    ],
+    "motivations": [
+     {
+      "label": "게임 속 과장된 룩을 현실에서 구현",
+      "explanation": "웹 자료는 속눈썹, 그러데이션 입술, 네온 섀도와 그래픽 아이라인처럼 게임 룩의 눈에 띄는 요소를 현실 메이크업으로 옮긴 사례를 설명한다. 이를 따라 하는 사람들의 동기를 직접 조사한 자료는 아니다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "WEB-02",
+       "WEB-03"
+      ]
+     },
+     {
+      "label": "아바타와 현실의 변신을 연결",
+      "explanation": "일부 웹 자료는 아바타처럼 보이는 룩과 현실에서 사용할 수 있는 룩을 함께 다룬다. 이것이 현재 관측 구간의 제작자나 시청자에게 공통된 동기인지는 확인되지 않았다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "WEB-01",
+       "WEB-04"
+      ]
+     }
+    ],
+    "futureScenarios": [
+     {
+      "title": "게임 룩의 현실 메이크업 튜토리얼화",
+      "explanation": "후속 영상에서 가상 룩과 현실 재현 과정을 나란히 보여주는 튜토리얼이 나타날 가능성은 있다. 현재 자료만으로 지속이나 확산을 예측할 수는 없다.",
+      "status": "Creative Hypothesis"
+     }
+    ],
+    "missingEvidence": [
+     "관측 구간 내 영상에서 실제 얼굴에 로블록스 메이크업을 재현하는 장면과 전후 변화를 확인할 수 있는 원문 영상·설명",
+     "이번 표본 밖의 플랫폼별 게시물과 게시 시점 자료",
+     "제작자·시청자 인터뷰나 댓글 등 참여 이유와 수용 반응을 직접 보여주는 자료",
+     "‘가상 메이크업을 현실에서 따라 하기’ 자체를 추적하는 검색량 또는 반복 게시 관측 자료",
+     "현재 관측 구간의 콘텐츠가 과거 웹 자료의 사례와 어떤 관계인지 확인할 수 있는 출처·인용 정보"
+    ],
+    "context": {
+     "background": {
+      "summary": "웹 자료는 Roblox 게임 Dress to Impress의 가상 패션·메이크업 룩을 현실에서 재현하는 사례를 보도한다. 특히 게임의 과장된 표현을 현실 메이크업으로 옮기는 사례가 설명되어 있어, 이 현상은 게임 아바타의 뷰티 표현과 현실 메이크업 제작 문화가 만나는 행동으로 볼 수 있다. 이는 웹 자료에 보고된 배경이며, 현재 관측 구간의 게시물 전체를 대표하지 않는다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "WEB-01",
+       "WEB-02",
+       "WEB-03",
+       "WEB-04"
+      ]
+     },
+     "events": [
+      {
+       "date": "2024-08-05",
+       "label": "웹 기사 요약은 2024년 7월 패션 인플루언서들이 Dress to Impress의 의상과 메이크업 룩을 따라 하기 시작했다고 보도한다.",
+       "evidenceIds": [
+        "WEB-02"
+       ]
+      },
+      {
+       "date": "2024-09-24",
+       "label": "Merrell 쌍둥이가 Dress to Impress 메이크업 룩을 현실에서 따라 하는 영상을 공개했다고 웹 자료가 소개한다.",
+       "evidenceIds": [
+        "WEB-01"
+       ]
+      },
+      {
+       "date": "2024-11-30",
+       "label": "웹 기사가 게임 룩을 현실로 옮기는 메이크업 아티스트와 뷰티 크리에이터 사례를 다뤘다.",
+       "evidenceIds": [
+        "WEB-03"
+       ]
+      }
+     ],
+     "spreadContents": [
+      {
+       "title": "Dress to Impress 룩의 현실 재현 영상",
+       "explanation": "웹 자료는 게임 메이크업을 현실에서 따라 하는 영상과 크리에이터 사례를 직접 소개한다. 이런 콘텐츠가 해당 행동을 보여주는 사례인 것은 확인되지만, 2026년 관측 구간의 관심이나 게시물 확산을 유발했는지는 입증되지 않았다.",
+       "status": "Supported Hypothesis",
+       "evidenceIds": [
+        "WEB-01",
+        "WEB-03",
+        "D-YT-04"
+       ]
+      },
+      {
+       "title": "로블록스 메이크업 관련 YouTube 표본",
+       "explanation": "표본에는 ‘따라해본다면?’, ‘웜톤버전’, ‘각자 추구미대로 한’ 등의 제목이 있다. 일부는 재현·변형 형식을 시사하지만, 제목과 해시태그만으로 현실 메이크업 장면이나 확산에 대한 영향은 확인할 수 없다.",
+       "status": "Creative Hypothesis",
+       "evidenceIds": [
+        "D-YT-04",
+        "YT-06",
+        "YT-10"
+       ]
+      }
+     ],
+     "brandCases": [
+      {
+       "brand": "Urban Decay",
+       "summary": "브랜드 글은 Roblox 행사 Eye-Con과 아바타용 메이크업 마스크를 언급하고, 참가자가 인기 Roblox 얼굴 메이크업을 현실에서 재현할 수 있다고 설명한다.",
+       "date": "2023-05-02",
+       "evidenceIds": [
+        "WEB-05"
+       ]
+      }
+     ]
+    },
+    "phenomenon": {
+     "context": {
+      "phenomenonId": "conn-roblox-makeup-20261102~1norxo4",
+      "keyword": "메이크업",
+      "title": "가상 메이크업을 현실에서 따라 하기",
+      "subject": "영상 제작자 또는 시청자",
+      "action": "로블록스 메이크업을 따라 해본다",
+      "object": "현실의 메이크업 룩",
+      "direction": "Virtual → Real",
+      "culturalContext": "로블록스 게임의 가상 뷰티 표현과 현실 메이크업 재현 콘텐츠",
+      "coreBehavior": "로블록스 메이크업을 따라 해본다",
+      "window": {
+       "days": 90,
+       "from": "2026-08-04",
+       "to": "2026-11-02"
+      },
+      "evidenceIds": [
+       "YT-04"
+      ],
+      "verificationStatus": "EMERGING",
+      "independentSources": 1,
+      "searchTerms": [
+       "로블록스 메이크업",
+       "가상 메이크업을 현실에서 따라 하기"
+      ],
+      "origin": "connection"
+     },
+     "who": {
+      "summary": "웹 자료에는 게임 룩을 현실에서 따라 하는 쌍둥이 제작자, 메이크업 아티스트와 뷰티 크리에이터가 사례로 등장한다. 2026년 영상 표본은 관련 제목을 보여주지만, 그 제작자들이 현실 재현을 수행했는지 또는 시청자가 따라 했는지는 확인되지 않는다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "WEB-01",
+       "WEB-03",
+       "D-YT-04"
+      ]
+     },
+     "how": {
+      "summary": "표현 방식은 가상 룩의 특징을 현실 메이크업으로 옮기는 변신·튜토리얼 형태로 보고되어 있다. 과장된 속눈썹, 그러데이션 입술, 네온 섀도와 선명한 아이라인 등이 사례로 언급된다. 현재 YouTube 표본의 제목과 해시태그에는 ‘따라 하기’, ‘웜톤 버전’, ‘추구미’ 같은 변형 단서가 있으나, 실제 영상 형식은 제목만으로 모두 확인되지 않는다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "WEB-01",
+       "WEB-02",
+       "WEB-03",
+       "D-YT-04",
+       "YT-06",
+       "YT-10"
+      ]
+     },
+     "reusedEvidenceIds": [
+      "D-YT-04"
+     ],
+     "checks": {
+      "anchorTerms": [
+       "가상",
+       "메이크업",
+       "현실에서",
+       "따라",
+       "현실",
+       "제작자",
+       "시청자"
+      ],
+      "anchored": true,
+      "warnings": []
+     }
+    }
+   },
+   "model": "gpt-6-luna",
+   "analyzedAt": "2026-11-02T07:08:11.456Z",
+   "promptVersion": "why-phenomenon-v1",
+   "validation": {
+    "removedEvidenceIds": [],
+    "downgraded": 0,
+    "droppedTimeline": 0,
+    "droppedContext": 0
+   },
+   "web": {
+    "status": "live",
+    "count": 5,
+    "searchedSources": 50,
+    "droppedUnverified": 0,
+    "model": "gpt-6-luna"
+   },
+   "evidence": [
+    {
+     "id": "NAVER-01",
+     "kind": "naver_series",
+     "title": "\"로블록스 메이크업\" 상대 검색 관심도 (week)",
+     "source": "NAVER DataLab Search Trend",
+     "url": "https://datalab.naver.com/keyword/trendSearch.naver",
+     "date": "2026-07-27~2026-11-02",
+     "collectedAt": "2026-11-02T07:07:19.168Z",
+     "excerpt": "평균 3.7, 최고 6.6(2026-10-19), 최근 4.5(2026-10-26), 초기 1/3 평균 0.7 → 최근 1/3 평균 4.5 (상승). 같은 요청의 키워드 그룹 간에만 비교 가능한 상대 지수이며 절대 검색량이 아님."
+    },
+    {
+     "id": "D-YT-04",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 따라해본다면?",
+     "source": "YouTube Data API · 쉐리 SHERRY",
+     "url": "https://www.youtube.com/watch?v=Gw_q0E_tp50",
+     "date": "2026-10-19T09:16:17Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-19T09:16:17Z, 조회수 13,425회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "YT-01",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 나왔습니다",
+     "source": "YouTube Data API · 유플라 yoofla",
+     "url": "https://www.youtube.com/watch?v=s5hkyFvI4ZY",
+     "date": "2026-10-23T08:30:12Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-23T08:30:12Z, 조회수 13,006회(수집 시점 값). 공개 설명: makeup #makeuptutorial #viral #shorts #メイク #메이크업 #transition #makeuptransition. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-02",
+     "kind": "youtube_video",
+     "title": "역대급 로블록스 메이크업 TOP5",
+     "source": "YouTube Data API · 뇌삭제연구소",
+     "url": "https://www.youtube.com/watch?v=anw9sUGr-QM",
+     "date": "2026-10-28T07:03:28Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-28T07:03:28Z, 조회수 26,685회(수집 시점 값). 공개 설명: thiri9198 @imaasiagirl2 @ornkamony @maimefan0 @kimw0nie 좋아요와 구독은 연구소 지원비. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-04",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업!!!",
+     "source": "YouTube Data API · 근환TV",
+     "url": "https://www.youtube.com/watch?v=n8d1A_eYI48",
+     "date": "2026-10-21T10:13:58Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T10:13:58Z, 조회수 24,182회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-05",
+     "kind": "youtube_video",
+     "title": "주사위 6뜬 날 #로블록스메이크업",
+     "source": "YouTube Data API · 혜찌Hyezzi",
+     "url": "https://www.youtube.com/watch?v=M5HPCXbSeIQ",
+     "date": "2026-10-27T09:50:29Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-27T09:50:29Z, 조회수 58,398회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-06",
+     "kind": "youtube_video",
+     "title": "각자 추구미대로 한 #로블록스메이크업",
+     "source": "YouTube Data API · NARSTTYA_스쨔",
+     "url": "https://www.youtube.com/watch?v=vRSmac00Ej8",
+     "date": "2026-10-16T11:20:36Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-16T11:20:36Z, 조회수 11,105회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-07",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 #makeup",
+     "source": "YouTube Data API · 달씨Darcie",
+     "url": "https://www.youtube.com/watch?v=SAR8Hs6pfpY",
+     "date": "2026-10-25T02:32:15Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-25T02:32:15Z, 조회수 21,652회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-08",
+     "kind": "youtube_video",
+     "title": "로블록스에서 화장하기🩷 (게임이름:페이스카드) # #생활음계 #vlog #브이로그 #로블 #로블계 #화장 #메이크업 #16년생",
+     "source": "YouTube Data API · 챙",
+     "url": "https://www.youtube.com/watch?v=nepFrIfBYpE",
+     "date": "2026-10-18T09:01:15Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-18T09:01:15Z, 조회수 5,806회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-09",
+     "kind": "youtube_video",
+     "title": "요즘 유행하는 로블럭스 메이크업",
+     "source": "YouTube Data API · 람누끼",
+     "url": "https://www.youtube.com/watch?v=9zx4QWLlPXU",
+     "date": "2026-10-21T11:19:09Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T11:19:09Z, 조회수 28,814회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-10",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업 웜톤버전✨",
+     "source": "YouTube Data API · 시온이야",
+     "url": "https://www.youtube.com/watch?v=H5d8yxmA47Y",
+     "date": "2026-10-24T11:39:25Z",
+     "collectedAt": "2026-11-02T07:07:19.175Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-24T11:39:25Z, 조회수 8,166회(수집 시점 값). 공개 설명: 로블록스 #메이크업 #트렌지션 #트랜지션 #makeup #웜톤 #올영 #올리브영. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "WEB-01",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Recreating Dress to Impress Makeup!",
+     "source": "YouTube — merrelltwins",
+     "url": "https://www.youtube.com/watch?v=G6vEvcrYCZ0",
+     "date": "2024-09-24",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "Merrell 쌍둥이는 Roblox 게임 Dress to Impress의 메이크업 룩을 현실에서 따라 해보는 영상을 공개했다. 설명에서 이를 “virtual-to-real transformation”이라고 표현한다. (발행 2024-09-24 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-02",
+     "kind": "web_source",
+     "title": "[사건] Pose 28, toxic themes and Lana lore: Exploring Gen Z’s obsession with Roblox’s Dress To Impress",
+     "source": "Screenshot",
+     "url": "https://screenshot-media.com/culture/gaming/roblox-dress-to-impress-explained/",
+     "date": "2024-08-05",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "기사는 2024년 7월 패션 인플루언서들이 Dress to Impress의 의상과 게임 고유의 메이크업 룩을 따라 하기 시작했다고 보도한다. 과장된 속눈썹과 그러데이션 입술을 재현한 사례도 언급한다. (발행 2024-08-05 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-03",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Beauty in Blocks: How Roblox’s Dress to Impress Inspires Real-Life Makeup Trends",
+     "source": "G.URL",
+     "url": "https://gurlworld.com/beauty-in-blocks-how-robloxs-dress-to-impress-inspires-real-life-makeup-trends/",
+     "date": "2024-11-30",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "기사는 Roblox의 Dress to Impress 룩을 현실에서 재현하는 메이크업 아티스트와 뷰티 크리에이터 사례를 설명하고, Frederic Chen의 ‘Dress To Impress Roblox Makeup Tutorial’을 예로 든다. 네온 섀도, 선명한 아이라인, 그래픽 디자인 등을 게임에서 현실로 옮기는 흐름으로 다룬다. (발행 2024-11-30 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-04",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] Recreate Makeup Roblox: Tutorial Simple Bulu Mata & Glossy Lips",
+     "source": "Lemon8 — itsmetiinaaa",
+     "url": "https://www.lemon8-app.com/%40itsmetiinaaa/7418428884447724033?region=id",
+     "date": "2024-09",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "게시자는 Roblox 메이크업을 보고 현실 버전을 따라 해보기로 했다고 쓰며, 아바타처럼 보이되 일상에서도 사용할 수 있는 룩을 만드는 과정을 소개한다. (발행 2024-09 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-05",
+     "kind": "web_source",
+     "title": "[브랜드 사례] How Urban Decay Became the Makeup Brand of the Metaverse",
+     "source": "Urban Decay (Medium)",
+     "url": "https://urbandecaycosmetics.medium.com/how-urban-decay-became-the-makeup-brand-of-the-metaverse-aa6c829f3fa2",
+     "date": "2023-05-02",
+     "collectedAt": "2026-11-02T07:07:19.758Z",
+     "excerpt": "Urban Decay는 Roblox 행사 Eye-Con 이후 참가자들이 인기 Roblox 얼굴 메이크업을 현실에서 재현할 수 있다고 소개한다. 브랜드 글은 아바타용 메이크업 마스크와 현실 메이크업 룩을 연결해 설명한다. (발행 2023-05-02 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    }
+   ]
+  }
+ },
+ "B": {
+  "request": {
+   "trend": "로블록스 안에서 메이크업 룩 만들기",
+   "keywords": [
+    "로블록스 안에서 메이크업 룩 만들기"
+   ],
+   "periodMonths": 3,
+   "includeInstagram": false,
+   "includeYouTube": false,
+   "includeWeb": false,
+   "force": false,
+   "phenomenon": {
+    "phenomenonId": "conn-roblox-makeup-20261102~1jifcy1",
+    "keyword": "로블록스",
+    "title": "로블록스 안에서 메이크업 룩 만들기",
+    "subject": "로블록스 플레이어",
+    "action": "메이크업 룩을 만든다",
+    "object": "게임 캐릭터의 화장과 뷰티 스타일",
+    "direction": "A 안에서 B",
+    "culturalContext": "로블록스 게임 문화와 메이크업·뷰티 꾸미기 문화",
+    "coreBehavior": "메이크업 룩을 만든다",
+    "window": {
+     "days": 90,
+     "from": "2026-08-04",
+     "to": "2026-11-02"
+    },
+    "evidenceIds": [
+     "YT-01",
+     "YT-02",
+     "YT-11",
+     "YT-16",
+     "YT-18",
+     "WEB-01",
+     "WEB-02",
+     "WEB-03",
+     "WEB-04"
+    ],
+    "verificationStatus": "OBSERVED",
+    "independentSources": 9,
+    "searchTerms": [
+     "로블록스 메이크업",
+     "로블록스 안에서 메이크업 룩 만들기"
+    ],
+    "origin": "connection"
+   },
+   "phenomenonEvidence": [
+    {
+     "id": "YT-01",
+     "kind": "youtube_video",
+     "title": "로블록스에서 화장하기🩷 (게임이름:페이스카드) # #생활음계 #vlog #브이로그 #로블 #로블계 #화장 #메이크업 #16년생",
+     "source": "YouTube Data API · 챙",
+     "url": "https://www.youtube.com/watch?v=nepFrIfBYpE",
+     "date": "2026-10-18T09:01:15Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-18T09:01:15Z, 조회수 5,806회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-02",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업!!!",
+     "source": "YouTube Data API · 근환TV",
+     "url": "https://www.youtube.com/watch?v=n8d1A_eYI48",
+     "date": "2026-10-21T10:13:58Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T10:13:58Z, 조회수 24,174회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-11",
+     "kind": "youtube_video",
+     "title": "Becoming A *MAKEUP ARTIST* On Roblox!! (Makeup Mania)",
+     "source": "YouTube Data API · mieshaplays",
+     "url": "https://www.youtube.com/watch?v=0B82doYBAUs",
+     "date": "2026-10-18T18:00:35Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-18T18:00:35Z, 조회수 14,066회(수집 시점 값). 공개 설명: Today, I tried out Makeup Mania as a dress to impress player!! How do you think it went? Instagram: dtimiesha Business Email: ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-16",
+     "kind": "youtube_video",
+     "title": "How to Find Makeup Mania on Roblox! 💄#makeupmania #roblox",
+     "source": "YouTube Data API · chani ۶۟ৎ",
+     "url": "https://www.youtube.com/watch?v=thtG0_zfwgw",
+     "date": "2026-10-03T15:30:53Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-03T15:30:53Z, 조회수 230,456회(수집 시점 값). 공개 설명: Makeup Mania is a Roblox game focused on creating makeup looks, with different makeup tools, hairstyles, and competition ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-18",
+     "kind": "youtube_video",
+     "title": "I Gave Myself The ULTIMATE MAKEUP MAKEOVER on ROBLOX!!",
+     "source": "YouTube Data API · pixiiuwu",
+     "url": "https://www.youtube.com/watch?v=wRFK-QXIfag",
+     "date": "2026-10-13T17:00:09Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-13T17:00:09Z, 조회수 26,784회(수집 시점 값). 공개 설명: Today, I test out FACECARD, a BRAND NEW MAKEUP GAME on Roblox where we can give bald baddies a MAKEOVER!! Is this ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "WEB-01",
+     "kind": "web_source",
+     "title": "메이크업 살롱💄",
+     "source": "OP.GG",
+     "url": "https://op.gg/ko/roblox/games/10769514597",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox의 ‘메이크업 살롱’ 게임에서 플레이어가 주제에 맞는 메이크업을 완성해 선보이고, 다른 플레이어의 룩을 평가하며 경쟁한다고 소개합니다. 페이지에 게임 생성일은 2026년 10월 5일로 표시되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-02",
+     "kind": "web_source",
+     "title": "Makeup Star",
+     "source": "TrendScout",
+     "url": "https://trendscout.app/games/10769535832",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox 경험 ‘Makeup Star’를 메이크업·뷰티 게임으로 소개하며, 플레이어가 블러셔·립스틱·아이섀도·아이라이너 등으로 직접 룩을 만들 수 있다고 설명합니다. 페이지에는 생성일이 2026년 10월 5일로 표시되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-03",
+     "kind": "web_source",
+     "title": "Facecard: Makeup Showdown",
+     "source": "Roblox",
+     "url": "https://www.roblox.com/games/72293101527469/Facecard-Makeup-Showdown?placeId=72293101527469&spotlightPageSessionInfo=9bd3c41a-05f3-4a24-b9d9-a82ff6eebb8b&universeId=10769516701",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox 게임에서 플레이어가 메이크업 아티스트가 되어 도구와 브러시를 사용해 원하는 룩을 만들고, 메이크업 결과를 투표로 겨룹니다. 자유 플레이 모드와 머리·속눈썹·라인스톤 등 꾸미기 요소도 설명되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    },
+    {
+     "id": "WEB-04",
+     "kind": "web_source",
+     "title": "Makeup Mania",
+     "source": "Blox Compass",
+     "url": "https://bloxcompass.com/games/makeup-mania/",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox의 드레스업 경험에서 플레이어가 메이크업 룩을 만들고 캐릭터를 꾸미며, 주제별 라운드에 참가하고 룩에 투표한다고 소개합니다. 페이지는 Roblox 공개 게임 목록을 바탕으로 설명한다고 밝힙니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    }
+   ]
+  },
+  "status": 200,
+  "response": {
+   "mode": "live",
+   "cached": false,
+   "provenance": {
+    "sources": [
+     "NAVER DataLab",
+     "Discovery evidence (reused)",
+     "OpenAI"
+    ],
+    "demo": false
+   },
+   "naver": {
+    "source": "live_naver_datalab",
+    "sourceName": "NAVER DataLab Search Trend",
+    "collectedAt": "2026-11-02T07:08:11.544Z",
+    "startDate": "2026-07-27",
+    "endDate": "2026-11-02",
+    "timeUnit": "week",
+    "title": "로블록스 메이크업",
+    "keywords": [
+     "로블록스 메이크업"
+    ],
+    "data": [
+     {
+      "period": "2026-10-05",
+      "ratio": 0.02814
+     },
+     {
+      "period": "2026-10-12",
+      "ratio": 0.13963
+     },
+     {
+      "period": "2026-10-19",
+      "ratio": 0.28359
+     },
+     {
+      "period": "2026-10-26",
+      "ratio": 0.19267
+     }
+    ],
+    "series": [
+     {
+      "title": "로블록스 메이크업",
+      "keywords": [
+       "로블록스 메이크업"
+      ],
+      "data": [
+       {
+        "period": "2026-10-05",
+        "ratio": 0.02814
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 0.13963
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 0.28359
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 0.19267
+       }
+      ]
+     },
+     {
+      "title": "로블록스 안에서 메이크업 룩 만들기",
+      "keywords": [
+       "로블록스 안에서 메이크업 룩 만들기"
+      ],
+      "data": []
+     },
+     {
+      "title": "로블록스",
+      "keywords": [
+       "로블록스"
+      ],
+      "data": [
+       {
+        "period": "2026-07-27",
+        "ratio": 79.15029
+       },
+       {
+        "period": "2026-08-03",
+        "ratio": 80.50332
+       },
+       {
+        "period": "2026-08-10",
+        "ratio": 77.15646
+       },
+       {
+        "period": "2026-08-17",
+        "ratio": 74.37029
+       },
+       {
+        "period": "2026-08-24",
+        "ratio": 78.05054
+       },
+       {
+        "period": "2026-08-31",
+        "ratio": 82.78075
+       },
+       {
+        "period": "2026-09-07",
+        "ratio": 85.39589
+       },
+       {
+        "period": "2026-09-14",
+        "ratio": 81.45478
+       },
+       {
+        "period": "2026-09-21",
+        "ratio": 100
+       },
+       {
+        "period": "2026-09-28",
+        "ratio": 91.25723
+       },
+       {
+        "period": "2026-10-05",
+        "ratio": 98.04838
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 88.8326
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 81.26319
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 78.25188
+       }
+      ]
+     }
+    ],
+    "methodology": "요청 기간 중 검색 관심도가 가장 높은 시점을 100으로 환산한 상대 지수이며 절대 검색량이 아닙니다."
+   },
+   "signalStats": [
+    {
+     "title": "로블록스 메이크업",
+     "points": 4,
+     "mean": 0.2,
+     "peak": {
+      "period": "2026-10-19",
+      "ratio": 0.3
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 0.2
+     },
+     "earlyAvg": 0,
+     "recentAvg": 0.2,
+     "direction": "상승",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "로블록스 안에서 메이크업 룩 만들기",
+     "points": 0,
+     "mean": 0,
+     "peak": {
+      "period": "-",
+      "ratio": 0
+     },
+     "latest": {
+      "period": "-",
+      "ratio": 0
+     },
+     "earlyAvg": 0,
+     "recentAvg": 0,
+     "direction": "데이터 부족",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "로블록스",
+     "points": 14,
+     "mean": 84,
+     "peak": {
+      "period": "2026-09-21",
+      "ratio": 100
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 78.3
+     },
+     "earlyAvg": 77.8,
+     "recentAvg": 86.6,
+     "direction": "유지",
+     "partialLastExcluded": false
+    }
+   ],
+   "instagram": {
+    "status": "skipped",
+    "hashtag": "로블록스안에서메이크업룩만들기",
+    "count": 0,
+    "message": "현상 분석에서는 Instagram 해시태그 검색을 쓰지 않습니다(주간 할당량 보호)."
+   },
+   "youtube": {
+    "status": "skipped",
+    "query": "로블록스 메이크업",
+    "videos": [],
+    "hourlyDistribution": [],
+    "message": "발견 근거를 재사용해 YouTube를 새로 검색하지 않았습니다."
+   },
+   "report": {
+    "trend": "로블록스 안에서 메이크업 룩 만들기",
+    "what": {
+     "summary": "로블록스의 메이크업·뷰티 게임에서 플레이어가 블러셔, 립스틱, 아이섀도, 아이라이너 등의 도구로 캐릭터의 룩을 만들고, 주제별 라운드나 투표·평가에 참여하는 현상이다. 검색 결과에도 ‘로블록스에서 화장하기’, ‘로블록스 메이크업’ 영상이 확인된다.",
+     "status": "Verified Signal",
+     "evidenceIds": [
+      "D-WEB-01",
+      "D-WEB-02",
+      "D-WEB-03",
+      "D-WEB-04",
+      "D-YT-01",
+      "D-YT-02"
+     ]
+    },
+    "overview": {
+     "summary": "관찰되는 핵심은 단순한 캐릭터 꾸미기를 넘어, 메이크업 룩을 만들고 주제에 맞춰 선보인 뒤 다른 플레이어의 투표나 평가를 받는 플레이 구조다.",
+     "status": "Verified Signal",
+     "evidenceIds": [
+      "D-WEB-01",
+      "D-WEB-03",
+      "D-WEB-04"
+     ]
+    },
+    "origin": {
+     "summary": "분석은 이 현상의 현재 형태에 초점을 둔다. 어디서 처음 시작됐는지는 확인되지 않았다.",
+     "evidenceIds": []
+    },
+    "triggers": [
+     {
+      "title": "메이크업 게임과 영상이 함께 관찰됨",
+      "explanation": "2026년 10월 초부터 메이크업 게임을 찾거나 플레이하는 영상이 확인되고, ‘로블록스 메이크업’ 상대 검색 관심도도 10월 5일부터 나타나 10월 19일에 이 요청 내 최고치를 기록했다. 두 현상의 시점이 겹치지만, 영상이 검색 관심을 유발했다고 볼 근거는 없다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "NAVER-01",
+       "D-YT-16",
+       "D-YT-18",
+       "D-YT-01",
+       "D-YT-02"
+      ]
+     },
+     {
+      "title": "게임 안에 룩 제작과 평가 구조가 있음",
+      "explanation": "게임 소개에는 도구를 이용한 룩 제작, 주제별 라운드, 투표나 평가가 등장한다. 이런 구조가 플레이와 결과 공유에 연결될 가능성은 있지만, 실제 확산의 원인으로 확인된 것은 아니다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "D-WEB-01",
+       "D-WEB-03",
+       "D-WEB-04"
+      ]
+     }
+    ],
+    "timeline": [
+     {
+      "date": "2026-10-03",
+      "label": "Makeup Mania를 찾는 방법을 소개한 영상이 게시됨.",
+      "evidenceIds": [
+       "D-YT-16"
+      ]
+     },
+     {
+      "date": "2026-10-05",
+      "label": "‘로블록스 메이크업’ 상대 검색 관심도가 관찰 구간에서 처음 나타남. 같은 날짜는 일부 게임 소개 페이지에 생성일로 표시되어 있으나, 실제 생성 여부는 원문 확인이 필요함.",
+      "evidenceIds": [
+       "NAVER-01",
+       "D-WEB-01",
+       "D-WEB-02"
+      ]
+     },
+     {
+      "date": "2026-10-13",
+      "label": "Roblox 메이크업 게임에서 메이크오버를 체험하는 영상이 게시됨.",
+      "evidenceIds": [
+       "D-YT-18"
+      ]
+     },
+     {
+      "date": "2026-10-18",
+      "label": "‘로블록스에서 화장하기’ 영상과 메이크업 아티스트 역할을 체험하는 영상이 게시됨.",
+      "evidenceIds": [
+       "D-YT-01",
+       "D-YT-11"
+      ]
+     },
+     {
+      "date": "2026-10-19",
+      "label": "‘로블록스 메이크업’ 상대 검색 관심도가 요청 내 최고치에 도달함.",
+      "evidenceIds": [
+       "NAVER-01"
+      ]
+     },
+     {
+      "date": "2026-10-21",
+      "label": "‘로블록스 메이크업!!!’ 제목의 영상이 게시됨.",
+      "evidenceIds": [
+       "D-YT-02"
+      ]
+     }
+    ],
+    "motivations": [
+     {
+      "label": "뷰티 스타일을 게임 안에서 직접 조합하기",
+      "explanation": "여러 메이크업 도구와 꾸미기 요소를 이용해 캐릭터 룩을 만드는 방식은 뷰티 스타일을 직접 구성해 보는 경험과 연결될 수 있다. 다만 플레이어가 이를 선택하는 실제 동기는 자료에서 직접 확인되지 않는다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "D-WEB-02",
+       "D-WEB-03"
+      ]
+     },
+     {
+      "label": "결과물을 주제에 맞춰 선보이고 평가받기",
+      "explanation": "주제별 라운드와 투표·평가 구조는 룩을 완성해 다른 플레이어에게 보여 주는 참여를 유도할 수 있다. 이것이 실제 참가자의 주된 동기인지는 확인되지 않았다.",
+      "status": "Supported Hypothesis",
+      "evidenceIds": [
+       "D-WEB-01",
+       "D-WEB-03",
+       "D-WEB-04"
+      ]
+     }
+    ],
+    "futureScenarios": [
+     {
+      "title": "룩 제작과 경쟁을 결합한 플레이가 이어질 가능성",
+      "explanation": "현재 확인된 게임 소개처럼 메이크업 도구, 주제별 과제, 투표가 결합된 경험이 더해진다면 플레이어가 룩 제작과 결과 비교를 반복하는 형태로 발전할 수 있다.",
+      "status": "Creative Hypothesis"
+     }
+    ],
+    "missingEvidence": [
+     "게임 소개 페이지 원문과 게임 내 실제 플레이를 확인할 수 있는 자료",
+     "플레이어의 연령·규모·참여 동기를 직접 확인할 수 있는 대표성 있는 조사",
+     "영상 게시와 검색 관심 변화 사이의 인과관계를 확인할 수 있는 자료",
+     "해당 현상의 최초 발생 시점이나 최초 게임·콘텐츠를 검증할 기록",
+     "영상 표본 밖에서 어떤 플랫폼과 형식으로 룩이 공유되는지 보여 주는 자료"
+    ],
+    "context": {
+     "background": {
+      "summary": "이 행동은 로블록스 안의 뷰티·드레스업 게임 문화와 메이크업 스타일을 조합하는 꾸미기 문화가 만나는 형태로 관찰된다. 게임 소개에는 도구를 이용한 룩 제작과 캐릭터 꾸미기, 일부 게임의 주제별 라운드와 투표가 언급된다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-WEB-02",
+       "D-WEB-03",
+       "D-WEB-04"
+      ]
+     },
+     "events": [],
+     "spreadContents": [
+      {
+       "title": "메이크업 게임 플레이 및 메이크오버 영상",
+       "explanation": "검색 표본에는 게임에서 화장하기, 메이크업 아티스트 역할 체험, 메이크오버를 다루는 영상이 포함된다. 이 영상들이 현상의 확산에 영향을 주었을 가능성은 있으나, 게시 시점과 조회수만으로 영향이나 인과관계를 입증할 수 없다.",
+       "status": "Creative Hypothesis",
+       "evidenceIds": [
+        "D-YT-01",
+        "D-YT-11",
+        "D-YT-16",
+        "D-YT-18"
+       ]
+      }
+     ],
+     "brandCases": []
+    },
+    "phenomenon": {
+     "context": {
+      "phenomenonId": "conn-roblox-makeup-20261102~1jifcy1",
+      "keyword": "로블록스",
+      "title": "로블록스 안에서 메이크업 룩 만들기",
+      "subject": "로블록스 플레이어",
+      "action": "메이크업 룩을 만든다",
+      "object": "게임 캐릭터의 화장과 뷰티 스타일",
+      "direction": "A 안에서 B",
+      "culturalContext": "로블록스 게임 문화와 메이크업·뷰티 꾸미기 문화",
+      "coreBehavior": "메이크업 룩을 만든다",
+      "window": {
+       "days": 90,
+       "from": "2026-08-04",
+       "to": "2026-11-02"
+      },
+      "evidenceIds": [
+       "YT-01",
+       "YT-02",
+       "YT-11",
+       "YT-16",
+       "YT-18",
+       "WEB-01",
+       "WEB-02",
+       "WEB-03",
+       "WEB-04"
+      ],
+      "verificationStatus": "OBSERVED",
+      "independentSources": 9,
+      "searchTerms": [
+       "로블록스 메이크업",
+       "로블록스 안에서 메이크업 룩 만들기"
+      ],
+      "origin": "connection"
+     },
+     "who": {
+      "summary": "게임 소개에서는 플레이어가 메이크업 아티스트 역할을 하거나 캐릭터 룩을 만들고, 다른 플레이어의 룩에 투표·평가하는 것으로 설명된다. 영상 표본에는 해당 게임을 체험하는 영상 제작자도 나타난다. 플레이어 전체의 특성이나 인구통계는 확인되지 않는다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-WEB-01",
+       "D-WEB-03",
+       "D-WEB-04",
+       "D-YT-11",
+       "D-YT-18"
+      ]
+     },
+     "how": {
+      "summary": "게임 안에서 메이크업 도구와 꾸미기 요소를 골라 룩을 만든 뒤, 주제별 라운드에 참가하거나 투표·평가를 받는 방식이 소개된다. 공개 영상 표본은 플레이 체험과 메이크오버를 제목으로 내세운다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-WEB-02",
+       "D-WEB-03",
+       "D-WEB-04",
+       "D-YT-01",
+       "D-YT-16",
+       "D-YT-18"
+      ]
+     },
+     "reusedEvidenceIds": [
+      "D-YT-01",
+      "D-YT-02",
+      "D-YT-11",
+      "D-YT-16",
+      "D-YT-18",
+      "D-WEB-01",
+      "D-WEB-02",
+      "D-WEB-03",
+      "D-WEB-04"
+     ],
+     "checks": {
+      "anchorTerms": [
+       "로블록스",
+       "안에서",
+       "메이크업",
+       "만들기",
+       "게임",
+       "캐릭터",
+       "화장",
+       "뷰티"
+      ],
+      "anchored": true,
+      "warnings": []
+     }
+    }
+   },
+   "model": "gpt-6-luna",
+   "analyzedAt": "2026-11-02T07:08:38.562Z",
+   "promptVersion": "why-phenomenon-v1",
+   "validation": {
+    "removedEvidenceIds": [],
+    "downgraded": 0,
+    "droppedTimeline": 0,
+    "droppedContext": 0
+   },
+   "web": {
+    "status": "skipped",
+    "count": 0,
+    "searchedSources": 0,
+    "droppedUnverified": 0,
+    "message": "발견 근거를 재사용해 웹을 새로 검색하지 않았습니다."
+   },
+   "evidence": [
+    {
+     "id": "NAVER-01",
+     "kind": "naver_series",
+     "title": "\"로블록스 메이크업\" 상대 검색 관심도 (week)",
+     "source": "NAVER DataLab Search Trend",
+     "url": "https://datalab.naver.com/keyword/trendSearch.naver",
+     "date": "2026-07-27~2026-11-02",
+     "collectedAt": "2026-11-02T07:08:11.544Z",
+     "excerpt": "평균 0.2, 최고 0.3(2026-10-19), 최근 0.2(2026-10-26), 초기 1/3 평균 0 → 최근 1/3 평균 0.2 (상승). 같은 요청의 키워드 그룹 간에만 비교 가능한 상대 지수이며 절대 검색량이 아님."
+    },
+    {
+     "id": "D-YT-01",
+     "kind": "youtube_video",
+     "title": "로블록스에서 화장하기🩷 (게임이름:페이스카드) # #생활음계 #vlog #브이로그 #로블 #로블계 #화장 #메이크업 #16년생",
+     "source": "YouTube Data API · 챙",
+     "url": "https://www.youtube.com/watch?v=nepFrIfBYpE",
+     "date": "2026-10-18T09:01:15Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-18T09:01:15Z, 조회수 5,806회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-YT-02",
+     "kind": "youtube_video",
+     "title": "로블록스 메이크업!!!",
+     "source": "YouTube Data API · 근환TV",
+     "url": "https://www.youtube.com/watch?v=n8d1A_eYI48",
+     "date": "2026-10-21T10:13:58Z",
+     "collectedAt": "2026-11-02T05:54:25.538Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-21T10:13:58Z, 조회수 24,174회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-YT-11",
+     "kind": "youtube_video",
+     "title": "Becoming A *MAKEUP ARTIST* On Roblox!! (Makeup Mania)",
+     "source": "YouTube Data API · mieshaplays",
+     "url": "https://www.youtube.com/watch?v=0B82doYBAUs",
+     "date": "2026-10-18T18:00:35Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-18T18:00:35Z, 조회수 14,066회(수집 시점 값). 공개 설명: Today, I tried out Makeup Mania as a dress to impress player!! How do you think it went? Instagram: dtimiesha Business Email: ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-YT-16",
+     "kind": "youtube_video",
+     "title": "How to Find Makeup Mania on Roblox! 💄#makeupmania #roblox",
+     "source": "YouTube Data API · chani ۶۟ৎ",
+     "url": "https://www.youtube.com/watch?v=thtG0_zfwgw",
+     "date": "2026-10-03T15:30:53Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-03T15:30:53Z, 조회수 230,456회(수집 시점 값). 공개 설명: Makeup Mania is a Roblox game focused on creating makeup looks, with different makeup tools, hairstyles, and competition ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-YT-18",
+     "kind": "youtube_video",
+     "title": "I Gave Myself The ULTIMATE MAKEUP MAKEOVER on ROBLOX!!",
+     "source": "YouTube Data API · pixiiuwu",
+     "url": "https://www.youtube.com/watch?v=wRFK-QXIfag",
+     "date": "2026-10-13T17:00:09Z",
+     "collectedAt": "2026-11-02T05:54:26.005Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-13T17:00:09Z, 조회수 26,784회(수집 시점 값). 공개 설명: Today, I test out FACECARD, a BRAND NEW MAKEUP GAME on Roblox where we can give bald baddies a MAKEOVER!! Is this ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-WEB-01",
+     "kind": "web_source",
+     "title": "메이크업 살롱💄",
+     "source": "OP.GG",
+     "url": "https://op.gg/ko/roblox/games/10769514597",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox의 ‘메이크업 살롱’ 게임에서 플레이어가 주제에 맞는 메이크업을 완성해 선보이고, 다른 플레이어의 룩을 평가하며 경쟁한다고 소개합니다. 페이지에 게임 생성일은 2026년 10월 5일로 표시되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요) (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-WEB-02",
+     "kind": "web_source",
+     "title": "Makeup Star",
+     "source": "TrendScout",
+     "url": "https://trendscout.app/games/10769535832",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox 경험 ‘Makeup Star’를 메이크업·뷰티 게임으로 소개하며, 플레이어가 블러셔·립스틱·아이섀도·아이라이너 등으로 직접 룩을 만들 수 있다고 설명합니다. 페이지에는 생성일이 2026년 10월 5일로 표시되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요) (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-WEB-03",
+     "kind": "web_source",
+     "title": "Facecard: Makeup Showdown",
+     "source": "Roblox",
+     "url": "https://www.roblox.com/games/72293101527469/Facecard-Makeup-Showdown?placeId=72293101527469&spotlightPageSessionInfo=9bd3c41a-05f3-4a24-b9d9-a82ff6eebb8b&universeId=10769516701",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox 게임에서 플레이어가 메이크업 아티스트가 되어 도구와 브러시를 사용해 원하는 룩을 만들고, 메이크업 결과를 투표로 겨룹니다. 자유 플레이 모드와 머리·속눈썹·라인스톤 등 꾸미기 요소도 설명되어 있습니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요) (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-WEB-04",
+     "kind": "web_source",
+     "title": "Makeup Mania",
+     "source": "Blox Compass",
+     "url": "https://bloxcompass.com/games/makeup-mania/",
+     "collectedAt": "2026-11-02T05:54:22.020Z",
+     "excerpt": "Roblox의 드레스업 경험에서 플레이어가 메이크업 룩을 만들고 캐릭터를 꾸미며, 주제별 라운드에 참가하고 룩에 투표한다고 소개합니다. 페이지는 Roblox 공개 게임 목록을 바탕으로 설명한다고 밝힙니다. (발행 날짜 미상 · 검색어 “로블록스 메이크업 게임 플레이 Roblox makeup game play” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요) (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    }
+   ]
+  }
+ },
+ "C": {
+  "request": {
+   "trend": "먼작귀 캐릭터 빼빼로 직접 만들기",
+   "keywords": [
+    "먼작귀 캐릭터 빼빼로 직접 만들기"
+   ],
+   "periodMonths": 3,
+   "includeInstagram": false,
+   "includeYouTube": true,
+   "includeWeb": true,
+   "force": false,
+   "phenomenon": {
+    "phenomenonId": "disc-빼빼로데이-30-20261102~sig-1",
+    "keyword": "빼빼로데이",
+    "title": "먼작귀 캐릭터 빼빼로 직접 만들기",
+    "subject": "",
+    "action": "시청자에게 캐릭터별 빼빼로 제작 과정을 보여주고, 다이소 재료로 만들 수 있는 레시피를 소개한다.",
+    "object": "",
+    "direction": "",
+    "culturalContext": "유튜브 크리에이터들이 치이카와 등 먼작귀 캐릭터 모양을 활용해 빼빼로를 만드는 영상을 게시한다.",
+    "coreBehavior": "시청자에게 캐릭터별 빼빼로 제작 과정을 보여주고, 다이소 재료로 만들 수 있는 레시피를 소개한다.",
+    "window": {
+     "days": 30,
+     "from": "2026-10-03",
+     "to": "2026-11-02"
+    },
+    "evidenceIds": [
+     "YT-03",
+     "YT-05"
+    ],
+    "verificationStatus": "OBSERVED",
+    "independentSources": 2,
+    "searchTerms": [
+     "먼작귀 캐릭터 빼빼로 직접 만들기",
+     "먼작귀 빼빼로",
+     "치이카와 빼빼로",
+     "빼빼로 만들기"
+    ],
+    "origin": "phenomenon"
+   },
+   "phenomenonEvidence": [
+    {
+     "id": "YT-03",
+     "kind": "youtube_video",
+     "title": "03년생 집순이 먼작귀 빼빼로 만들기 #먼작귀 #빼빼로만들기 #빼빼로데이 #치이카와빼빼로",
+     "source": "YouTube Data API · 보리",
+     "url": "https://www.youtube.com/watch?v=KWeEe0wGbKE",
+     "date": "2026-10-22T08:33:08Z",
+     "collectedAt": "2026-11-02T05:53:35.596Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-22T08:33:08Z, 조회수 52,222회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-05",
+     "kind": "youtube_video",
+     "title": "먼작귀 빼빼로 만들기🍫 빼빼로데이",
+     "source": "YouTube Data API · 후한냠냠 | Cute Lunchbox",
+     "url": "https://www.youtube.com/watch?v=LGb3eOZi7-4",
+     "date": "2026-11-01T05:35:30Z",
+     "collectedAt": "2026-11-02T05:53:35.596Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-11-01T05:35:30Z, 조회수 34,206회(수집 시점 값). 공개 설명: 다이소 재료로 만드는 치이카와 빼빼로! 치이카와, 하치와레, 우사기부터 랏코, 쿠리만쥬, 시사, 모몽가, 카니까지❤️ 재료도 만드는 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    }
+   ]
+  },
+  "status": 200,
+  "response": {
+   "mode": "live",
+   "cached": false,
+   "provenance": {
+    "sources": [
+     "NAVER DataLab",
+     "Discovery evidence (reused)",
+     "YouTube Data API v3",
+     "Web sources (OpenAI web search)",
+     "OpenAI"
+    ],
+    "demo": false
+   },
+   "naver": {
+    "source": "live_naver_datalab",
+    "sourceName": "NAVER DataLab Search Trend",
+    "collectedAt": "2026-11-02T07:08:38.637Z",
+    "startDate": "2026-07-27",
+    "endDate": "2026-11-02",
+    "timeUnit": "week",
+    "title": "먼작귀 캐릭터 빼빼로 직접 만들기",
+    "keywords": [
+     "먼작귀 캐릭터 빼빼로 직접 만들기"
+    ],
+    "data": [],
+    "series": [
+     {
+      "title": "먼작귀 캐릭터 빼빼로 직접 만들기",
+      "keywords": [
+       "먼작귀 캐릭터 빼빼로 직접 만들기"
+      ],
+      "data": []
+     },
+     {
+      "title": "먼작귀 빼빼로",
+      "keywords": [
+       "먼작귀 빼빼로"
+      ],
+      "data": [
+       {
+        "period": "2026-09-21",
+        "ratio": 0.48859
+       },
+       {
+        "period": "2026-09-28",
+        "ratio": 4.31596
+       },
+       {
+        "period": "2026-10-05",
+        "ratio": 4.96742
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 13.19218
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 22.3127
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 69.05537
+       }
+      ]
+     },
+     {
+      "title": "치이카와 빼빼로",
+      "keywords": [
+       "치이카와 빼빼로"
+      ],
+      "data": [
+       {
+        "period": "2026-09-28",
+        "ratio": 0.73289
+       },
+       {
+        "period": "2026-10-05",
+        "ratio": 1.71009
+       },
+       {
+        "period": "2026-10-12",
+        "ratio": 8.06188
+       },
+       {
+        "period": "2026-10-19",
+        "ratio": 40.06514
+       },
+       {
+        "period": "2026-10-26",
+        "ratio": 100
+       }
+      ]
+     }
+    ],
+    "methodology": "요청 기간 중 검색 관심도가 가장 높은 시점을 100으로 환산한 상대 지수이며 절대 검색량이 아닙니다."
+   },
+   "signalStats": [
+    {
+     "title": "먼작귀 캐릭터 빼빼로 직접 만들기",
+     "points": 0,
+     "mean": 0,
+     "peak": {
+      "period": "-",
+      "ratio": 0
+     },
+     "latest": {
+      "period": "-",
+      "ratio": 0
+     },
+     "earlyAvg": 0,
+     "recentAvg": 0,
+     "direction": "데이터 부족",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "먼작귀 빼빼로",
+     "points": 6,
+     "mean": 19.1,
+     "peak": {
+      "period": "2026-10-26",
+      "ratio": 69.1
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 69.1
+     },
+     "earlyAvg": 2.4,
+     "recentAvg": 45.7,
+     "direction": "상승",
+     "partialLastExcluded": false
+    },
+    {
+     "title": "치이카와 빼빼로",
+     "points": 5,
+     "mean": 30.1,
+     "peak": {
+      "period": "2026-10-26",
+      "ratio": 100
+     },
+     "latest": {
+      "period": "2026-10-26",
+      "ratio": 100
+     },
+     "earlyAvg": 0.7,
+     "recentAvg": 100,
+     "direction": "상승",
+     "partialLastExcluded": false
+    }
+   ],
+   "instagram": {
+    "status": "skipped",
+    "hashtag": "먼작귀캐릭터빼빼로직접만들기",
+    "count": 0,
+    "message": "현상 분석에서는 Instagram 해시태그 검색을 쓰지 않습니다(주간 할당량 보호)."
+   },
+   "youtube": {
+    "status": "live",
+    "query": "먼작귀 캐릭터 빼빼로 직접 만들기",
+    "collectedAt": "2026-11-02T07:08:38.638Z",
+    "period": {
+     "publishedAfter": "2026-10-03T07:08:38.638Z",
+     "publishedBefore": "2026-11-02T07:08:38.638Z"
+    },
+    "videos": [
+     {
+      "id": "KWeEe0wGbKE",
+      "title": "03년생 집순이 먼작귀 빼빼로 만들기 #먼작귀 #빼빼로만들기 #빼빼로데이 #치이카와빼빼로",
+      "channelTitle": "보리",
+      "publishedAt": "2026-10-22T08:33:08Z",
+      "viewCount": 52877,
+      "url": "https://www.youtube.com/watch?v=KWeEe0wGbKE",
+      "thumbnailUrl": "https://i.ytimg.com/vi/KWeEe0wGbKE/hqdefault.jpg"
+     },
+     {
+      "id": "2uYZfirh5k4",
+      "title": "태닝키티송이 만들기 #빼빼로 #빼빼로만들기 #빼빼로데이 #cutedesserts #satisfying",
+      "channelTitle": "김수분moisture_",
+      "publishedAt": "2026-10-29T11:50:39Z",
+      "viewCount": 37996,
+      "url": "https://www.youtube.com/watch?v=2uYZfirh5k4",
+      "description": "태닝키티 vs 블랙키티, 여러분의 취향은? 🏖️ ⠀ 다른 색 조합 요청이 많아서 만들어본 태닝키티송이! 저는 노릇하게 탄 태닝키티가 ...",
+      "thumbnailUrl": "https://i.ytimg.com/vi/2uYZfirh5k4/hqdefault.jpg"
+     },
+     {
+      "id": "IBGAt4VH8eg",
+      "title": "츄러스 빼빼로 만들기🤎 #츄러스 #빼빼로 #빼빼로만들기 #빼빼로데이 #churros",
+      "channelTitle": "마니지",
+      "publishedAt": "2026-10-29T13:01:01Z",
+      "viewCount": 1007,
+      "url": "https://www.youtube.com/watch?v=IBGAt4VH8eg",
+      "thumbnailUrl": "https://i.ytimg.com/vi/IBGAt4VH8eg/hqdefault.jpg"
+     },
+     {
+      "id": "PNZoKrXUMEs",
+      "title": "치이카와에서 가장 잔인한 장면.... ㅠㅠ #먼작귀",
+      "channelTitle": "마금이",
+      "publishedAt": "2026-10-16T12:27:42Z",
+      "viewCount": 3632758,
+      "url": "https://www.youtube.com/watch?v=PNZoKrXUMEs",
+      "description": "치이카와 #먼작귀.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/PNZoKrXUMEs/hqdefault.jpg"
+     },
+     {
+      "id": "-nzoHuxwGsQ",
+      "title": "헬로키티 빼빼로 세븐신상🤎",
+      "channelTitle": "민또롱",
+      "publishedAt": "2026-10-24T01:16:42Z",
+      "viewCount": 1827,
+      "url": "https://www.youtube.com/watch?v=-nzoHuxwGsQ",
+      "description": "얼마 전 키티 빼빼로가 출시된 걸 봤지만 전 선물할 게 아니라 (다 내가 먹을 거^^) 양이 좀 많아서 (다이어트 중임^^) 고민하다 안 샀었 ...",
+      "thumbnailUrl": "https://i.ytimg.com/vi/-nzoHuxwGsQ/hqdefault.jpg"
+     },
+     {
+      "id": "LXkS-ZHFAhI",
+      "title": "💝다이소 재료로 빼빼로 만들기부터 포장까지 | 빼빼로데이 선물 | 초간단 빼빼로 4종 만들기",
+      "channelTitle": "달곰베이킹 | 초보 베이킹",
+      "publishedAt": "2026-10-27T13:14:15Z",
+      "viewCount": 11783,
+      "url": "https://www.youtube.com/watch?v=LXkS-ZHFAhI",
+      "description": "빼빼로만들기 #다이소 #빼뺴로데이 빼빼로데이 선물, 아직 고민 중이신가요? 오늘은 오븐 없이 다이소 재료와 시판 과자로 만드는 ...",
+      "thumbnailUrl": "https://i.ytimg.com/vi/LXkS-ZHFAhI/hqdefault.jpg"
+     },
+     {
+      "id": "VSHzXU9xsIk",
+      "title": "먼작귀 치이카와 3종 코바늘 인형 뜨는 법 | Chiikawa Trio Crochet Amigurumi Tutorial",
+      "channelTitle": "묘한손끝",
+      "publishedAt": "2026-10-10T08:00:33Z",
+      "viewCount": 24583,
+      "url": "https://www.youtube.com/watch?v=VSHzXU9xsIk",
+      "description": "사용한 재료 1.실(해피코튼,아이돌) 2.레이스 코바늘(No.6,10,12,16) 3.UV레진 4.스티커 5.아크릴 물감 6.공예용 철사 7.볼터치 치크 8.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/VSHzXU9xsIk/hqdefault.jpg"
+     },
+     {
+      "id": "Cylh9D25NWI",
+      "title": "초속 2cm로 움직이는 치이카와 만들기",
+      "channelTitle": "딱지 DDAKG",
+      "publishedAt": "2026-10-17T10:30:33Z",
+      "viewCount": 735926,
+      "url": "https://www.youtube.com/watch?v=Cylh9D25NWI",
+      "description": "지 혼자서 움직이는 치이카와 굿즈를 만들어 봤어요 #치이카와 #딱지 #먼작귀 ※이 작품은 판매·배포하지 않는 한 점 제작물입니다.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/Cylh9D25NWI/hqdefault.jpg"
+     }
+    ],
+    "hourlyDistribution": [
+     {
+      "hour": 0,
+      "count": 0
+     },
+     {
+      "hour": 1,
+      "count": 0
+     },
+     {
+      "hour": 2,
+      "count": 0
+     },
+     {
+      "hour": 3,
+      "count": 0
+     },
+     {
+      "hour": 4,
+      "count": 0
+     },
+     {
+      "hour": 5,
+      "count": 0
+     },
+     {
+      "hour": 6,
+      "count": 0
+     },
+     {
+      "hour": 7,
+      "count": 0
+     },
+     {
+      "hour": 8,
+      "count": 0
+     },
+     {
+      "hour": 9,
+      "count": 0
+     },
+     {
+      "hour": 10,
+      "count": 1
+     },
+     {
+      "hour": 11,
+      "count": 0
+     },
+     {
+      "hour": 12,
+      "count": 0
+     },
+     {
+      "hour": 13,
+      "count": 0
+     },
+     {
+      "hour": 14,
+      "count": 0
+     },
+     {
+      "hour": 15,
+      "count": 0
+     },
+     {
+      "hour": 16,
+      "count": 0
+     },
+     {
+      "hour": 17,
+      "count": 2
+     },
+     {
+      "hour": 18,
+      "count": 0
+     },
+     {
+      "hour": 19,
+      "count": 1
+     },
+     {
+      "hour": 20,
+      "count": 1
+     },
+     {
+      "hour": 21,
+      "count": 1
+     },
+     {
+      "hour": 22,
+      "count": 2
+     },
+     {
+      "hour": 23,
+      "count": 0
+     }
+    ],
+    "methodology": "최근 30일, 한국 지역·한국어 관련성 조건으로 관련도순 최대 10개 공개 영상을 수집한 검색 표본입니다. 전체 YouTube 트렌드나 인과관계를 대표하지 않습니다.",
+    "cache": {
+     "hit": false,
+     "ttlSeconds": 21600
+    },
+    "quota": {
+     "searchCalls": 1,
+     "detailCalls": 1,
+     "dailySearchUsed": 2,
+     "dailySearchLimit": 20
+    }
+   },
+   "report": {
+    "trend": "먼작귀 캐릭터 빼빼로 직접 만들기",
+    "what": {
+     "summary": "관찰된 현상은 치이카와 등 먼작귀 캐릭터를 본뜬 빼빼로를 직접 만드는 영상 콘텐츠다. 영상 설명에는 다이소 재료를 활용하고 치이카와·하치와레·우사기 등 여러 캐릭터를 만드는 과정이 소개된다. 다만 선택 현상의 정확한 문구를 대상으로 한 NAVER 검색 시계열은 데이터가 없으며, 관련 검색어인 ‘먼작귀 빼빼로’와 ‘치이카와 빼빼로’는 2026-10-26 주간에 각각 요청 내 상대 지수 최고점을 기록했다.",
+     "status": "Verified Signal",
+     "evidenceIds": [
+      "D-YT-03",
+      "D-YT-05",
+      "NAVER-01"
+     ]
+    },
+    "overview": {
+     "summary": "현재 확인되는 특징은 캐릭터별 외형을 빼빼로에 구현하는 DIY 과정을 영상으로 보여주고, 다이소 재료와 여러 먼작귀 캐릭터를 구체적으로 안내하는 점이다. 관련 검색어 두 개는 2026-10-26 주간에 상대 검색 관심도 최고점을 보였지만, 이 시점과 영상 게시의 동시성만으로 확산 원인을 단정할 수는 없다.",
+     "status": "Verified Signal",
+     "evidenceIds": [
+      "D-YT-05"
+     ]
+    },
+    "origin": {
+     "summary": "분석은 현상의 현재 관찰 형태에 초점을 두며, 최초 시작 시점이나 최초 제작자는 확인되지 않았다.",
+     "evidenceIds": []
+    },
+    "triggers": [
+     {
+      "title": "관련 검색어의 10월 말 상대 관심도 상승",
+      "explanation": "‘먼작귀 빼빼로’와 ‘치이카와 빼빼로’의 상대 검색 지수는 관측된 주간 구간에서 상승해 2026-10-26에 각각 최고치를 기록했다. 이는 같은 요청 내 상대 지수의 변화이며 절대 검색량이나 영상이 상승을 일으킨 원인을 뜻하지 않는다.",
+      "status": "Insufficient Evidence",
+      "evidenceIds": []
+     },
+     {
+      "title": "10월 하순~11월 초 제작 영상 게시",
+      "explanation": "먼작귀 빼빼로 만들기 영상이 2026-10-22와 2026-11-01에 게시된 것으로 확인된다. 검색 관심도 관측 시기와 겹치지만, 게시가 검색 상승을 유발했는지는 근거만으로 확인할 수 없다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-YT-03",
+       "D-YT-05"
+      ]
+     }
+    ],
+    "timeline": [
+     {
+      "date": "2026-10-22",
+      "label": "‘03년생 집순이 먼작귀 빼빼로 만들기’ 영상 게시",
+      "evidenceIds": [
+       "D-YT-03"
+      ]
+     },
+     {
+      "date": "2026-10-31",
+      "label": "다이소 재료로 캐릭터 모양 빼빼로를 만드는 과정과 재료 목록을 소개한 웹 콘텐츠 발행",
+      "evidenceIds": [
+       "WEB-01"
+      ]
+     },
+     {
+      "date": "2026-11-01",
+      "label": "다이소 재료로 여러 먼작귀 캐릭터 빼빼로를 만드는 영상 게시",
+      "evidenceIds": [
+       "D-YT-05"
+      ]
+     }
+    ],
+    "motivations": [
+     {
+      "label": "좋아하는 캐릭터를 간식에 구현하려는 창작",
+      "explanation": "캐릭터별 빼빼로 제작 과정과 장식 방식이 콘텐츠의 중심이다. 이를 통해 캐릭터 팬의 자기표현이나 만들기 욕구가 동기가 될 수 있다고 해석할 수 있지만, 제작자나 시청자가 직접 밝힌 동기는 확인되지 않았다.",
+      "status": "Creative Hypothesis",
+      "evidenceIds": [
+       "D-YT-05",
+       "WEB-01"
+      ]
+     },
+     {
+      "label": "재료와 제작법을 참고하려는 관심",
+      "explanation": "영상 및 웹 콘텐츠가 다이소 재료와 제작 단계를 안내한다. 시청자가 실제로 이를 따라 만들거나 선물하려는지는 확인되지 않았다.",
+      "status": "Creative Hypothesis",
+      "evidenceIds": [
+       "D-YT-05",
+       "WEB-01"
+      ]
+     }
+    ],
+    "futureScenarios": [
+     {
+      "title": "캐릭터별 제작법 비교 콘텐츠",
+      "explanation": "여러 캐릭터를 한 영상에서 다루는 방식이 이어진다면, 캐릭터별 재료·난이도·완성 모습을 비교하는 형식으로 확장될 수 있다.",
+      "status": "Creative Hypothesis"
+     },
+     {
+      "title": "재료 대체 및 초보자용 제작 안내",
+      "explanation": "다이소 재료와 단계별 제작 안내가 강조되는 흐름을 바탕으로, 예산이나 난이도를 달리한 레시피 콘텐츠가 나올 가능성이 있다.",
+      "status": "Creative Hypothesis"
+     }
+    ],
+    "missingEvidence": [
+     "최초 제작자와 최초 게시물, 그리고 현상이 시작된 시점을 확인할 수 있는 초기 게시물 기록",
+     "선택 현상의 정확한 키워드에 대한 유효한 검색 시계열 또는 게시물 추이",
+     "영상 시청자·제작자의 직접적인 제작 동기와 실제 따라 만들기 여부",
+     "영상 게시와 검색 관심도 변화 사이의 인과관계를 검증할 수 있는 자료",
+     "영상별 전체 표본과 시간에 따른 조회·참여 변화"
+    ],
+    "context": {
+     "background": {
+      "summary": "확인된 콘텐츠는 먼작귀 캐릭터를 모양과 장식으로 재현해 빼빼로를 만드는 DIY 영상·제작 안내다. 웹 검색 요약은 다이소 재료, 캐릭터별 장식, 초콜릿 코팅과 얼굴 그리기 과정을 설명한다. 이 행동이 어떤 팬 커뮤니티에서 시작됐는지 또는 더 넓게 자리 잡았는지는 자료로 확인되지 않는다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-YT-05",
+       "WEB-01"
+      ]
+     },
+     "events": [
+      {
+       "date": "2026-10-31",
+       "label": "다이소 재료를 활용한 치이카와·하치와레·우사기 모양 빼빼로 제작 콘텐츠 발행",
+       "evidenceIds": [
+        "WEB-01"
+       ]
+      }
+     ],
+     "spreadContents": [
+      {
+       "title": "다이소 재료로 만드는 캐릭터별 빼빼로 영상",
+       "explanation": "다이소 재료와 여러 캐릭터의 제작 과정을 보여주는 영상 콘텐츠가 관찰된다. 이 형식이 현상 확산에 영향을 주었을 가능성은 있으나, 확산을 일으켰다는 직접 근거는 없다.",
+       "status": "Creative Hypothesis",
+       "evidenceIds": [
+        "D-YT-03",
+        "D-YT-05"
+       ]
+      },
+      {
+       "title": "캐릭터 장식과 제작 단계를 안내하는 웹 콘텐츠",
+       "explanation": "재료 목록과 코팅·장식 단계를 소개하는 콘텐츠가 확인된다. 제작 참고 자료로 활용될 수 있지만, 실제 시청자의 이용이나 확산 효과는 확인되지 않는다.",
+       "status": "Creative Hypothesis",
+       "evidenceIds": [
+        "WEB-01"
+       ]
+      }
+     ],
+     "brandCases": []
+    },
+    "phenomenon": {
+     "context": {
+      "phenomenonId": "disc-빼빼로데이-30-20261102~sig-1",
+      "keyword": "빼빼로데이",
+      "title": "먼작귀 캐릭터 빼빼로 직접 만들기",
+      "subject": "",
+      "action": "시청자에게 캐릭터별 빼빼로 제작 과정을 보여주고, 다이소 재료로 만들 수 있는 레시피를 소개한다.",
+      "object": "",
+      "direction": "",
+      "culturalContext": "유튜브 크리에이터들이 치이카와 등 먼작귀 캐릭터 모양을 활용해 빼빼로를 만드는 영상을 게시한다.",
+      "coreBehavior": "시청자에게 캐릭터별 빼빼로 제작 과정을 보여주고, 다이소 재료로 만들 수 있는 레시피를 소개한다.",
+      "window": {
+       "days": 30,
+       "from": "2026-10-03",
+       "to": "2026-11-02"
+      },
+      "evidenceIds": [
+       "YT-03",
+       "YT-05"
+      ],
+      "verificationStatus": "OBSERVED",
+      "independentSources": 2,
+      "searchTerms": [
+       "먼작귀 캐릭터 빼빼로 직접 만들기",
+       "먼작귀 빼빼로",
+       "치이카와 빼빼로",
+       "빼빼로 만들기"
+      ],
+      "origin": "phenomenon"
+     },
+     "who": {
+      "summary": "공개 영상의 제목과 설명에서 확인되는 주체는 먼작귀 캐릭터 빼빼로를 직접 만드는 영상 제작자다. 시청자가 실제로 따라 만들었는지, 특정 브랜드가 제작에 참여했는지는 확인되지 않는다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-YT-03",
+       "D-YT-05"
+      ]
+     },
+     "how": {
+      "summary": "유튜브 영상에서 제작 과정을 보여주는 형식으로 표현된다. 확인된 설명에는 다이소 재료를 쓰고 치이카와·하치와레·우사기 등 캐릭터 모양과 장식을 구현하는 방식이 포함된다. 웹 콘텐츠는 재료 목록과 코팅·얼굴 그리기 단계를 안내한다.",
+      "status": "Verified Signal",
+      "evidenceIds": [
+       "D-YT-05",
+       "WEB-01"
+      ]
+     },
+     "reusedEvidenceIds": [
+      "D-YT-03",
+      "D-YT-05"
+     ],
+     "checks": {
+      "anchorTerms": [
+       "먼작귀",
+       "캐릭터",
+       "빼빼",
+       "직접",
+       "만들기"
+      ],
+      "anchored": true,
+      "warnings": []
+     }
+    }
+   },
+   "model": "gpt-6-luna",
+   "analyzedAt": "2026-11-02T07:09:11.142Z",
+   "promptVersion": "why-phenomenon-v1",
+   "validation": {
+    "removedEvidenceIds": [
+     "NAVER-02",
+     "NAVER-03"
+    ],
+    "downgraded": 1,
+    "droppedTimeline": 1,
+    "droppedContext": 0
+   },
+   "web": {
+    "status": "live",
+    "count": 1,
+    "searchedSources": 38,
+    "droppedUnverified": 0,
+    "model": "gpt-6-luna"
+   },
+   "evidence": [
+    {
+     "id": "NAVER-01",
+     "kind": "naver_series",
+     "title": "\"먼작귀 캐릭터 빼빼로 직접 만들기\" 상대 검색 관심도 (week)",
+     "source": "NAVER DataLab Search Trend",
+     "url": "https://datalab.naver.com/keyword/trendSearch.naver",
+     "date": "2026-07-27~2026-11-02",
+     "collectedAt": "2026-11-02T07:08:38.637Z",
+     "excerpt": "평균 0, 최고 0(-), 최근 0(-), 초기 1/3 평균 0 → 최근 1/3 평균 0 (데이터 부족). 같은 요청의 키워드 그룹 간에만 비교 가능한 상대 지수이며 절대 검색량이 아님."
+    },
+    {
+     "id": "D-YT-03",
+     "kind": "youtube_video",
+     "title": "03년생 집순이 먼작귀 빼빼로 만들기 #먼작귀 #빼빼로만들기 #빼빼로데이 #치이카와빼빼로",
+     "source": "YouTube Data API · 보리",
+     "url": "https://www.youtube.com/watch?v=KWeEe0wGbKE",
+     "date": "2026-10-22T08:33:08Z",
+     "collectedAt": "2026-11-02T05:53:35.596Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-22T08:33:08Z, 조회수 52,222회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "D-YT-05",
+     "kind": "youtube_video",
+     "title": "먼작귀 빼빼로 만들기🍫 빼빼로데이",
+     "source": "YouTube Data API · 후한냠냠 | Cute Lunchbox",
+     "url": "https://www.youtube.com/watch?v=LGb3eOZi7-4",
+     "date": "2026-11-01T05:35:30Z",
+     "collectedAt": "2026-11-02T05:53:35.596Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-11-01T05:35:30Z, 조회수 34,206회(수집 시점 값). 공개 설명: 다이소 재료로 만드는 치이카와 빼빼로! 치이카와, 하치와레, 우사기부터 랏코, 쿠리만쥬, 시사, 모몽가, 카니까지❤️ 재료도 만드는 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음. (발견 단계에서 이 현상의 근거로 수집 · 재사용)"
+    },
+    {
+     "id": "YT-02",
+     "kind": "youtube_video",
+     "title": "태닝키티송이 만들기 #빼빼로 #빼빼로만들기 #빼빼로데이 #cutedesserts #satisfying",
+     "source": "YouTube Data API · 김수분moisture_",
+     "url": "https://www.youtube.com/watch?v=2uYZfirh5k4",
+     "date": "2026-10-29T11:50:39Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-29T11:50:39Z, 조회수 37,996회(수집 시점 값). 공개 설명: 태닝키티 vs 블랙키티, 여러분의 취향은? 🏖️ ⠀ 다른 색 조합 요청이 많아서 만들어본 태닝키티송이! 저는 노릇하게 탄 태닝키티가 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-03",
+     "kind": "youtube_video",
+     "title": "츄러스 빼빼로 만들기🤎 #츄러스 #빼빼로 #빼빼로만들기 #빼빼로데이 #churros",
+     "source": "YouTube Data API · 마니지",
+     "url": "https://www.youtube.com/watch?v=IBGAt4VH8eg",
+     "date": "2026-10-29T13:01:01Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-29T13:01:01Z, 조회수 1,007회(수집 시점 값). 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-04",
+     "kind": "youtube_video",
+     "title": "치이카와에서 가장 잔인한 장면.... ㅠㅠ #먼작귀",
+     "source": "YouTube Data API · 마금이",
+     "url": "https://www.youtube.com/watch?v=PNZoKrXUMEs",
+     "date": "2026-10-16T12:27:42Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-16T12:27:42Z, 조회수 3,632,758회(수집 시점 값). 공개 설명: 치이카와 #먼작귀. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-05",
+     "kind": "youtube_video",
+     "title": "헬로키티 빼빼로 세븐신상🤎",
+     "source": "YouTube Data API · 민또롱",
+     "url": "https://www.youtube.com/watch?v=-nzoHuxwGsQ",
+     "date": "2026-10-24T01:16:42Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-24T01:16:42Z, 조회수 1,827회(수집 시점 값). 공개 설명: 얼마 전 키티 빼빼로가 출시된 걸 봤지만 전 선물할 게 아니라 (다 내가 먹을 거^^) 양이 좀 많아서 (다이어트 중임^^) 고민하다 안 샀었 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-06",
+     "kind": "youtube_video",
+     "title": "💝다이소 재료로 빼빼로 만들기부터 포장까지 | 빼빼로데이 선물 | 초간단 빼빼로 4종 만들기",
+     "source": "YouTube Data API · 달곰베이킹 | 초보 베이킹",
+     "url": "https://www.youtube.com/watch?v=LXkS-ZHFAhI",
+     "date": "2026-10-27T13:14:15Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-27T13:14:15Z, 조회수 11,783회(수집 시점 값). 공개 설명: 빼빼로만들기 #다이소 #빼뺴로데이 빼빼로데이 선물, 아직 고민 중이신가요? 오늘은 오븐 없이 다이소 재료와 시판 과자로 만드는 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-07",
+     "kind": "youtube_video",
+     "title": "먼작귀 치이카와 3종 코바늘 인형 뜨는 법 | Chiikawa Trio Crochet Amigurumi Tutorial",
+     "source": "YouTube Data API · 묘한손끝",
+     "url": "https://www.youtube.com/watch?v=VSHzXU9xsIk",
+     "date": "2026-10-10T08:00:33Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-10T08:00:33Z, 조회수 24,583회(수집 시점 값). 공개 설명: 사용한 재료 1.실(해피코튼,아이돌) 2.레이스 코바늘(No.6,10,12,16) 3.UV레진 4.스티커 5.아크릴 물감 6.공예용 철사 7.볼터치 치크 8. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "YT-08",
+     "kind": "youtube_video",
+     "title": "초속 2cm로 움직이는 치이카와 만들기",
+     "source": "YouTube Data API · 딱지 DDAKG",
+     "url": "https://www.youtube.com/watch?v=Cylh9D25NWI",
+     "date": "2026-10-17T10:30:33Z",
+     "collectedAt": "2026-11-02T07:08:38.638Z",
+     "excerpt": "공개 영상 검색 결과. 게시 2026-10-17T10:30:33Z, 조회수 735,926회(수집 시점 값). 공개 설명: 지 혼자서 움직이는 치이카와 굿즈를 만들어 봤어요 #치이카와 #딱지 #먼작귀 ※이 작품은 판매·배포하지 않는 한 점 제작물입니다. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+    },
+    {
+     "id": "WEB-01",
+     "kind": "web_source",
+     "title": "[확산 콘텐츠] 다이소 재료만으로 치이카와 빼빼로를?! 🍫 치이카와",
+     "source": "하주 (@haju._.haju) / Imginn에 게시된 인스타그램 포스트",
+     "url": "https://imginn.com/p/DfJynRANQCk/",
+     "date": "2026-10-31",
+     "collectedAt": "2026-11-02T07:08:39.042Z",
+     "excerpt": "다이소에서 구할 수 있는 재료로 치이카와·하치와레·우사기 모양 빼빼로를 만드는 과정을 소개한다. 홈런볼을 빼빼로에 꽂고 캐릭터별 장식과 초콜릿으로 코팅한 뒤 얼굴을 그리는 단계와 재료 목록을 안내한다. (발행 2026-10-31 · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+    }
+   ]
+  }
+ }
+}

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const requestSchema = z.object({
   a: creativeTrendInputSchema,
   b: creativeTrendInputSchema,
-  relation: z.object({ type: z.string().max(60), score: z.number().min(0).max(1).nullable(), sharedAttributes: z.array(z.string().max(120)).max(12), signals: z.number().int().min(0).max(50) }).nullable().default(null),
+  relation: z.object({ type: z.string().max(60), score: z.number().min(0).max(1).nullable(), sharedAttributes: z.array(z.string().max(120)).max(12), signals: z.number().int().min(0).max(50), selectedConnectionId: z.string().max(160).optional(), selectedPhenomenon: z.string().max(200).optional(), subject: z.string().max(80).optional(), action: z.string().max(80).optional(), object: z.string().max(120).optional(), direction: z.string().max(100).optional(), culturalContext: z.string().max(500).optional(), evidenceIds: z.array(z.string().max(80)).max(24).optional(), verificationStatus: z.string().max(60).optional() }).nullable().default(null),
   prior: z.object({ title: z.string().max(200), opportunities: z.array(z.string().max(400)).max(6), tensions: z.array(z.string().max(400)).max(6) }).nullable().default(null),
   focusType: z.enum(ideaTypes).optional(),
   force: z.boolean().default(false),

@@ -268,6 +268,15 @@ function counter(ctx: Ctx, n: number, color: string): SceneElement {
 function seriesMark(ctx: Ctx, color: string): SceneElement {
   return text(ctx, "series · 시리즈 표시", "label", shortLabel(ctx.subject, 22), { x: ctx.m, y: ctx.H - ctx.m * 0.6 - 30 * ctx.s, w: 520 * ctx.s, h: 34 * ctx.s }, { color }).element;
 }
+/** T7: AI 생성 이미지 위에 붙는 표시(미리보기·Figma 장면 공통). 이미지 영역 오른쪽 위, 반투명 바탕 + 흰 글자. */
+export const AI_IMAGE_LABEL = "AI 생성 이미지";
+const aiChip = (ctx: Ctx, image: { x: number; y: number; w: number }): SceneElement[] => {
+  const w = 190 * ctx.s, h = 38 * ctx.s, x = image.x + image.w - w - 14 * ctx.s, y = image.y + 14 * ctx.s;
+  return [
+    { kind: "rect", name: "label-bg · AI 생성 표시", x, y, w, h, fill: "#14161F", opacity: 0.72, radius: 6 * ctx.s },
+    text(ctx, "label · AI 생성 표시", "label", AI_IMAGE_LABEL, { x: x + 10 * ctx.s, y: y + 6 * ctx.s, w: w - 20 * ctx.s, h: h - 12 * ctx.s }, { color: "#FFFFFF", size: Math.round(20 * ctx.s) }).element,
+  ];
+};
 const refChip = (ctx: Ctx, color: string): SceneElement => text(ctx, "참고 이미지 · 원본 링크(복제 안 함)", "label", "참고 이미지 · 원본 링크는 Editor Notes", { x: ctx.m, y: ctx.m * 0.55, w: 620 * ctx.s, h: 32 * ctx.s }, { color, size: Math.round(22 * ctx.s) }).element;
 
 function buildLayout(layout: LayoutId, ctx: Ctx, input: SlideInput): Built {
@@ -510,6 +519,9 @@ export function buildCardDesign(input: DesignInput): CardDesign {
     final.built.elements = ensureContrast(final.built.elements, final.built.background);
     if (final.built.overflow) frameNotes.push("최소 글자 크기에서도 문구가 길어요 — 문구를 줄이거나 슬라이드를 나누는 것을 권장(문구는 지우지 않음)");
     if (reference) { final.built.elements.push(refChip(ctx, final.built.background === colors.background || final.built.background === colors.surface ? colors.textSecondary : "#FFFFFF")); frameNotes.push("실제 근거 이미지는 권리 정책상 복제하지 않고 링크로만 표시"); }
+    // T7: AI 생성 이미지는 실제 사례가 아님을 카드 위에 표시한다.
+    const aiImage = final.built.elements.find((element): element is Extract<SceneElement, { kind: "image" }> => element.kind === "image" && element.status !== "REAL REFERENCE");
+    if (aiImage) { final.built.elements.push(...aiChip(ctx, aiImage)); frameNotes.push("AI 생성 이미지 — 실제 사례·인물 사진이 아님(카드에 표시)"); }
     previous = final.layout;
     used[final.layout] = (used[final.layout] ?? 0) + 1;
     const number = index + 1;

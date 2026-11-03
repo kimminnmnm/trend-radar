@@ -1,6 +1,6 @@
 {
  "recordedAt": "2026-11-02",
- "note": "T1~T3 실측: /api/discover/phenomena(메이크업·빼빼로데이, 30일)·/api/discover/connections(로블록스 × 메이크업, 90일, 수정 후 재실행). YouTube Data API·OpenAI 웹 검색·NAVER DataLab 실제 응답. Instagram은 할당량 보호로 수집하지 않음. 테스트는 이 응답을 재사용한다.",
+ "note": "T1~T3 실측: /api/discover/phenomena(메이크업·빼빼로데이, 30일)·/api/discover/connections(로블록스 × 메이크업, 90일, 수정 후 재실행). YouTube Data API·OpenAI 웹 검색·NAVER DataLab 실제 응답. Instagram은 할당량 보호로 수집하지 않음. 테스트는 이 응답을 재사용한다. T4: /api/discover/phenomena(로블록스, 30일) 2026-11-02 실측 추가.",
  "makeup": {
   "cached": false,
   "promptVersion": "discovery-v1",
@@ -1567,5 +1567,418 @@
     "observedDateRange": null
    }
   ]
+ },
+ "roblox": {
+  "cached": false,
+  "promptVersion": "discovery-v1",
+  "keyword": "로블록스",
+  "window": {
+   "days": 30,
+   "from": "2026-10-03",
+   "to": "2026-11-02"
+  },
+  "signals": [
+   {
+    "signalId": "sig-1",
+    "parentKeyword": "로블록스",
+    "title": "이웃 맵 랜덤채팅 상담",
+    "phenomenon": "장지수가 로블록스 ‘이웃’ 맵에서 랜덤채팅으로 만난 이용자들의 고민을 상담하는 영상을 올렸다.",
+    "audienceBehavior": "시청자들이 랜덤채팅에서 이용자를 만나 대화하는 플레이를 영상으로 본다.",
+    "relatedEntities": [
+     "장지수",
+     "이웃"
+    ],
+    "relatedKeywords": [
+     "이웃 맵",
+     "랜덤채팅",
+     "고민 상담"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "YT-01",
+      "note": "‘이웃’ 맵 랜덤채팅에서 여러 이용자를 만나 고민 상담을 하는 영상이다."
+     }
+    ],
+    "observedPlatforms": [
+     "YouTube"
+    ],
+    "evidenceIds": [
+     "YT-01"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-14",
+     "to": "2026-10-14"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": null,
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   },
+   {
+    "signalId": "sig-2",
+    "parentKeyword": "로블록스",
+    "title": "피라미드 건설 성장 플레이",
+    "phenomenon": "침착맨이 피라미드를 만들고 보상을 받아 강해진 뒤 더 빠르게 건설하는 로블록스 게임을 플레이하는 영상을 공개했다.",
+    "audienceBehavior": "건설과 보상 획득으로 진행 속도를 높이는 게임 플레이를 시청한다.",
+    "relatedEntities": [
+     "침착맨"
+    ],
+    "relatedKeywords": [
+     "피라미드 만들기",
+     "건설 게임",
+     "보상 성장"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "YT-04",
+      "note": "피라미드를 건설하고 보상으로 강해져 건설 속도를 높이는 게임의 1일차 영상이다."
+     }
+    ],
+    "observedPlatforms": [
+     "YouTube"
+    ],
+    "evidenceIds": [
+     "YT-04"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-22",
+     "to": "2026-10-22"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": null,
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   },
+   {
+    "signalId": "sig-3",
+    "parentKeyword": "로블록스",
+    "title": "모노크롬 공포게임 플레이",
+    "phenomenon": "혜안이 로블록스 공포게임 ‘모노크롬’을 플레이한 영상을 공개했다.",
+    "audienceBehavior": "공포게임 플레이 영상으로 게임의 무서운 장면과 반응을 시청한다.",
+    "relatedEntities": [
+     "혜안",
+     "모노크롬"
+    ],
+    "relatedKeywords": [
+     "모노크롬",
+     "로블록스 공포게임"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "YT-05",
+      "note": "‘모노크롬’을 역대급으로 난리 난 공포게임으로 소개하며 플레이한다."
+     }
+    ],
+    "observedPlatforms": [
+     "YouTube"
+    ],
+    "evidenceIds": [
+     "YT-05"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-25",
+     "to": "2026-10-25"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": {
+     "keyword": "모노크롬",
+     "direction": "rising",
+     "recentAvg": 92.7,
+     "priorAvg": 44.4,
+     "ratio": 2.09,
+     "basis": "NAVER DataLab 상대 검색 관심도(같은 요청 안의 0~100 지수) · 최근 4주 평균 ÷ 이전 평균 · 절대 검색량 아님"
+    },
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   },
+   {
+    "signalId": "sig-4",
+    "parentKeyword": "로블록스",
+    "title": "계란훔치기 운영자 계정 체험",
+    "phenomenon": "싸모스가 로블록스 ‘계란훔치기’ 운영자 계정에 접속해 보는 영상을 올렸다.",
+    "audienceBehavior": "운영자 계정의 권한과 게임 내 경험을 영상으로 확인한다.",
+    "relatedEntities": [
+     "싸모스",
+     "계란훔치기"
+    ],
+    "relatedKeywords": [
+     "계란훔치기",
+     "운영자 권한"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "YT-06",
+      "note": "‘계란훔치기’ 운영자 계정에 직접 접속해 본다고 소개한 영상이다."
+     }
+    ],
+    "observedPlatforms": [
+     "YouTube"
+    ],
+    "evidenceIds": [
+     "YT-06"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-10",
+     "to": "2026-10-10"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": {
+     "keyword": "계란훔치기",
+     "direction": "rising",
+     "recentAvg": 28.1,
+     "priorAvg": 13.1,
+     "ratio": 2.14,
+     "basis": "NAVER DataLab 상대 검색 관심도(같은 요청 안의 0~100 지수) · 최근 4주 평균 ÷ 이전 평균 · 절대 검색량 아님"
+    },
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   },
+   {
+    "signalId": "sig-5",
+    "parentKeyword": "로블록스",
+    "title": "로블록스 안의 PS4·콘솔게임 재현",
+    "phenomenon": "팬 제작 경험들이 로블록스 안에 PS4 대시보드와 다른 콘솔게임의 재현물을 구현하고, 크리에이터 소개 영상 이후 주목받았다. 일부 경험은 삭제되거나 새 버전으로 다시 알려졌다.",
+    "audienceBehavior": "로블록스 안에서 재현된 대시보드와 게임을 방문해 체험하고, 관련 소개 영상을 본다.",
+    "relatedEntities": [
+     "PlayStation Experience",
+     "Rostation Experience",
+     "KreekCraft",
+     "Undertale",
+     "Five Nights at Freddy’s",
+     "Counter-Strike",
+     "Left 4 Dead 2"
+    ],
+    "relatedKeywords": [
+     "PS4 재현",
+     "로블록스 속 게임",
+     "콘솔게임"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "WEB-03",
+      "note": "PS4 메뉴와 게임 재현 경험이 소개 영상 이후 방문을 얻었으며, 다른 게임 재현 사례도 보도됐다."
+     },
+     {
+      "evidenceId": "WEB-04",
+      "note": "PS4 대시보드와 여러 게임을 재현한 경험 및 새 버전 ‘Rostation Experience’가 보도됐다."
+     }
+    ],
+    "observedPlatforms": [
+     "웹"
+    ],
+    "evidenceIds": [
+     "WEB-03",
+     "WEB-04"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-28",
+     "to": "2026-10-28"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": null,
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   },
+   {
+    "signalId": "sig-6",
+    "parentKeyword": "로블록스",
+    "title": "Build AI로 게임 제작·공개",
+    "phenomenon": "Roblox의 AI 프롬프트 제작 도구 Build를 이용한 제작자들이 게임을 만들고 공개했다고 보도됐다.",
+    "audienceBehavior": "제작자들이 AI 도구로 게임 제작을 가속하고 플랫폼에 게임을 공개한다.",
+    "relatedEntities": [
+     "Roblox",
+     "Build",
+     "Break and Steal an Egg",
+     "Huss Valley"
+    ],
+    "relatedKeywords": [
+     "Build AI",
+     "AI 게임 제작",
+     "Roblox 게임 공개"
+    ],
+    "contentExamples": [
+     {
+      "evidenceId": "WEB-05",
+      "note": "주주서한을 인용해 Build 이용자의 게임 공개와 일부 AI 활용 게임의 동시접속 순위를 전했다."
+     }
+    ],
+    "observedPlatforms": [
+     "웹"
+    ],
+    "evidenceIds": [
+     "WEB-05"
+    ],
+    "observedDateRange": {
+     "from": "2026-10-30",
+     "to": "2026-10-30"
+    },
+    "evidenceStrength": "weak",
+    "momentumIndicator": null,
+    "verificationStatus": "Emerging Signal",
+    "inWindowCount": 1,
+    "independentSources": 1
+   }
+  ],
+  "excluded": [],
+  "removedIds": [],
+  "limitations": [
+   "표본이 검색 결과 영상과 소수의 웹 기사에 한정되어 전체 로블록스 이용자 행동을 대표한다고 볼 수 없다.",
+   "웹 자료 일부는 검색 결과의 AI 요약이며 원문 확인이 필요하다.",
+   "WEB-04는 게시 날짜가 없어 관찰 기간 내 발생 여부를 확정하기 어렵다.",
+   "게임 내 이용자의 실제 제작·방문·구매 행동을 직접 관찰한 자료가 제한적이다."
+  ],
+  "notes": [],
+  "sources": {
+   "youtube": 9,
+   "web": 5,
+   "webDropped": 1
+  },
+  "ledger": [
+   {
+    "id": "YT-01",
+    "kind": "youtube_video",
+    "title": "정상인이 없는 로블록스 랜덤채팅 ㅋㅋㅋㅋ",
+    "source": "YouTube Data API · 장지수",
+    "url": "https://www.youtube.com/watch?v=malIPTIFomk",
+    "date": "2026-10-14T09:30:25Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-14T09:30:25Z, 조회수 93,989회(수집 시점 값). 공개 설명: 안녕하세요 여러분 장지수입니다!! 이번 영상은 로블록스 '이웃' 맵에 들어가서 랜덤채팅으로 다양한 유저분들을 만나 고민 상담을 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-02",
+    "kind": "youtube_video",
+    "title": "상상도 못한 최악의 짓을 저지른 로블록스 유저",
+    "source": "YouTube Data API · 유그로",
+    "url": "https://www.youtube.com/watch?v=kcGH8Lutcp0",
+    "date": "2026-10-25T03:00:01Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-25T03:00:01Z, 조회수 67,343회(수집 시점 값). 공개 설명: 이 영상은 뮤팟에서 제공한 음원 소스를 사용했습니다. Fearful Situation- Download: mewc.at/songs/3844 추천인 코드: ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-03",
+    "kind": "youtube_video",
+    "title": "[로블록스 주가전망] (미국장 개장 전) 실적 앞 반등.. \"진짜 반등\" 믿어도 될까? #로블록스주가전망 #로블록스대응 #로블록스",
+    "source": "YouTube Data API · arreality1 ",
+    "url": "https://www.youtube.com/watch?v=W40NKTkiaIk",
+    "date": "2026-10-28T08:45:31Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-28T08:45:31Z, 조회수 144회(수집 시점 값). 공개 설명: <b>로블록스</b>주가전망 #<b>로블록스</b>대응 #<b>로블록스 로블록스</b> 주가전망을 실적 발표 전 가격 흐름과 예약액 우려로 살펴봅니다. 어제 종가 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-04",
+    "kind": "youtube_video",
+    "title": "⟪로블록스⟫ 피라미드 1일차 | 피라미드를 만들고 보상으로 더 강해져서 더 빨리 만드는 게임",
+    "source": "YouTube Data API · 침착맨 게임 풀버전",
+    "url": "https://www.youtube.com/watch?v=ip94qXzxJpw",
+    "date": "2026-10-22T13:00:30Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-22T13:00:30Z, 조회수 114,009회(수집 시점 값). 공개 설명: 로블록스(ROBLOX) -링크: https://www.roblox.com/ko/download ▷같이 보면 좋은 추천 영상 https://youtu.be/Z0b8KXffwoc ▷관련 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-05",
+    "kind": "youtube_video",
+    "title": "와.. 죤나 무섭다;; 현재 로블록스에서 역대급으로 난리난 공포게임 ≪모노크롬≫",
+    "source": "YouTube Data API · 혜안",
+    "url": "https://www.youtube.com/watch?v=uAkiNrCDZKo",
+    "date": "2026-10-25T10:17:03Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-25T10:17:03Z, 조회수 1,099,808회(수집 시점 값). 공개 설명: 이게모노크롬 [업로드] 금,토,일,월 [문의메일] zxcv34276@gmail.com [인스타그램] @hxxax_ #혜안 #공포게임 [브금대통령] Track ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-06",
+    "kind": "youtube_video",
+    "title": "계란훔치기 운영자 권한을 얻었습니다..",
+    "source": "YouTube Data API · 싸모스",
+    "url": "https://www.youtube.com/watch?v=8c1o0zhUxZw",
+    "date": "2026-10-10T01:00:08Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-10T01:00:08Z, 조회수 201,372회(수집 시점 값). 공개 설명: 로블록스 #로블 #게임 #싸모스 #계란을훔치다 #계란훔치기 #운영자 계란훔치기 운영자 계정에 직접 접속해봤습니다! 운영자 계정 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-07",
+    "kind": "youtube_video",
+    "title": "말한 게 현실이 되는 끝말잇기?! #로블록스",
+    "source": "YouTube Data API · 고심",
+    "url": "https://www.youtube.com/watch?v=DkhVPy8zuSA",
+    "date": "2026-11-02T05:45:27Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-11-02T05:45:27Z, 조회수 9,243회(수집 시점 값). 공개 설명: 말한 게 현실이 되는 끝말잇기?! #로블록스. 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-08",
+    "kind": "youtube_video",
+    "title": "로블록스가 현실에 존재하면 생기는 일",
+    "source": "YouTube Data API · 강태풍의 로블록스",
+    "url": "https://www.youtube.com/watch?v=25IwkO8jZ5I",
+    "date": "2026-10-04T07:22:09Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-04T07:22:09Z, 조회수 92,985회(수집 시점 값). 공개 설명: 현실에 로블록스가 존재하면 이런 느낌이라니;; 충격이다ㅋㅋㅋㅋ 로블록스가 현실이라면?? 완전 신기하네ㅋㅋㅋㅋㅋ 여러분이 제 ... 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "YT-09",
+    "kind": "youtube_video",
+    "title": "*무한현질* 종결 검 뽑고 보스까지 솔플로 잡았습니다! [+ 제작할 전리품 1개]",
+    "source": "YouTube Data API · 로플릭스",
+    "url": "https://www.youtube.com/watch?v=-j04nwDJdo8",
+    "date": "2026-10-08T08:00:16Z",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "공개 영상 검색 결과. 게시 2026-10-08T08:00:16Z, 조회수 21,306회(수집 시점 값). 공개 설명: 로블록스 #로블록스게임추천 #원루트투포지 #로블록스RPG 최종 검 레시피로 종결검 까지 먹고 게임 마스터 했다! 조회수와 게시 시각은 트렌드의 원인이나 전체 YouTube 대표성을 증명하지 않음."
+   },
+   {
+    "id": "WEB-01",
+    "kind": "web_source",
+    "title": "Roblox Expands Live Creator Tournament Series to Brazil",
+    "source": "Roblox",
+    "url": "https://about.roblox.com/newsroom/2026/10/roblox-expands-live-creator-tournament-series-to-brazil",
+    "date": "2026-10-14",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "상파울루에서 처음으로 국제 크리에이터 대결을 열어 브라질 크리에이터 8명이 2인 팀으로 5개 Roblox 게임에서 경쟁했다. 대회는 포르투갈어·영어로 YouTube, TikTok, Twitch에 생중계됐으며, 경기 종목에는 애니메이션 FPS·협동 생존 호러·FIFA 축구·음악 제작 배틀·배틀로얄이 포함됐다. (발행 2026-10-14 · 검색어 “site:about.roblox.com/newsroom/2026/10 Roblox tournament Bra” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   },
+   {
+    "id": "WEB-02",
+    "kind": "web_source",
+    "title": "Halloween: Hauntlet Returns Notes!",
+    "source": "Adopt Me!",
+    "url": "https://www.playadopt.me/news/halloween-hauntlet-returns-notes",
+    "date": "2026-10-09",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "Adopt Me!의 할로윈 미니게임 ‘Hauntlet 2’는 위험과 보상이 다른 경로를 선택하게 하고, 친구와 같은 길을 택해 함께 진행하거나 갈라질 수 있도록 구성됐다. 아이템 효과를 방 안의 팀원 모두가 공유하도록 바꿔 협력 플레이를 강조했다. (발행 2026-10-09 · 검색어 “Roblox October 2026 Halloween games update Adopt Me Bloxburg” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   },
+   {
+    "id": "WEB-03",
+    "kind": "web_source",
+    "title": "PlayStation games are being played inside Roblox, along with Counter-Strike",
+    "source": "TweakTown",
+    "url": "https://www.tweaktown.com/news/114345/playstation-games-are-being-played-inside-roblox-along-with-counter-strike/index.html",
+    "date": "2026-10-28",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "팬 제작 Roblox 경험 ‘PlayStation Experience’가 PS4 메뉴와 7개 게임 재현물을 담아 확산됐고, KreekCraft가 소개한 영상 이후 방문 17만 8천 회 이상을 기록한 뒤 목록이 삭제 상태로 바뀌었다. 보도는 Counter-Strike와 Left 4 Dead 2 재현도 언급하며, ‘게임 안에서 다른 게임을 플레이하는’ 형식이 나타났다고 전한다. (발행 2026-10-28 · 검색어 “Roblox October 2026 PlayStation Experience game copied dashb” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   },
+   {
+    "id": "WEB-04",
+    "kind": "web_source",
+    "title": "A working PS4 dashboard was ported to Roblox alongside games like Undertale – it was quickly taken down, but a new version is already out",
+    "source": "GamesRadar+",
+    "url": "https://www.gamesradar.com/games/a-working-ps4-dashboard-was-ported-to-roblox-alongside-games-like-undertale-it-was-quickly-taken-down-but-a-new-version-is-already-out/",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "Roblox 안에 PS4 부팅 화면과 홈 메뉴, ‘Undertale’, ‘Five Nights at Freddy’s’ 등의 플레이 가능한 재현물을 넣은 경험이 퍼진 뒤, 제작자가 ‘Rostation Experience’라는 새 버전을 알렸다고 보도했다. 크리에이터 KreekCraft가 해당 경험을 소개한 영상도 확산의 계기로 언급된다. (발행 날짜 미상 · 검색어 “Roblox October 2026 PlayStation Experience game copied dashb” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   },
+   {
+    "id": "WEB-05",
+    "kind": "web_source",
+    "title": "AI-powered game development is 'leading to an explosion of content,' Roblox says, as it brags about 70,000 games published on its platform in the last 5 months alone",
+    "source": "PC Gamer",
+    "url": "https://www.pcgamer.com/software/ai/ai-powered-game-development-is-leading-to-an-explosion-of-content-roblox-says-as-it-brags-about-70-000-games-published-on-its-platform-in-the-last-5-months-alone/",
+    "date": "2026-10-30",
+    "collectedAt": "2026-11-02T06:40:53.038Z",
+    "excerpt": "Roblox의 3분기 주주서한을 인용해 AI 프롬프트 기반 제작 도구 Build 이용자 50만 명 이상이 7만 개가 넘는 게임을 공개했다고 전한다. 상위 100개 게임의 80% 이상이 제작 가속에 AI 도구를 썼고, AI 활용으로 거의 전부 제작한 ‘Break and Steal an Egg’, ‘Huss Valley’가 동시접속자 기준 상위 20위에 들었다고 보도했다. (발행 2026-10-30 · 검색어 “Roblox October 2026 AI Build tool 70000 games Q3” · 웹 검색 결과를 AI가 요약 · 원문 확인 필요)"
+   }
+  ],
+  "model": "gpt-6-luna"
  }
 }

@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { callStructured, js } from "./openai-client";
-import type { EvidenceItem } from "./schemas";
+import type { EvidenceItem, PhenomenonContext } from "./schemas";
 
 /*
  * TREND WHY 보강용 공개 웹 출처 수집. OpenAI 웹 검색 도구가 실제로 조회한 URL만 근거 원장(WEB-xx)에 넣는다.
@@ -24,11 +24,24 @@ export const cleanDate = (value: string) => /^\d{4}(-\d{2}(-\d{2})?)?$/.test(val
 import type { WebCollection } from "./types";
 export type { WebCollection };
 
-export async function collectWebEvidence(trend: string, collectedAt = new Date().toISOString(), focus?: ResearchFocus): Promise<{ items: EvidenceItem[]; web: WebCollection }> {
+/** T5: 선택한 현상의 행동 자체를 찾는 검색 지시. 상위 키워드의 일반 설명·역사나 다른 방향의 자료는 찾지 않는다. */
+export function phenomenonSearchBrief(phenomenon: PhenomenonContext) {
+  const parts = [phenomenon.subject && `subject: ${phenomenon.subject}`, (phenomenon.action || phenomenon.coreBehavior) && `action: ${phenomenon.action || phenomenon.coreBehavior}`, phenomenon.object && `object: ${phenomenon.object}`, phenomenon.direction && `direction: ${phenomenon.direction}`].filter(Boolean).join(" · ");
+  return `Selected phenomenon: "${phenomenon.title}" (parent keyword: ${phenomenon.keyword}). ${parts}. Observed window: ${phenomenon.window.from}~${phenomenon.window.to}.`;
+}
+
+export async function collectWebEvidence(trend: string, collectedAt = new Date().toISOString(), focus?: ResearchFocus, phenomenon?: PhenomenonContext): Promise<{ items: EvidenceItem[]; web: WebCollection }> {
   const today = collectedAt.slice(0, 10);
   const { data, model, sources } = await callStructured({
     name: "trend_why_web_sources", jsonSchema: sourceJsonSchema, validator: sourceSchema, webSearch: true, maxOutputTokens: 3500,
-    instructions: focus ? [
+    instructions: phenomenon ? [
+      "You collect public web sources about ONE specific cultural phenomenon for a cautious Korean trend analyst. Use web search and report only what the sources say.",
+      `Today is ${today}. ${phenomenonSearchBrief(phenomenon)}`,
+      "Build several search queries in Korean AND English that describe this exact behavior (translate the phrase, combine the platform/game/brand name with the action and the object, try the creators' own wording). Do not search for the parent keyword alone, its history, its definition, or general introductions to the platform.",
+      "Return only sources that show or report this behavior itself: examples of people doing it (category content), dated occurrences (event), brands taking part in it (brand), and commentary about the culture around this exact behavior (background). Exclude pages about a different direction of the same concepts (e.g. using an item inside a game when the selected direction is recreating it in real life).",
+      "Prefer recent sources inside or near the observed window. Use different domains where possible. Return 0-8 sources; return fewer rather than unrelated ones.",
+      "title, publisher, publishedDate (YYYY-MM-DD, YYYY-MM or YYYY if shown, otherwise empty), eventDate (if stated, otherwise empty). summary: one or two Korean sentences of what the source itself states about this behavior. url: a URL you actually opened or found. Never fabricate URLs or dates.",
+    ].join(" ") : focus ? [
       "You collect public web sources for a Korean social content editor. Use web search (Korean and English queries) and report only what the sources say.",
       `Today is ${today}. The editor is writing "${focus.topic}" about the subject "${trend}". Find concrete, checkable facts this piece needs — names, places, official information, how-to details, history facts — not trend analysis or search-interest data. Needs: ${focus.needs.join(" / ") || "(none listed)"}. Use category 'detail' for practical or descriptive facts, 'background' for history, 'event' for dated events.`,
       "Prefer official pages, news outlets, magazines and reputable guides. Avoid shopping listings, SEO spam and anonymous forums. Use at least 2 different domains.",
@@ -43,7 +56,7 @@ export async function collectWebEvidence(trend: string, collectedAt = new Date()
       "summary: one or two Korean sentences of what the source itself states about the trend. Do not add causes, numbers or claims the source does not make.",
       "url: a URL you actually opened or found in search results. Never fabricate URLs or dates.",
     ].join(" "),
-    input: focus ? `주제: ${trend}\n콘텐츠 방향: ${focus.topic}\n이 콘텐츠에 필요한 구체 자료의 공개 출처를 찾아 주세요.` : `트렌드 키워드: ${trend}\n이 키워드의 배경, 실제 문화적 사건, 확산에 영향을 줬을 수 있는 콘텐츠, 브랜드 활용 사례에 대한 공개 출처를 찾아 주세요.`,
+    input: phenomenon ? `선택한 현상: ${phenomenon.title}\n상위 키워드: ${phenomenon.keyword}\n이 현상(행동) 자체를 보여 주거나 보도한 공개 출처를 찾아 주세요. 상위 키워드의 일반 설명·역사는 제외합니다.` : focus ? `주제: ${trend}\n콘텐츠 방향: ${focus.topic}\n이 콘텐츠에 필요한 구체 자료의 공개 출처를 찾아 주세요.` : `트렌드 키워드: ${trend}\n이 키워드의 배경, 실제 문화적 사건, 확산에 영향을 줬을 수 있는 콘텐츠, 브랜드 활용 사례에 대한 공개 출처를 찾아 주세요.`,
   });
   const found = new Map(sources.map((source) => [normalizeUrl(source.url), source]));
   const seen = new Set<string>();

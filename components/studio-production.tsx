@@ -18,7 +18,11 @@ import { figmaImageSources } from "@/lib/asset-storage";
 import { toFigmaExport } from "@/lib/figma-export";
 import { rightsNote, type ImageAspect, type ImageAssetRef } from "@/lib/image-assets";
 import { readQueryParam } from "@/lib/insight-sources";
-import { liveTrendId, toTrendContext } from "@/lib/live-trend";
+import { phenomenonFromQuery, phenomenonQuery, phenomenonTrendId } from "@/lib/discovery";
+import { buildContextLock, type EditorialContextLock } from "@/lib/editorial-lock";
+import { slideImageBrief, type ImageBrief } from "@/lib/image-brief";
+import { ContextLockPanel } from "./context-lock-panel";
+import { liveTrendId, toTrendContext, trendPath } from "@/lib/live-trend";
 import { saveProjectEverywhere } from "@/lib/studio-cloud";
 import { findPhenomenon, getCreativeRuns, getSavedItems, getStudioProject, saveStudioProject } from "@/lib/storage";
 import { getCollisions, saveCreativeRun } from "@/lib/storage";
@@ -39,6 +43,9 @@ type Response = { cached: boolean; generatedAt: string; promptVersion: string; m
 const TONE_PRESETS = ["친구에게 말하듯 가볍게, 구체적으로, 과장 없이", "정보 위주로 담백하게", "팬의 마음으로 유쾌하게", "에세이처럼 차분하게", "입문자에게 친절하게"];
 
 /** 트렌드 근거에서 실제 이미지(REAL REFERENCE) 몇 장을 참조로 가져온다(원본 URL만, 복제 없음). */
+/** 잠금의 관측 근거는 프로젝트가 근거로 쓰는 WHY 스냅샷(T1)의 원장 ID여야 한다. */
+const lockSource = (snapshot: LiveAnalysisSnapshot | undefined) => snapshot ? { report: snapshot.whyReport, evidence: snapshot.evidence } : null;
+
 function realReferences(snapshot: LiveAnalysisSnapshot | undefined, limit = 3): ImageAssetRef[] {
   if (!snapshot) return [];
   return snapshotMedia(snapshot).filter((item) => item.thumbnailUrl).slice(0, limit).map((item) => ({
@@ -138,23 +145,25 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
         const existing = findProject(id);
         if (existing) return existing;
         const now = new Date().toISOString();
-        const created: StudioProject = { id, mode: "single", title: snapshot.trendName, source: { trendKeys: [trend], trendNames: [snapshot.trendName] }, settings: defaultSettings("cardnews"), assets: realReferences(snapshot, 4), edited: false, createdAt: now, updatedAt: now };
+        const phen = snapshot.whyReport?.phenomenon?.context;
+        const created: StudioProject = { id, mode: "single", title: snapshot.trendName, source: { trendKeys: [trend], trendNames: [snapshot.trendName] }, settings: defaultSettings("cardnews"), ...(phen ? { phenomenon: phen, customTopic: phen.title, contextLock: buildContextLock(phen, lockSource(snapshot)) } : {}), assets: realReferences(snapshot, 4), edited: false, createdAt: now, updatedAt: now };
         saveStudioProject(created);
         return created;
       }, "이 트렌드 분석을 찾지 못했습니다. WHY 분석을 먼저 실행하세요.");
-      // T4: Overview에서 고른 세부 현상. 상위 키워드의 WHY 분석을 근거로 쓰고, 현상 이름을 직접 정한 주제로 둔다.
+      // T4: Overview에서 고른 세부 현상. 저장된 발견 결과가 없으면 주소에 실린 맥락(현상 ID·행동·기간·근거 ID)을 쓴다.
       if (phenomenon) return start(() => {
-        const found = findPhenomenon(phenomenon);
-        if (!found) return null;
-        const id = projectIdFor("single", `phen-${phenomenon}`);
+        const context = findPhenomenon(phenomenon)?.context ?? phenomenonFromQuery(new URLSearchParams(window.location.search));
+        if (!context) return null;
+        const id = projectIdFor("single", `phen-${context.phenomenonId}`);
         const existing = findProject(id);
         if (existing) return existing;
         const now = new Date().toISOString();
-        const trendKey = liveTrendId(found.keyword);
-        const created: StudioProject = { id, mode: "single", title: found.signal.title, source: { trendKeys: [trendKey], trendNames: [found.keyword] }, settings: defaultSettings("cardnews"), customTopic: found.signal.title, assets: realReferences(bySnapshot.get(trendKey), 4), edited: false, createdAt: now, updatedAt: now };
+        // 이 현상의 WHY 분석이 있으면 그것을, 없으면 상위 키워드의 WHY 분석을 근거로 쓴다.
+        const trendKey = bySnapshot.get(phenomenonTrendId(context))?.whyReport ? phenomenonTrendId(context) : liveTrendId(context.keyword);
+        const created: StudioProject = { id, mode: "single", title: context.title, source: { trendKeys: [trendKey], trendNames: [context.keyword] }, settings: defaultSettings("cardnews"), customTopic: context.title, phenomenon: context, contextLock: buildContextLock(context, lockSource(bySnapshot.get(trendKey))), assets: realReferences(bySnapshot.get(trendKey), 4), edited: false, createdAt: now, updatedAt: now };
         saveStudioProject(created);
         return created;
-      }, "선택한 현상을 이 브라우저에서 찾지 못했습니다. Overview에서 현상을 다시 찾거나 저장해 주세요.");
+      }, "선택한 현상을 이 브라우저에서 찾지 못했습니다. Overview에서 현상을 다시 찾거나 Workspace에 저장해 주세요.");
       setBoot("ready");
     });
     return () => cancelAnimationFrame(frame);
@@ -230,6 +239,8 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     update(created); openUrl(created.id);
   };
 
+  // T6: 현상에서 들어온 프로젝트의 편집 맥락 잠금. T6 이전에 만든 프로젝트는 현상 맥락으로 다시 만든다(고치면 저장).
+  const lock: EditorialContextLock | undefined = project ? project.contextLock ?? (project.phenomenon ? buildContextLock(project.phenomenon, lockSource(bySnapshot.get(project.source.trendKeys[0]))) : undefined) : undefined;
   const contexts = project ? project.source.trendKeys.map((key) => bySnapshot.get(key)).map((snapshot) => snapshot ? toTrendContext(snapshot) : null).filter((item): item is NonNullable<typeof item> => Boolean(item)) : [];
   const missingTrends = project ? project.source.trendKeys.filter((key) => !bySnapshot.get(key)?.whyReport).map((key, i) => project.source.trendNames[project.source.trendKeys.indexOf(key)] ?? key ?? i) : [];
 
@@ -239,7 +250,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     setAngleState("loading"); setAngleError("");
     try {
       const mode = settingsMode(project.settings);
-      const response = await apiFetch("/api/studio/angles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, mode, settings: { format: project.settings.format, target: project.settings.target, goal: project.settings.goal, tone: project.settings.tone }, customTopic: project.customTopic ?? "", force: Boolean(project.angles && project.angles.mode === mode) }) });
+      const response = await apiFetch("/api/studio/angles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, mode, settings: { format: project.settings.format, target: project.settings.target, goal: project.settings.goal, tone: project.settings.tone }, customTopic: project.customTopic ?? "", ...(lock?.enabled ? { contextLock: lock } : {}), force: Boolean(project.angles && project.angles.mode === mode) }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.message || "콘텐츠 방향 제안에 실패했습니다.");
       const data = body as AnglesResponse;
@@ -258,7 +269,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     if (project.plan && project.edited && !window.confirm("직접 고친 카피가 있습니다. 다시 생성하면 새 결과로 바뀝니다(이전 결과는 저장된 Workspace 항목에 남아 있을 수 있습니다). 계속할까요?")) return;
     setState("loading"); setError(""); setToast("");
     try {
-      const response = await apiFetch("/api/studio/production", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, settings: { ...project.settings, mode: settingsMode(project.settings) }, angle: project.angle, customTopic: project.customTopic ?? "", research: deepResearch && mode !== "report", assets: project.assets.map((asset) => ({ id: asset.id, status: asset.status, title: asset.title })), force: Boolean(project.plan) }) });
+      const response = await apiFetch("/api/studio/production", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, settings: { ...project.settings, mode: settingsMode(project.settings) }, angle: project.angle, customTopic: project.customTopic ?? "", ...(lock?.enabled ? { contextLock: lock } : {}), research: deepResearch && mode !== "report", assets: project.assets.map((asset) => ({ id: asset.id, status: asset.status, title: asset.title })), force: Boolean(project.plan) }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.message || "제작 기획 생성에 실패했습니다.");
       const data = body as Response;
@@ -401,7 +412,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
   const setDesign = (patch: Partial<DesignControls>) => update({ ...project, design: { ...project.design, ...patch } });
   const assetById = new Map(project.assets.map((asset) => [asset.id, asset]));
   const aspect = project.settings.aspect as ImageAspect;
-  const unitSlot = (unitId: string, ref: string, prompt: string, purposes: Array<"cover" | "body" | "thumbnail" | "background">, image?: SlideImage) => {
+  const unitSlot = (unitId: string, ref: string, prompt: string, purposes: Array<"cover" | "body" | "thumbnail" | "background">, image?: SlideImage, brief?: ImageBrief) => {
     const asset = ref ? assetById.get(ref) : undefined;
     return <div className="slot">
       {asset ? <AssetImage asset={asset} compact/> : <p className="empty-slot">이미지 없음</p>}
@@ -412,7 +423,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
         {ref && <button type="button" className="mini" onClick={() => linkAsset(unitId, "")} data-testid="slot-unlink">연결 해제</button>}
       </div>
       {linkSlot === unitId && <div className="picker" data-testid="asset-picker">{project.assets.length ? project.assets.map((item) => <button type="button" key={item.id} onClick={() => linkAsset(unitId, item.id)} aria-label={`${item.status} ${item.title} 연결`} aria-pressed={ref === item.id} data-asset-id={item.id}><AssetImage asset={item} compact/></button>) : <p>연결할 이미지가 없습니다.</p>}</div>}
-      {imageSlots.has(unitId) && <ImageGenerator key={unitId} scopeId={unitId} initialPrompt={image?.prompt ?? prompt} purposes={purposes} aspects={[aspect]} defaultAspect={aspect} title={`${plan?.title ?? project.title} · ${unitId}`} inspired={Boolean(project.concept?.ipCaution)} onStart={(requestId, value) => beginImage(unitId, requestId, value)} onGenerated={(asset, requestId) => addAsset(unitId, asset, requestId)} onError={(message, requestId) => failImage(unitId, requestId, message)} testId="slot-image"/>}
+      {imageSlots.has(unitId) && <ImageGenerator key={unitId} scopeId={unitId} initialPrompt={image?.prompt ?? prompt} purposes={purposes} aspects={[aspect]} defaultAspect={aspect} title={`${plan?.title ?? project.title} · ${unitId}`} inspired={Boolean(project.concept?.ipCaution)} onStart={(requestId, value) => beginImage(unitId, requestId, value)} onGenerated={(asset, requestId) => addAsset(unitId, asset, requestId)} onError={(message, requestId) => failImage(unitId, requestId, message)} testId="slot-image" brief={brief}/>}
     </div>;
   };
 
@@ -421,6 +432,8 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       <div className="titlebar"><span>STUDIO.EXE — {project.mode === "creative" ? "CREATIVE COLLISION MODE" : "SINGLE TREND MODE"}</span></div>
       <div className="left-body">
         <p className="mode" data-testid="production-mode">{project.mode === "creative" ? <>CREATIVE COLLISION MODE · {project.source.trendNames.join(" × ")}</> : <>SINGLE TREND MODE · {project.source.trendNames[0]}</>}</p>
+        {project.phenomenon && <p className="phen" data-testid="studio-phenomenon">선택한 현상 · <b>{project.phenomenon.title}</b> ({project.phenomenon.verificationStatus}) · 핵심 행동: {project.phenomenon.coreBehavior || "—"} · 관측 {project.phenomenon.window.from}~{project.phenomenon.window.to} · 근거 {project.phenomenon.evidenceIds.join(", ") || "없음"}</p>}
+        {lock && <ContextLockPanel lock={lock} onChange={(next) => update({ ...project, contextLock: next })} whyHref={project.phenomenon ? `${trendPath(phenomenonTrendId(project.phenomenon), "why")}?${phenomenonQuery(project.phenomenon)}` : undefined} research={deepResearch} discoveryIds={project.phenomenon?.evidenceIds ?? []}/>}
         {missingTrends.length > 0 && <p className="warn">분석이 없는 트렌드: {missingTrends.join(", ")} — 그 트렌드의 근거는 쓰지 않습니다.</p>}
         {project.concept && <div className="p-concept" data-testid="production-concept"><small>INSIGHT · 콘셉트 제안 ({project.concept.level} · {ideaTypeLabels[project.concept.ideaType as keyof typeof ideaTypeLabels] ?? project.concept.ideaType} · {evidenceModeLabels[project.concept.evidenceMode as keyof typeof evidenceModeLabels] ?? project.concept.evidenceMode})</small>
           <label>아이디어 제목<input value={project.concept.title} onChange={(event) => setConcept({ title: event.target.value })} maxLength={200} data-testid="concept-title"/></label>
@@ -500,7 +513,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
             <label>보조 문구<input value={slide.supporting_text} onChange={(event) => editSlide(slide.slide_id, { supporting_text: event.target.value })}/></label>
             {slide.cta && <label>CTA<input value={slide.cta} onChange={(event) => editSlide(slide.slide_id, { cta: event.target.value })}/></label>}
             <p className="vd"><b>VISUAL</b> {slide.visual_direction}</p>
-            {unitSlot(slide.slide_id, slideImageAssetId(slide), slide.image_prompt, slide.type === "cover" ? ["cover", "background", "body"] : ["body", "background", "cover"], normalizedSlideImage(slide, assetById.get(slideImageAssetId(slide))))}
+            {unitSlot(slide.slide_id, slideImageAssetId(slide), slide.image_prompt, slide.type === "cover" ? ["cover", "background", "body"] : ["body", "background", "cover"], normalizedSlideImage(slide, assetById.get(slideImageAssetId(slide))), slideImageBrief(slide, { lock, title: plan?.title ?? project.title }))}
           </li>)}</ol>
           : <ol className="slides" data-testid="production-scenes">{plan.scenes.map((scene) => <li key={scene.scene_id} className="slide" data-testid="production-scene">
             <div className="slide-head"><b>{scene.time_range}</b><span>{scene.transition}</span>{scene.review?.length ? <i className="review" title={scene.review.join("\n")} data-testid="slide-review">검증 필요 {scene.review.length}</i> : null}</div>
@@ -508,7 +521,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
             <label>화면 자막<input value={scene.on_screen_text} onChange={(event) => editScene(scene.scene_id, { on_screen_text: event.target.value })}/></label>
             <label>내레이션<textarea value={scene.voice_over} onChange={(event) => editScene(scene.scene_id, { voice_over: event.target.value })} rows={2}/></label>
             <p className="vd"><b>VISUAL</b> {scene.visual_direction}</p>
-            {unitSlot(scene.scene_id, scene.asset_ref, scene.image_prompt, ["thumbnail", "background"])}
+            {unitSlot(scene.scene_id, scene.asset_ref, scene.image_prompt, ["thumbnail", "background"], undefined, slideImageBrief(scene, { lock, title: plan?.title ?? project.title }))}
           </li>)}</ol>}
           <div className="copy" data-testid="publishing-caption"><small>CAPTION</small><p className="caption-text">{plan.caption}</p><p className="tags">{plan.hashtags.join(" ")}</p></div>
           <details className="editor-notes" data-testid="editor-notes"><summary><NotebookPen size={13}/> EDITOR NOTES · 제작자 전용(게시하지 않음){(project.validation?.needsReview?.length ?? 0) + (project.validation?.reportPhrases?.length ?? 0) > 0 ? ` · 확인 필요 ${(project.validation?.needsReview?.length ?? 0) + (project.validation?.reportPhrases?.length ?? 0)}` : ""}</summary>
@@ -557,7 +570,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       label{display:grid;gap:3px;font-size:11px;font-weight:700;color:#2e3140;min-width:0}
       input,textarea,select{font:inherit;font-size:12px;font-weight:400;padding:6px 7px;border:1.5px solid var(--ink);border-radius:4px;background:#fff;min-width:0;width:100%;box-sizing:border-box}
       .mode{margin:0;font-size:12px;font-weight:800;padding:6px 8px;background:#f6ff3a;border:1.5px solid var(--ink);border-radius:4px}
-      .warn{margin:0;font-size:11px;color:#9b6500}
+      .warn{margin:0;font-size:11px;color:#9b6500}.phen{margin:0;font-size:11px;line-height:1.5;padding:6px 8px;border:1px dashed var(--border);background:#fffdf0;overflow-wrap:anywhere}
       .p-concept,.settings{display:grid;gap:6px;padding:8px;border:1px dashed var(--border);border-radius:6px}
       .ip{margin:0;font-size:11px;padding:6px 8px;background:#ffe3e8;border:1px solid #c2185b;border-radius:4px}
       .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}

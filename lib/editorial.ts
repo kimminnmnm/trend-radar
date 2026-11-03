@@ -81,6 +81,8 @@ export type AngleValidation = {
   removedEvidenceIds: string[]; genericTitles: string[]; droppedDuplicates: string[]; downgradedFit: number; regenerated?: boolean;
   /** v3: 리서치 사건 중심 방향 수, 서로 다른 독자 경험 유형 수, 사용자 지정 주제에서 벗어난 방향. */
   anchored?: number; typeCount?: number; offTopic?: string[];
+  /** T6: 잠근 현상에서 벗어난 방향(금지 이탈 규칙에 걸리거나 현상 핵심어가 없음). */
+  lockDrift?: string[];
   /** V2.1: 제목 구조 분포와 몰린 구조. */
   structures?: Partial<Record<TitleStructure, number>>; crowdedStructures?: TitleStructure[];
 };
@@ -128,7 +130,7 @@ export function validateAngles(raw: { angles: ContentAngle[] }, ledgerIds: strin
 /** 다시 만들 조건: 방향 부족·뻔한 제목·리서치 사건 중심 방향 과다·독자 경험 유형 부족(지정 주제가 없을 때)·같은 제목 구조 몰림. 주제 이탈은 표시만 한다. */
 export function needsAngleRegeneration(result: { angles: ContentAngle[]; validation: AngleValidation }, customTopic = "") {
   const v = result.validation;
-  return result.angles.length < 4 || v.genericTitles.length >= 2 || (v.anchored ?? 0) > MAX_ANCHORED_ANGLES || (!customTopic.trim() && (v.typeCount ?? 5) < 4) || (v.crowdedStructures?.length ?? 0) > 0;
+  return result.angles.length < 4 || (v.lockDrift?.length ?? 0) > 0 || v.genericTitles.length >= 2 || (v.anchored ?? 0) > MAX_ANCHORED_ANGLES || (!customTopic.trim() && (v.typeCount ?? 5) < 4) || (v.crowdedStructures?.length ?? 0) > 0;
 }
 
 /** 사용자가 입력한 주제를 AI 제안 없이 그대로 방향으로 쓴다. */

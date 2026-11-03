@@ -16,18 +16,19 @@ import { evidenceLookup, type ValidationLog } from "@/lib/signal";
 import type { DataStatus, LiveAnalysisSnapshot, SavedCollision } from "@/lib/types";
 import type { CollisionAnalysis, ConnectionType, EvidenceItem } from "@/lib/schemas";
 import { CreativeCollision } from "./creative-collision";
+import type { SelectedConnectionInput } from "@/lib/creative-request";
 
 type CollisionResponse = { cached: boolean; analyzedAt: string; promptVersion: string; result: CollisionAnalysis; model: string; validation: ValidationLog; overlaps: SavedCollision["overlaps"]; ledger: EvidenceItem[] };
 const connectionColor:Record<ConnectionType,string>={"Shared Cultural Attribute":"#1818a7","Observed Connection":"#1818a8","Hypothesized Connection":"#996924"};
 
-export function Collision({initialTrendIds=[]}:{initialTrendIds?:string[]}){
+export function Collision({initialTrendIds=[],initialMode=null,selectedConnection=null}:{initialTrendIds?:string[];initialMode?:"live"|"creative"|"demo"|null;selectedConnection?:SelectedConnectionInput|null}){
   const snapshots=useStored(getLiveAnalyses);
   const candidates=useMemo(()=>(snapshots??[]).filter(item=>item.dna&&item.evidence?.length),[snapshots]);
   const [modeChoice,setModeChoice]=useState<"live"|"creative"|"demo"|null>(null);
-  const mode=modeChoice??(initialTrendIds.length||!(snapshots!==null&&candidates.length<2)?"live":"demo");
+  const mode=modeChoice??initialMode??(initialTrendIds.length||!(snapshots!==null&&candidates.length<2)?"live":"demo");
   return <div className="page"><PageHeader eyebrow="05 / CULTURE COLLISION" title="What happens when cultures meet?" description="LIVE DNA를 가진 트렌드를 2개 이상 선택하면 공통 속성·긴장·동기 가설·창의적 기회를 분석합니다. 새로운 조합은 기본적으로 Creative Hypothesis입니다."/>
     <div className="chip-select mode-switch"><button type="button" aria-pressed={mode==="live"} onClick={()=>setModeChoice("live")}>LIVE COLLISION · {candidates.length} READY</button><button type="button" aria-pressed={mode==="creative"} onClick={()=>setModeChoice("creative")} data-testid="mode-creative">CREATIVE COLLISION · V4.5</button><button type="button" aria-pressed={mode==="demo"} onClick={()=>setModeChoice("demo")}>DEMO EXAMPLE</button></div>
-    {mode==="creative"?<CreativeCollision snapshots={snapshots??[]}/>:mode==="live"?<LiveCollision candidates={candidates} loading={snapshots===null} totalLive={(snapshots??[]).length} fromMap={initialTrendIds} snapshots={snapshots??[]}/>:<DemoCollision/>}
+    {mode==="creative"?<CreativeCollision snapshots={snapshots??[]} initialTrendIds={initialTrendIds} selectedConnection={selectedConnection}/>:mode==="live"?<LiveCollision candidates={candidates} loading={snapshots===null} totalLive={(snapshots??[]).length} fromMap={initialTrendIds} snapshots={snapshots??[]}/>:<DemoCollision/>}
     <style jsx>{`.mode-switch{margin-bottom:18px}`}</style>
   </div>;
 }

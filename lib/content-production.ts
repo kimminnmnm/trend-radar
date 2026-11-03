@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { PhenomenonContext } from "./discovery";
+import type { EditorialContextLock } from "./editorial-lock";
 import { analysisStatusSchema } from "./schemas";
 import type { CreativeIdea, CreativeRun } from "./creative-collision";
 import { CONCEPT_NOTICE_DEFAULT, contentModes, findReportPhrases, parseContentMode, stripInternalRefs, type AngleValidation, type ContentAngle, type ContentMode } from "./editorial";
@@ -348,6 +350,10 @@ export type StudioProject = {
   angle?: ContentAngle;
   /** ENGINE V2: 사용자가 직접 입력한 주제(가장 우선). */
   customTopic?: string;
+  /** T4: Overview에서 고른 세부 현상의 맥락(현상 ID·핵심 행동·관측 기간·근거 ID). */
+  phenomenon?: PhenomenonContext;
+  /** T6: 편집 맥락 잠금. 현상에서 들어온 프로젝트는 모든 방향·슬라이드가 이 현상에 고정된다. */
+  contextLock?: EditorialContextLock;
   /** ENGINE V2: 마지막 생성 결과의 품질 게이트(규칙 검사, 사용자 평가 아님). */
   quality?: QualityReport;
   /** V2.1: 편집 리뷰(AI 참고 점수, 사용자 평가 아님)와 부분 수정 기록. */

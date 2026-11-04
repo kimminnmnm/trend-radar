@@ -36,16 +36,18 @@ export function forbiddenMisinterpretations(lock?: EditorialContextLock) {
   return items.slice(0, 10);
 }
 
-type SlideLike = { type?: string; headline?: string; reader_gets?: string; visual_direction?: string; specific_detail?: string; description?: string; on_screen_text?: string };
+type SlideLike = { type?: string; headline?: string; reader_gets?: string; visual_direction?: string; specific_detail?: string; description?: string; on_screen_text?: string; scene?: { subject: string; action: string; object: string } };
 /** 슬라이드(또는 장면) 하나의 의미 구조. 슬라이드마다 자기 문구·시각 방향으로 따로 만든다(다른 슬라이드와 공유하지 않음). */
 export function slideImageBrief(slide: SlideLike, input: { lock?: EditorialContextLock; title: string }): ImageBrief {
   const lock = input.lock?.enabled ? input.lock : undefined;
   const comparison = lock && VIRTUAL_TO_REAL.test(lock.direction) ? "Prefer an editorial comparison that shows the virtual look and its real-life interpretation together. " : "";
   const headline = slide.headline ?? slide.on_screen_text ?? "";
+  // V3(E2): 슬라이드 스토리보드의 장면이 있으면 그것을 먼저 쓴다(슬라이드마다 다른 장면). 없으면 잠금 → 제목.
+  const scene = slide.scene;
   return {
-    subject: (lock?.subject || (lock ? `people doing "${lock.selectedPhenomenon}"` : input.title)).slice(0, 200),
-    action: (lock?.coreBehavior ?? "").slice(0, 300),
-    object: (lock?.object ?? "").slice(0, 200),
+    subject: (scene?.subject?.trim() || lock?.subject || (lock ? `people doing "${lock.selectedPhenomenon}"` : input.title)).slice(0, 200),
+    action: (scene?.action?.trim() || lock?.coreBehavior || "").slice(0, 300),
+    object: (scene?.object?.trim() || lock?.object || "").slice(0, 200),
     culturalContext: (lock?.culturalContext ?? "").slice(0, 300),
     visualDirection: `${comparison}${slide.visual_direction ?? slide.description ?? ""}`.trim().slice(0, 400),
     scenePurpose: [slide.type ? `${slide.type} card` : "", headline && `headline "${headline.replace(/\s+/g, " ")}"`, slide.reader_gets || slide.specific_detail || ""].filter(Boolean).join(" — ").slice(0, 300),

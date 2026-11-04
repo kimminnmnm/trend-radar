@@ -1,13 +1,13 @@
 import "server-only";
 import { z } from "zod";
 import { callStructured, js } from "./openai-client";
-import { buildProductionContext, FACT_RULE } from "./openai-editorial";
+import { buildProductionContext, FACT_RULE, TRUST_RULE } from "./openai-editorial";
 import { productionPlanSchema, settingsMode, slideTypes, validateProduction, type CreativeConcept, type ProductionPlan, type ProductionSettings, type ProductionValidation } from "./content-production";
-import { contentModeInfo, REPORT_PHRASES, type ContentAngle, type ContentMode } from "./editorial";
+import { contentModeInfo, editorialTypeStructure, REPORT_PHRASES, type ContentAngle, type ContentMode } from "./editorial";
 import { applyPatches, editorialQualityGate, revertRegressions, type EditorialReview, type QualityReport } from "./editorial-quality";
 import type { EvidenceItem, TrendContext } from "./schemas";
 import { collectWebEvidence } from "./web-evidence";
-import { lockInstructions, type EditorialContextLock } from "./editorial-lock";
+import { lockFromAngle, lockInstructions, type EditorialContextLock } from "./editorial-lock";
 
 export type AngleResearchResult = { requested: boolean; status: "skipped" | "live" | "error"; count: number; message?: string };
 
@@ -19,7 +19,7 @@ const planJsonSchema = js.obj({
   storyline: js.arr(js.obj({ beat: js.str, reader_gets: js.str })),
   title: js.str, concept_notice: js.str, summary: js.str,
   claims: js.arr(js.obj({ text: js.str, evidence_ids: ids, status: js.status })),
-  slides: js.arr(js.obj({ slide_id: js.str, number: { type: "number" }, type: js.enumOf(slideTypes), detail_ids: ids, specific_detail: js.str, reader_gets: js.str, to_next: js.str, headline: js.str, body: js.str, supporting_text: js.str, visual_direction: js.str, image_ref: js.str, image_prompt: js.str, layout_hint: js.str, cta: js.str, evidence_ids: ids, fact_checks: factChecks })),
+  slides: js.arr(js.obj({ slide_id: js.str, number: { type: "number" }, type: js.enumOf(slideTypes), detail_ids: ids, specific_detail: js.str, reader_gets: js.str, new_information: js.str, scene: js.obj({ subject: js.str, action: js.str, object: js.str }), to_next: js.str, headline: js.str, body: js.str, supporting_text: js.str, visual_direction: js.str, image_ref: js.str, image_prompt: js.str, layout_hint: js.str, cta: js.str, evidence_ids: ids, fact_checks: factChecks })),
   scenes: js.arr(js.obj({ scene_id: js.str, time_range: js.str, detail_ids: ids, specific_detail: js.str, reader_gets: js.str, to_next: js.str, description: js.str, visual_direction: js.str, on_screen_text: js.str, voice_over: js.str, transition: js.str, asset_ref: js.str, image_prompt: js.str, evidence_ids: ids, fact_checks: factChecks })),
   caption: js.str, hashtags: js.strArr, verify_before_publishing: js.strArr,
   editor_notes: js.obj({ fact_checks: js.strArr, research_gaps: js.strArr, image_rights: js.strArr, ai_disclosure: js.str }),
@@ -31,13 +31,14 @@ const formatRule = (settings: ProductionSettings, mode: ContentMode) => settings
 
 const VOICE = "VOICE: natural Korean 해요체 like a Korean SNS content editor in their 20s, using the user's TONE if given. Short, clear sentences. Minimal jargon. Avoid repeated adjectives, clichés and AI-ish filler (e.g. '감성 가득', '매력 넘치는', '특별한 경험', '~의 세계로'). Do not end every slide with a question. LANGUAGE: Korean only — Japanese or Chinese words appear only as proper titles inside 「」 with a Korean reading or meaning next to them (e.g. 「ゆるかわ」(느슨한 귀여움)); never mix kana or hanzi into Korean sentences.";
 /** V2.1: 쓰기 전에 소재 고유 디테일을 모은다. 소재 이름을 반복해 고유성을 만들지 않는다. */
-const DETAIL_BANK = "STEP 0 — DETAIL BANK (before the storyline): collect 6-10 details unique to THIS subject and THIS angle, from RESEARCH_FOR_ANGLE first and well-established public knowledge second. Each item: detail (one concrete thing: a name, place, date, number, object, ritual, rule, quote, product, scene), example (a concrete instance or case), use (how a slide can use it), source_ids (research ids that state it; empty if general knowledge), status (write 'needs_check'; the server decides). Not allowed as details: the subject name itself, abstract feelings ('설레요', '특별해요'), generic advice that fits any subject ('사진은 가까이 찍어 봐요', '공식 채널을 확인해요').";
-const STORY_RULES = "STEP 1 — STORYLINE from the detail bank: each beat gives a different detail and a reason to swipe. STEP 2 — SLIDES: every middle slide uses at least one bank item in detail_ids, no two slides use the same items, and to_next says why the reader goes on. A tip slide must contain a subject-specific detail (a real name, place, model, rule, number) — otherwise it is not a tip for this subject. Do not fill slides with abstract emotion or advice that would fit another keyword. Do not make the subject feel specific by repeating its name.";
+const DETAIL_BANK = "STEP 0 — DETAIL BANK (before the storyline): collect 4-10 details unique to THIS subject and THIS angle, from RESEARCH_FOR_ANGLE first and well-established public knowledge second (only knowledge that directly explains the angle's focus — no founding dates, records or history filler). If you cannot find enough real details, use fewer slides (minimum 4) instead of padding with general knowledge or invented names. Each item: detail (one concrete thing: a name, place, date, number, object, ritual, rule, quote, product, scene), example (a concrete instance or case), use (how a slide can use it), source_ids (research ids that state it; empty if general knowledge), status (write 'needs_check'; the server decides). Not allowed as details: the subject name itself, abstract feelings ('설레요', '특별해요'), generic advice that fits any subject ('사진은 가까이 찍어 봐요', '공식 채널을 확인해요').";
+const STORY_RULES = "STEP 1 — STORYLINE from the detail bank: each beat gives a different detail and a reason to swipe. STORYBOARD per slide (before writing copy): new_information — one line the reader learns on THIS slide that no earlier slide gave (never restate the previous conclusion); scene — what the image shows: subject (who, anonymous people are fine), action (doing what — the behavior of this slide), object (with what). The cover's scene is the angle's key_scene. STEP 2 — SLIDES: every middle slide uses at least one bank item in detail_ids, no two slides use the same items, and to_next says why the reader goes on. A tip slide must contain a subject-specific detail (a real name, place, model, rule, number) — otherwise it is not a tip for this subject. Do not fill slides with abstract emotion or advice that would fit another keyword. Do not make the subject feel specific by repeating its name.";
 const HOOK_RULES = "TITLE & COVER HOOK: pick the structure that fits this subject and target — a concrete scene, a surprising number or rule, a contrast (A 대신 B), a quote, a confession-style first line, a how-to, or a question. Do not default to '‹subject›, question?' or templates like '‹subject›, 뭐부터 볼까?', '왜 인기일까?', '알고 있었어?'. The hook must contain a detail from the bank.";
 
-const editorialInstructions = (settings: ProductionSettings, mode: ContentMode, hasConcept: boolean, customTopic: string) => [
+const editorialInstructions = (settings: ProductionSettings, mode: ContentMode, hasConcept: boolean, customTopic: string, angle?: ContentAngle) => [
   "You are TREND RADAR Content Studio, an SNS content editor who plans and writes card news and short-form that readers want to save and share. You are NOT summarizing an analysis. Return only the JSON schema. Copy in Korean, image_prompt in English.",
   `MODE: ${contentModeInfo[mode].label} — ${contentModeInfo[mode].description}`,
+  angle?.editorial_type ? `EDITORIAL TYPE (from the brief): ${editorialTypeStructure[angle.editorial_type]}${angle.key_scene ? ` KEY SCENE for the cover: ${angle.key_scene}.` : ""}` : "",
   customTopic ? `USER TOPIC (highest priority): "${customTopic}". The whole piece must be about exactly this. Never switch to another subject, event or trend even if the research mentions one.` : "",
   "ANGLE: the SELECTED_ANGLE was chosen by the user. The piece must deliver exactly that angle and its reader_benefit. Do not drift to another topic from the research.",
   DETAIL_BANK,
@@ -50,6 +51,7 @@ const editorialInstructions = (settings: ProductionSettings, mode: ContentMode, 
   formatRule(settings, mode),
   VOICE,
   "BRIEF: use the given target, tone, goal, brand (if empty, do not invent a brand) and CTA. If CTA is empty, propose a natural one (save, share, tag a friend, comment) tied to the practical value of the piece.",
+  TRUST_RULE,
   FACT_RULE + " For every factual statement in a slide or scene add an entry to that unit's fact_checks: research ids when the research supports it (status Verified Signal or Supported Hypothesis), otherwise empty evidence_ids with status 'Insufficient Evidence' so the editor verifies it. Opinions, jokes and editorial framing need no fact_check. Never put research ids in publishing copy.",
   mode === "curation" ? "CURATION: recommend only items that appear in the research or are unmistakably real; add a fact_check for each item's existence/availability. Never invent product names, prices, addresses or opening hours." : "",
   hasConcept || mode === "concept"
@@ -88,7 +90,8 @@ const reviewInstructions = [
   "You are a senior Korean SNS content editor reviewing a card news / short-form draft before publishing. Return only the JSON schema.",
   "SCORES (1-5, your editorial opinion, shown to the user as a reference, not a user rating): hook (would a reader stop scrolling), specificity (details only this subject has), story (each slide adds something and leads to the next), save_share (a reason to save or share), voice (natural Korean SNS 해요체, not a report or translation).",
   "PATCHES: rewrite ONLY the slides that need it. Every REQUIRED_ISSUE must be fixed. EDITORIAL_HINTS are rule-based signals — fix them if you agree. Keep slides that work untouched (do not include them). For each patch return the full new headline, body, supporting_text, fact_checks and detail_ids for that slide, and a short Korean reason.",
-  "When fixing: use details from DETAIL_BANK (prefer verified ones) so the slide becomes specific to this subject; never invent new facts, numbers, names or quotes; an unsupported fact must be removed or stated without certainty; Korean only (proper titles in 「」 with a Korean reading); no research ids or source narration in the copy.",
+  "When fixing: use details from DETAIL_BANK (prefer verified ones) so the slide becomes specific to this subject; never invent new facts, numbers, names or quotes; an unsupported fact must be removed or stated without certainty; Korean only (proper titles in 「」 with a Korean reading); no research ids or source narration in the copy; no survey or methodology narration ('조사에서는 ~로 정의했어요', '~로 보고됐어요') unless the reader gains something concrete from it.",
+  TRUST_RULE,
   "title: a better title only if the current title is weak or a template ('‹subject›, question?', '뭐부터 볼까', '왜 인기일까', '알고 있었어?'); otherwise return an empty string. The title must match the selected angle.",
   VOICE,
 ].join(" ");
@@ -96,7 +99,8 @@ const reviewInstructions = [
 export async function createProductionPlan(trends: TrendContext[], concept: CreativeConcept | undefined, settings: ProductionSettings, assets: Array<{ id: string; status: string; title: string }>, angle?: ContentAngle, customTopic = "", options: { research?: boolean; lock?: EditorialContextLock } = {}): Promise<{ plan: ProductionPlan; validation: ProductionValidation; quality: QualityReport | null; review: EditorialReview | null; research: AngleResearchResult; model: string; references: EvidenceItem[] }> {
   const mode = settingsMode(settings);
   const topic = customTopic.trim();
-  const lock = options.lock?.enabled ? options.lock : undefined;
+  // V3(E1): 현상 잠금이 없고 사용자 지정 주제도 없으면, 고른 방향의 초점으로 경량 잠금을 만든다(키워드 소개로 넓어지지 않게).
+  const lock = options.lock?.enabled ? options.lock : !topic && angle && mode !== "report" && mode !== "concept" && trends[0] ? lockFromAngle(angle, trends[0].name) : undefined;
   // 5단계: 선택한 방향에 맞는 자료 조사(사용자가 켰을 때만, 웹 검색 1회). 실제 조회한 URL만 원장에 넣는다(AR-xx).
   let angleResearch: EvidenceItem[] = [];
   let research: AngleResearchResult = { requested: Boolean(options.research), status: "skipped", count: 0 };
@@ -109,7 +113,7 @@ export async function createProductionPlan(trends: TrendContext[], concept: Crea
   }
   const context = buildProductionContext(trends, mode, angle, angleResearch, lock ? lock.observedEvidenceIds.map((id) => `T1:${id}`) : []);
   const input = `${context.prompt}\nCREATIVE_CONCEPT: ${JSON.stringify(concept ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nSELECTED_ANGLE: ${JSON.stringify(angle ?? null)}\nSETTINGS: ${JSON.stringify(settings)}\nAVAILABLE_ASSETS: ${JSON.stringify(assets)}${lock ? `\nCONTEXT_LOCK: ${JSON.stringify({ phenomenon: lock.selectedPhenomenon, parent_keyword: lock.parentKeyword, subject: lock.subject, core_behavior: lock.coreBehavior, object: lock.object, direction: lock.direction, cultural_context: lock.culturalContext, editorial_focus: lock.editorialFocus, observed_evidence_ids: lock.observedEvidenceIds.map((id) => `T1:${id}`), creative_hypothesis: lock.creativeHypothesis, prohibited_topic_drift: lock.prohibitedTopicDrift.map((item) => item.label) })}\nUSER_MATERIALS: ${lock.userMaterials || "(none)"}` : ""}`;
-  const instructions = (mode === "report" ? reportInstructions(settings, Boolean(concept)) : editorialInstructions(settings, mode, Boolean(concept), topic)) + (lock ? ` ${lockInstructions(lock, "production")}` : "");
+  const instructions = (mode === "report" ? reportInstructions(settings, Boolean(concept)) : editorialInstructions(settings, mode, Boolean(concept), topic, angle)) + (lock ? ` ${lockInstructions(lock, "production")}` : "");
   const subjectTerms = [...trends.flatMap((trend) => [trend.name, ...trend.keywords]), ...(concept ? [concept.title] : []), ...(lock ? [lock.selectedPhenomenon] : [])];
   const vocabulary = [...context.ledger.filter((item) => item.kind !== "naver_series").flatMap((item) => [item.title, item.excerpt]), ...trends.flatMap((trend) => trend.dna?.dimensions.flatMap((dimension) => dimension.attributes.map((attribute) => attribute.label)) ?? []), ...(concept ? [concept.concept, concept.visualBrief] : [])];
   const ledgerIds = context.ledger.map((item) => item.id), assetIds = assets.map((item) => item.id);

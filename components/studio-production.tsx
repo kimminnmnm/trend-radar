@@ -9,10 +9,10 @@ import { signedInClient, type PersistenceResult } from "@/lib/cloud-storage";
 import { HANDOFF_TTL_HOURS, type HandoffCreated } from "@/lib/figma-handoff";
 import {
   beginSlideImageRequest, conceptAssets, conceptFromIdea, defaultSettings, deleteProductionSlide, duplicateProductionSlide, emptySlideImage, failSlideImageRequest, imageSourceForAsset, isStudioProjectPayload, normalizedSlideImage, productionFormatLabels, projectIdFor, reorderProductionSlide, resolveSlideImageRequest, settingsMode, slideImageAssetId, syncProjectSlideImages, withSlideImage,
-  type CreativeConcept, type ProductionPlan, type ProductionScene, type ProductionSettings, type ProductionSlide, type ProductionValidation, type SlideImage, type StudioProject,
+  type CreativeConcept, type ProductionPlan, type UserRating, userRatingItems, type ProductionScene, type ProductionSettings, type ProductionSlide, type ProductionValidation, type SlideImage, type SlideImageRef, type StudioProject,
 } from "@/lib/content-production";
 import { evidenceModeLabels, ideaTypeLabels, isCreativePayload, type CreativeRun } from "@/lib/creative-collision";
-import { angleTypeLabels, contentModeInfo, contentModes, customAngle, evidenceFitLabels, type AngleValidation, type ContentAngle, type ContentMode } from "@/lib/editorial";
+import { angleTypeLabels, contentModeInfo, contentModes, customAngle, editorialTypeLabels, evidenceFitLabels, readerValueLabels, type AngleValidation, type ContentAngle, type ContentMode } from "@/lib/editorial";
 import type { EditorialReview, QualityReport } from "@/lib/editorial-quality";
 import { figmaImageSources } from "@/lib/asset-storage";
 import { toFigmaExport } from "@/lib/figma-export";
@@ -24,7 +24,7 @@ import { slideImageBrief, type ImageBrief } from "@/lib/image-brief";
 import { ContextLockPanel } from "./context-lock-panel";
 import { liveTrendId, toTrendContext, trendPath } from "@/lib/live-trend";
 import { saveProjectEverywhere } from "@/lib/studio-cloud";
-import { findPhenomenon, getCreativeRuns, getSavedItems, getStudioProject, saveStudioProject } from "@/lib/storage";
+import { findPhenomenon, getCreativeRuns, getDiscoveryReports, getSavedItems, getStudioProject, saveStudioProject } from "@/lib/storage";
 import { getCollisions, saveCreativeRun } from "@/lib/storage";
 import { readCultureLedger } from "@/lib/culture-pipeline-client";
 import { buildCreativeInputs, requestCreativeRun } from "@/lib/creative-request";
@@ -34,6 +34,7 @@ import type { EvidenceItem } from "@/lib/schemas";
 import type { LiveAnalysisSnapshot } from "@/lib/types";
 import { CloudSaveStatus } from "./cloud-save-status";
 import { CardPreview } from "./card-preview";
+import { TemplateGallery, TemplateSlidePreviews, useTemplateLibrary } from "./template-gallery";
 import { buildCardDesign, designStyleIds, densities, densityLabels, imageEmphases, imageEmphasisLabels, paletteModeLabels, paletteModes, STYLES, typeMoodLabels, typeMoods, type DesignControls } from "@/lib/card-design";
 import { AssetImage, ImageGenerator } from "./image-generator";
 import { DataBadge, formatDateTime } from "./ui";
@@ -53,6 +54,12 @@ function realReferences(snapshot: LiveAnalysisSnapshot | undefined, limit = 3): 
   }));
 }
 const findRun = (id: string): CreativeRun | undefined => [...getCreativeRuns(), ...getSavedItems().flatMap((item) => isCreativePayload(item.payload) ? [item.payload.run] : [])].find((run) => run.id === id);
+/** V3(E1): 이 키워드로 WHAT'S HAPPENING NOW?를 실행한 가장 최근 기록의 세부 현상 후보(방향 제안 입력용, 근거 ID 없음). */
+const observedPhenomenaFor = (keyword: string) => {
+  const key = keyword.trim().toLocaleLowerCase("ko-KR");
+  const report = key ? getDiscoveryReports().find((item) => item.keyword.trim().toLocaleLowerCase("ko-KR") === key) : undefined;
+  return (report?.signals ?? []).slice(0, 8).map((signal) => ({ title: signal.title.slice(0, 120), behavior: (signal.audienceBehavior || signal.phenomenon || "").slice(0, 300), status: signal.verificationStatus, independentSources: Math.min(50, signal.independentSources) }));
+};
 const findProject = (id: string): StudioProject | null => getStudioProject(id) ?? getSavedItems().flatMap((item) => isStudioProjectPayload(item.payload) && item.payload.project.id === id ? [syncProjectSlideImages(item.payload.project)] : [])[0] ?? null;
 
 export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapshot[] }) {
@@ -74,7 +81,10 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
   const [references, setReferences] = useState<EvidenceItem[]>([]);
   const [save, setSave] = useState<PersistenceResult | null>(null);
   const [toast, setToast] = useState("");
+  const [extraOpen, setExtraOpen] = useState<Set<string>>(new Set());
   const [handoff, setHandoff] = useState<{ state: "sending" | "sent" | "error"; result?: HandoffCreated; message?: string; needLogin?: boolean } | null>(null);
+  // P12: MY TEMPLATES 갤러리(로그인 계정의 동기화된 Figma 템플릿). MY TEMPLATES를 고른 카드뉴스에서만 불러온다.
+  const templateLibrary = useTemplateLibrary(project?.id ?? "", Boolean(project && project.designSource === "templates" && project.settings.format === "cardnews"));
   const [imageSlots, setImageSlots] = useState<Set<string>>(() => new Set());
   const [linkSlot, setLinkSlot] = useState<string | null>(null);
   const [angleState, setAngleState] = useState<"idle" | "loading" | "error">("idle");
@@ -83,6 +93,9 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
   const [deepResearch, setDeepResearch] = useState(true);
   const projectRef = useRef<StudioProject | null>(null);
   const sceneRequests = useRef(new Map<string, string>());
+  // 추가 이미지로 쌓는 생성 요청(슬라이드|요청 ID). 대표 이미지 요청과 따로 둔다 — 대표 이미지를 바꾸지 않는다.
+  const extraRequests = useRef(new Set<string>());
+  const [stackSlots, setStackSlots] = useState<Set<string>>(() => new Set());
   const requestSequence = useRef(0);
   const bySnapshot = useMemo(() => new Map(snapshots.map((item) => [item.trendId, item])), [snapshots]);
   const storedRuns = useStored(getCreativeRuns);
@@ -250,7 +263,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     setAngleState("loading"); setAngleError("");
     try {
       const mode = settingsMode(project.settings);
-      const response = await apiFetch("/api/studio/angles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, mode, settings: { format: project.settings.format, target: project.settings.target, goal: project.settings.goal, tone: project.settings.tone }, customTopic: project.customTopic ?? "", ...(lock?.enabled ? { contextLock: lock } : {}), force: Boolean(project.angles && project.angles.mode === mode) }) });
+      const response = await apiFetch("/api/studio/angles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trends: contexts.slice(0, 2), concept: project.concept, mode, settings: { format: project.settings.format, target: project.settings.target, goal: project.settings.goal, tone: project.settings.tone }, customTopic: project.customTopic ?? "", phenomena: lock?.enabled ? [] : observedPhenomenaFor(project.source.trendNames[0] ?? ""), ...(lock?.enabled ? { contextLock: lock } : {}), force: Boolean(project.angles && project.angles.mode === mode) }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.message || "콘텐츠 방향 제안에 실패했습니다.");
       const data = body as AnglesResponse;
@@ -301,6 +314,11 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     });
     setLinkSlot(null);
   };
+  /** 추가 이미지(slide.images): Figma MY TEMPLATES의 IMAGE_2~4·BG_IMAGE용. 대표 이미지는 slide.image 그대로. */
+  const editExtraImages = (id: string, change: (list: SlideImageRef[]) => SlideImageRef[]) => { mutateProject((current) => current.plan ? { ...current, edited: true, plan: { ...current.plan, slides: current.plan.slides.map((slide) => slide.slide_id === id ? { ...slide, images: change(slide.images ?? []) } : slide) } } : null); };
+  const toggleExtraImage = (id: string, assetId: string) => editExtraImages(id, (list) => list.some((item) => item.assetId === assetId) ? list.filter((item) => item.assetId !== assetId) : [...list, { assetId, role: "detail" }]);
+  // 배경은 한 장만: 고른 이미지를 배경으로, 다른 배경은 일반(detail)으로 되돌린다.
+  const toggleBackgroundImage = (id: string, assetId: string) => editExtraImages(id, (list) => list.map((item) => item.assetId === assetId ? { ...item, role: item.role === "background" ? "detail" : "background" } : item.role === "background" ? { ...item, role: "detail" } : item));
   const beginImage = (unitId: string, requestId: string, prompt: string) => {
     sceneRequests.current.set(unitId, requestId);
     mutateProject((current) => {
@@ -315,6 +333,17 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       return failSlideImageRequest(current, unitId, requestId, message);
     });
   };
+  /** 생성 결과를 슬라이드의 추가 이미지(slide.images, detail)로 쌓는다 → MY TEMPLATES의 IMAGE_2·IMAGE_3·IMAGE_4. 생성 창은 열어 둬 여러 번 만들 수 있다. */
+  const addExtraAsset = (unitId: string, asset: ImageAssetRef, requestId: string) => {
+    if (!extraRequests.current.delete(`${unitId}|${requestId}`)) return;
+    mutateProject((current) => current.plan && current.settings.format === "cardnews" ? {
+      ...current, edited: true, assets: [asset, ...current.assets.filter((item) => item.id !== asset.id)],
+      plan: { ...current.plan, slides: current.plan.slides.map((slide) => slide.slide_id === unitId ? { ...slide, images: [...(slide.images ?? []).filter((item) => item.assetId !== asset.id), { assetId: asset.id, role: "detail" as const }] } : slide) },
+    } : null);
+    setToast("생성한 이미지를 이 슬라이드의 추가 이미지로 넣었습니다(대표 이미지는 그대로).");
+  };
+  const beginExtra = (unitId: string, requestId: string) => { extraRequests.current.add(`${unitId}|${requestId}`); };
+  const failExtra = (unitId: string, requestId: string, message: string) => { if (extraRequests.current.delete(`${unitId}|${requestId}`)) setToast(`추가 이미지 생성 실패: ${message}`); };
   const addAsset = (unitId: string, asset: ImageAssetRef, requestId: string) => {
     if (sceneRequests.current.get(unitId) !== requestId) return;
     const applied = mutateProject((current) => {
@@ -342,7 +371,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     // AI 이미지는 플러그인이 바로 넣을 수 있게 서명 URL(1시간)·축소본을 함께 담는다. 실제 근거 이미지는 링크만.
     const { images, unsigned } = await figmaImageSources(project.assets);
     const designFor = project.plan && project.settings.format === "cardnews" ? buildCardDesign({ project, plan: project.plan, controls: project.design, visualDna: bySnapshot.get(project.source.trendKeys[0])?.visualDna ?? null, imageAvailable: (id) => Boolean(images[id]) }) : undefined;
-    const blob = new Blob([JSON.stringify(toFigmaExport(project, undefined, images, { design: designFor }), null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(toFigmaExport(project, undefined, images, { design: designFor, templateVersions: templateLibrary.versions }), null, 2)], { type: "application/json" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${project.id}.figma.json`; link.click(); URL.revokeObjectURL(link.href);
     const count = Object.keys(images).length;
     setToast(`Figma용 JSON을 내려받았습니다 · AI 이미지 ${count}개 포함${Object.values(images).some((item) => item.kind === "signed") ? "(계정 이미지 링크는 1시간 유효)" : ""}${unsigned ? ` · ${unsigned}개는 로그인 필요로 제외` : ""}. figma-plugin 폴더의 플러그인으로 불러오세요.`);
@@ -357,10 +386,12 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
     const session = await signedInClient();
     if (!session) { setHandoff({ state: "error", needLogin: true, message: "Figma로 보내려면 로그인이 필요합니다. (로그인 없이 쓰려면 Figma JSON 내보내기를 사용하세요.)" }); return; }
     try {
-      setSave(await saveProjectEverywhere(project));
-      const saved = getStudioProject(project.id) ?? project;
+      // 방금 저장한 사본을 그대로 쓴다(브라우저 저장이 실패해도 예전 사본을 읽지 않음).
+      const result = await saveProjectEverywhere(project);
+      setSave(result);
+      const saved = result.project;
       const { images, unsigned } = await figmaImageSources(saved.assets, session.supabase, HANDOFF_TTL_HOURS * 3600 + 600);
-      const response = await apiFetch("/api/figma/handoffs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ export: toFigmaExport(saved, undefined, images, { design: saved.plan && saved.settings.format === "cardnews" ? buildCardDesign({ project: saved, plan: saved.plan, controls: saved.design, visualDna: bySnapshot.get(saved.source.trendKeys[0])?.visualDna ?? null, imageAvailable: (id) => Boolean(images[id]) }) : undefined }) }) });
+      const response = await apiFetch("/api/figma/handoffs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ export: toFigmaExport(saved, undefined, images, { design: saved.plan && saved.settings.format === "cardnews" ? buildCardDesign({ project: saved, plan: saved.plan, controls: saved.design, visualDna: bySnapshot.get(saved.source.trendKeys[0])?.visualDna ?? null, imageAvailable: (id) => Boolean(images[id]) }) : undefined, templateVersions: templateLibrary.versions }) }) });
       const body = await response.json().catch(() => ({})) as HandoffCreated & { message?: string; error?: string };
       if (!response.ok) { setHandoff({ state: "error", needLogin: response.status === 401, message: body.message ?? `전송하지 못했습니다(HTTP ${response.status}).` }); return; }
       setHandoff({ state: "sent", result: body, message: unsigned ? `이미지 ${unsigned}개는 주소가 없어 Figma에서 “이미지 없음” 자리표시가 됩니다.` : undefined });
@@ -410,10 +441,17 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
   const design = plan && project.settings.format === "cardnews" ? buildCardDesign({ project, plan, controls: project.design, visualDna }) : null;
   const autoStyle = plan && project.settings.format === "cardnews" ? buildCardDesign({ project, plan, controls: { ...project.design, style: "auto" }, visualDna }) : null;
   const setDesign = (patch: Partial<DesignControls>) => update({ ...project, design: { ...project.design, ...patch } });
+  /** P14: 슬라이드별 Figma 템플릿 선택(웹은 선택만 저장, 템플릿 원본은 Figma에만 있다). null이면 자동 배정. */
+  const assignTemplate = (slideId: string, templateId: string | null) => mutateProject((current) => {
+    const next = { ...(current.templateAssignments ?? {}) };
+    if (templateId) next[slideId] = templateId; else delete next[slideId];
+    return { ...current, templateAssignments: next };
+  });
   const assetById = new Map(project.assets.map((asset) => [asset.id, asset]));
   const aspect = project.settings.aspect as ImageAspect;
   const unitSlot = (unitId: string, ref: string, prompt: string, purposes: Array<"cover" | "body" | "thumbnail" | "background">, image?: SlideImage, brief?: ImageBrief) => {
     const asset = ref ? assetById.get(ref) : undefined;
+    const stack = Boolean(image) && stackSlots.has(unitId);
     return <div className="slot">
       {asset ? <AssetImage asset={asset} compact/> : <p className="empty-slot">이미지 없음</p>}
       {image && <p className={`image-state ${image.status}`} data-testid="slide-image-state" data-state={image.status}>{image.status === "generating" ? "이 슬라이드 이미지 생성 중…" : image.status === "error" ? `생성 실패 · ${image.errorMessage ?? "다시 시도하세요"}` : image.status === "ready" ? `연결됨 · ${image.source ?? "unknown"}` : "이미지 대기"}</p>}
@@ -423,7 +461,11 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
         {ref && <button type="button" className="mini" onClick={() => linkAsset(unitId, "")} data-testid="slot-unlink">연결 해제</button>}
       </div>
       {linkSlot === unitId && <div className="picker" data-testid="asset-picker">{project.assets.length ? project.assets.map((item) => <button type="button" key={item.id} onClick={() => linkAsset(unitId, item.id)} aria-label={`${item.status} ${item.title} 연결`} aria-pressed={ref === item.id} data-asset-id={item.id}><AssetImage asset={item} compact/></button>) : <p>연결할 이미지가 없습니다.</p>}</div>}
-      {imageSlots.has(unitId) && <ImageGenerator key={unitId} scopeId={unitId} initialPrompt={image?.prompt ?? prompt} purposes={purposes} aspects={[aspect]} defaultAspect={aspect} title={`${plan?.title ?? project.title} · ${unitId}`} inspired={Boolean(project.concept?.ipCaution)} onStart={(requestId, value) => beginImage(unitId, requestId, value)} onGenerated={(asset, requestId) => addAsset(unitId, asset, requestId)} onError={(message, requestId) => failImage(unitId, requestId, message)} testId="slot-image" brief={brief}/>}
+      {imageSlots.has(unitId) && image && <label className="stack-toggle"><input type="checkbox" checked={stackSlots.has(unitId)} onChange={(event) => { const on = event.target.checked; setStackSlots((current) => { const next = new Set(current); if (on) next.add(unitId); else next.delete(unitId); return next; }); }} data-testid="slot-stack"/>추가 이미지로 쌓기 — 대표 이미지는 그대로 두고 추가 1·2·3 순서로 넣음(여러 번 생성 가능)</label>}
+      {imageSlots.has(unitId) && <ImageGenerator key={`${unitId}-${stack ? "stack" : "main"}`} scopeId={stack ? `${unitId}-extra` : unitId} initialPrompt={image?.prompt ?? prompt} purposes={purposes} aspects={[aspect]} defaultAspect={aspect} title={`${plan?.title ?? project.title} · ${unitId}${stack ? " · 추가" : ""}`} inspired={Boolean(project.concept?.ipCaution)}
+        onStart={(requestId, value) => { if (stack) beginExtra(unitId, requestId); else beginImage(unitId, requestId, value); }}
+        onGenerated={(asset, requestId) => { if (stack) addExtraAsset(unitId, asset, requestId); else addAsset(unitId, asset, requestId); }}
+        onError={(message, requestId) => { if (stack) failExtra(unitId, requestId, message); else failImage(unitId, requestId, message); }} testId="slot-image" brief={brief}/>}
     </div>;
   };
 
@@ -453,10 +495,10 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
           {project.angles && project.angles.mode !== mode && <p className="warn">모드를 바꿨어요. 아래 방향은 {contentModeInfo[project.angles.mode].label} 기준이에요 — 다시 제안받는 것을 권장해요.</p>}
           {mode === "report" && !project.angle && <p className="note">TREND REPORT는 방향 없이 바로 만들 수도 있어요(기존 분석 보고서형).</p>}
           {project.angles && <ol className="angle-list" role="radiogroup" aria-label="콘텐츠 방향">{project.angles.items.map((angle) => <li key={angle.angle_id}><button type="button" role="radio" aria-checked={project.angle?.angle_id === angle.angle_id} onClick={() => chooseAngle(angle)} data-testid="angle-card">
-            <b>{angle.title}</b><span className="hook">“{angle.hook}”</span><span>{angle.editorial_perspective}</span>
+            <b>{angle.title}</b>{angle.focus && <span className="focus" data-testid="angle-focus">초점 · {angle.focus}</span>}{(angle.editorial_type || angle.reader_value) && <span className="brief" data-testid="angle-brief">{angle.editorial_type ? editorialTypeLabels[angle.editorial_type] : ""}{angle.editorial_type && angle.reader_value ? " · " : ""}{angle.reader_value ? `독자 가치: ${readerValueLabels[angle.reader_value]}` : ""}{angle.key_scene ? ` · 대표 장면: ${angle.key_scene}` : ""}</span>}<span className="hook">“{angle.hook}”</span><span>{angle.editorial_perspective}</span>
             <em>{angle.angle_type ? `${angleTypeLabels[angle.angle_type]} · ` : ""}{angle.target_audience} · {evidenceFitLabels[angle.evidence_fit]}{angle.research_anchor ? " · 자료 속 사건 중심" : ""}</em>
           </button></li>)}</ol>}
-          {project.angles && <p className="note" data-testid="angles-check">서버 검사 · 독자 경험 유형 {project.angles.validation.typeCount ?? "—"}종 · 자료 사건 중심 {project.angles.validation.anchored ?? "—"}개 · 흔한 제목 {project.angles.validation.genericTitles.length}개{project.angles.validation.offTopic?.length ? ` · 지정 주제 확인 필요 ${project.angles.validation.offTopic.length}개(단어 기준 참고)` : ""}{project.angles.validation.regenerated ? " · 1회 다시 생성함" : ""}</p>}
+          {project.angles && <p className="note" data-testid="angles-check">서버 검사 · {project.angles.validation.focusCount !== undefined ? `서로 다른 초점 ${project.angles.validation.focusCount}개 · 키워드 역사·입문 방향 ${project.angles.validation.basicAngles?.length ?? 0}개 · ` : ""}독자 경험 유형 {project.angles.validation.typeCount ?? "—"}종 · 자료 사건 중심 {project.angles.validation.anchored ?? "—"}개 · 흔한 제목 {project.angles.validation.genericTitles.length}개{project.angles.validation.offTopic?.length ? ` · 지정 주제 확인 필요 ${project.angles.validation.offTopic.length}개(단어 기준 참고)` : ""}{project.angles.validation.regenerated ? " · 1회 다시 생성함" : ""}</p>}
           {project.angle && <div className="angle-edit" data-testid="angle-selected"><small>선택한 방향 · 고칠 수 있어요</small>
             {project.angle.angle_type === "custom" && <p className="note">사용자가 입력한 주제를 그대로 씁니다. 이 주제에서 벗어나지 않게 만듭니다.</p>}
             <label>제목<input value={project.angle.title} onChange={(event) => editAngle({ title: event.target.value.slice(0, 120) })} data-testid="angle-title"/></label>
@@ -468,12 +510,20 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
           </div>}
         </div>
         {project.settings.format === "cardnews" && <div className="settings design-set" data-testid="design-controls"><small>DESIGN · 카드뉴스 디자인</small>
+          <div className="design-source" role="radiogroup" aria-label="DESIGN SOURCE" data-testid="design-source"><small>DESIGN SOURCE</small>
+            <div className="src-options">
+              <label className="src-option"><input type="radio" name="design-source" checked={(project.designSource ?? "auto") === "auto"} onChange={() => update({ ...project, designSource: "auto" })} data-testid="design-source-auto"/>AUTO DESIGN</label>
+              <label className="src-option"><input type="radio" name="design-source" checked={project.designSource === "templates"} onChange={() => update({ ...project, designSource: "templates" })} data-testid="design-source-templates"/>MY TEMPLATES</label>
+            </div>
+          </div>
+          {project.designSource === "templates" ? <TemplateGallery library={templateLibrary}/> : <>
           <label>디자인 스타일<select value={project.design?.style ?? "auto"} onChange={(event) => setDesign({ style: event.target.value as DesignControls["style"] })} data-testid="design-style"><option value="auto">자동 추천{autoStyle ? ` (${autoStyle.styleLabel})` : ""}</option>{designStyleIds.map((id) => <option key={id} value={id}>{STYLES[id].label}</option>)}</select></label>
           <div className="two"><label>색<select value={project.design?.palette ?? "auto"} onChange={(event) => setDesign({ palette: event.target.value as DesignControls["palette"] })} data-testid="design-palette">{paletteModes.map((id) => <option key={id} value={id}>{paletteModeLabels[id]}</option>)}</select></label>
           <label>글자 분위기<select value={project.design?.typeMood ?? "auto"} onChange={(event) => setDesign({ typeMood: event.target.value as DesignControls["typeMood"] })} data-testid="design-type">{typeMoods.map((id) => <option key={id} value={id}>{typeMoodLabels[id]}</option>)}</select></label></div>
           <div className="two"><label>이미지 비중<select value={project.design?.imageEmphasis ?? "auto"} onChange={(event) => setDesign({ imageEmphasis: event.target.value as DesignControls["imageEmphasis"] })} data-testid="design-image">{imageEmphases.map((id) => <option key={id} value={id}>{imageEmphasisLabels[id]}</option>)}</select></label>
           <label>밀도<select value={project.design?.density ?? "balanced"} onChange={(event) => setDesign({ density: event.target.value as DesignControls["density"] })} data-testid="design-density">{densities.map((id) => <option key={id} value={id}>{densityLabels[id]}</option>)}</select></label></div>
           <p className="note">비율은 위 “비율”을 따릅니다. 생성 후 오른쪽에서 미리보고, Figma로 보내면 같은 디자인으로 편집 가능한 레이어가 만들어집니다.</p>
+          </>}
         </div>}
         <div className="settings" data-testid="production-settings">
           <label>콘텐츠 형식<select value={project.settings.format} onChange={(event) => setSettings({ format: event.target.value as ProductionSettings["format"] })} data-testid="setting-format">{(["cardnews", "shortform"] as const).map((format) => <option key={format} value={format}>{productionFormatLabels[format]}</option>)}</select></label>
@@ -500,7 +550,10 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
         {!plan ? <div className="state-box"><DataBadge status="NOT ANALYZED"/><p>왼쪽 설정을 확인하고 기획을 생성하세요. 생성 후 카피를 직접 고칠 수 있고, 고친 내용은 자동으로 이 브라우저에 저장됩니다.</p></div> : <>
           <header className="out-head"><div><small>{productionFormatLabels[project.settings.format]} · {project.settings.format === "cardnews" ? `${plan.slides.length}장 · ${project.settings.aspect}` : `${project.settings.durationSec}초 · 9:16`}</small><h2>{plan.title}</h2></div><DataBadge status="SAVED" detail={`${project.model ?? ""} · ${formatDateTime(project.generatedAt)}${project.edited ? " · 수정됨" : ""}`}/></header>
           {plan.concept_notice && <p className="notice" data-testid="concept-notice">CONCEPT · {plan.concept_notice}</p>}
-          {design && <details className="design-box" open><summary>DESIGN PREVIEW · {design.styleLabel} · {design.frames.map((frame) => frame.layout).join(" ")}</summary>
+          {project.designSource === "templates" && project.settings.format === "cardnews" && <details className="design-box" open data-testid="my-templates-preview"><summary>MY TEMPLATES PREVIEW · 슬라이드별 템플릿</summary>
+            <TemplateSlidePreviews project={project} slides={plan.slides} library={templateLibrary} onAssign={assignTemplate}/>
+          </details>}
+          {design && project.designSource !== "templates" && <details className="design-box" open><summary>DESIGN PREVIEW · {design.styleLabel} · {design.frames.map((frame) => frame.layout).join(" ")}</summary>
             <CardPreview design={design} assets={project.assets}/>
             <p className="ev" data-testid="design-reason">스타일: {design.styleReason} · 색: {design.colorSources.filter((item) => item.source === "observed").length ? `Visual DNA 관찰 색 ${design.colorSources.filter((item) => item.source === "observed").length}개 사용(역할 배정은 규칙 해석)` : "스타일 기본색"}{design.notes.length ? ` · ${design.notes.join(" ")}` : ""}</p>
             {design.frames.some((frame) => frame.notes.length) && <ul className="design-notes">{design.frames.filter((frame) => frame.notes.length).map((frame) => <li key={frame.id}>{frame.number}번: {frame.notes.join(" / ")}</li>)}</ul>}
@@ -514,6 +567,12 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
             {slide.cta && <label>CTA<input value={slide.cta} onChange={(event) => editSlide(slide.slide_id, { cta: event.target.value })}/></label>}
             <p className="vd"><b>VISUAL</b> {slide.visual_direction}</p>
             {unitSlot(slide.slide_id, slideImageAssetId(slide), slide.image_prompt, slide.type === "cover" ? ["cover", "background", "body"] : ["body", "background", "cover"], normalizedSlideImage(slide, assetById.get(slideImageAssetId(slide))), slideImageBrief(slide, { lock, title: plan?.title ?? project.title }))}
+            {(() => { const extras = (slide.images ?? []).filter((item) => item.assetId !== slideImageAssetId(slide) && assetById.has(item.assetId)); let order = 1; return extras.length ? <ul className="extra-strip" data-testid="slide-extra-strip">{extras.map((item) => { const slot = item.role === "background" ? "BG_IMAGE" : `추가 ${(order += 1) - 1}`; return <li key={item.assetId} data-slot={slot}><span className="extra-thumb"><AssetImage asset={assetById.get(item.assetId)!} compact/></span><b>{slot}</b><button type="button" className="mini" onClick={() => toggleExtraImage(slide.slide_id, item.assetId)} aria-label={`${slot} 이미지 빼기`} data-testid="extra-remove">빼기</button></li>; })}</ul> : null; })()}
+            {project.assets.some((item) => item.id !== slideImageAssetId(slide)) && <details className="extra-images" data-testid="slide-extra-images" onToggle={(event) => { const open = (event.currentTarget as HTMLDetailsElement).open; setExtraOpen((current) => { const next = new Set(current); if (open) next.add(slide.slide_id); else next.delete(slide.slide_id); return next; }); }}><summary>추가 이미지 · Figma 템플릿용 ({(slide.images ?? []).filter((item) => item.assetId !== slideImageAssetId(slide) && assetById.has(item.assetId)).length})</summary>
+              <p className="note">MY TEMPLATES: 대표 이미지는 IMAGE_MAIN, 추가 이미지는 IMAGE_1·IMAGE_2·IMAGE_3… 순서로(IMAGE_MAIN이 없는 템플릿은 대표 이미지가 IMAGE_1), “배경”으로 고른 1장은 BG_IMAGE에 들어갑니다. 대표 이미지는 위 “이미지 연결”.</p>
+              {/* 열었을 때만 그린다: 닫힌 칸에 다른 슬라이드 이미지가 섞여 보이지 않게 */}
+              {extraOpen.has(slide.slide_id) && <div className="picker">{project.assets.filter((item) => item.id !== slideImageAssetId(slide)).map((item) => { const ref = slide.images?.find((entry) => entry.assetId === item.id); return <div key={item.id} className="extra"><button type="button" onClick={() => toggleExtraImage(slide.slide_id, item.id)} aria-pressed={Boolean(ref)} aria-label={`${item.title} 추가 이미지로 ${ref ? "빼기" : "넣기"}`} data-testid="extra-image-toggle" data-asset-id={item.id}><AssetImage asset={item} compact/></button>{ref && <label><input type="checkbox" checked={ref.role === "background"} onChange={() => toggleBackgroundImage(slide.slide_id, item.id)} data-testid="extra-image-background"/>배경</label>}</div>; })}</div>}
+            </details>}
           </li>)}</ol>
           : <ol className="slides" data-testid="production-scenes">{plan.scenes.map((scene) => <li key={scene.scene_id} className="slide" data-testid="production-scene">
             <div className="slide-head"><b>{scene.time_range}</b><span>{scene.transition}</span>{scene.review?.length ? <i className="review" title={scene.review.join("\n")} data-testid="slide-review">검증 필요 {scene.review.length}</i> : null}</div>
@@ -530,6 +589,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
             {(plan.detail_bank?.length ?? 0) > 0 && <div className="copy" data-testid="notes-detail-bank"><small>DETAIL BANK · 쓰기 전에 모은 소재 고유 디테일 {plan.detail_bank!.length} (근거 확인 {plan.detail_bank!.filter((item) => item.status === "verified").length})</small><ul>{plan.detail_bank!.map((item) => <li key={item.id}><b>{item.id}</b> {item.detail} <span className="ev">· 사례 {item.example} · 활용 {item.use} · {item.status === "verified" ? `근거 ${item.source_ids.join(", ")}` : "검증 필요(일반 지식)"}</span></li>)}</ul></div>}
             {project.quality && <div className="copy quality" data-testid="quality-gate"><small>A. 필수 검증 · 자동 규칙 {project.quality.passed}/{project.quality.total}</small><ul>{project.quality.checks.filter((check) => (check.group ?? "required") === "required").map((check) => <li key={check.id} className={check.pass ? "ok" : "bad"}>{check.pass ? "○" : "×"} {check.label} — {check.detail}</li>)}</ul>
               <small>B. 편집 신호 · 규칙 기반 참고(통과 여부는 편집 리뷰가 판단)</small><ul>{project.quality.checks.filter((check) => check.group === "editorial").map((check) => <li key={check.id} className={check.pass ? "ok" : "hint"}>{check.pass ? "○" : "△"} {check.label} — {check.detail}</li>)}</ul>{project.quality.genericSentences.length > 0 && <p className="ev">다른 소재에도 통하는 문장: {project.quality.genericSentences.slice(0, 4).join(" / ")}</p>}</div>}
+            <UserRatingPanel key={project.id} rating={project.userRating} planTitle={plan.title} onSave={(rating) => update({ ...project, userRating: rating })}/>
             {project.review && <div className="copy review-box" data-testid="editorial-review"><small>편집 리뷰 · AI 참고 점수(사용자 평가 아님) · {project.review.model}</small><p className="scores">후킹 {project.review.scores.hook} · 소재 고유성 {project.review.scores.specificity} · 전개 {project.review.scores.story} · 저장·공유 {project.review.scores.save_share} · 문체 {project.review.scores.voice} <span className="ev">(1~5)</span></p><p>{project.review.summary}</p>{project.review.patched.length > 0 ? <ul>{project.review.titleChange && <li>제목: “{project.review.titleChange.from}” → “{project.review.titleChange.to}”</li>}{project.review.patched.filter((item) => item.unit !== "title").map((item) => <li key={String(item.unit)}>{item.unit}번 고쳐 씀 — {item.reason}</li>)}</ul> : <p className="ev">고쳐 쓴 슬라이드 없음</p>}{(project.review.reverted?.length ?? 0) > 0 && <p className="ev" data-testid="review-reverted">새 문제가 생겨 초안으로 되돌린 슬라이드: {project.review.reverted!.map((item) => `${item.unit}번(${item.problems.join(", ")})`).join(" · ")}</p>}<p className="ev">필수 검증: 수정 전 {project.review.before.passed}/{project.review.before.total} → 수정 후 {project.quality?.passed ?? "—"}/{project.quality?.total ?? "—"}</p></div>}
             {(project.validation?.needsReview?.length ?? 0) > 0 && <div className="copy" data-testid="notes-review"><small>사실 확인 필요 · 근거 없는 주장</small><ul>{[...plan.slides, ...plan.scenes].flatMap((unit) => (unit.review ?? []).map((line) => <li key={`${"slide_id" in unit ? unit.slide_id : unit.scene_id}-${line}`}>{"slide_id" in unit ? `슬라이드 ${unit.number}` : unit.time_range} · {line.replace(/^검증 필요: /, "")}</li>))}</ul></div>}
             {(project.validation?.reportPhrases?.length ?? 0) > 0 && <div className="copy" data-testid="notes-report-phrases"><small>보고서식 표현이 게시용 문구에 남음</small><ul>{project.validation!.reportPhrases!.map((item, index) => <li key={index}>{item.unit === "caption" ? "캡션" : `${item.unit}번`} · “{item.phrase}”</li>)}</ul></div>}
@@ -590,6 +650,9 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       .image-state{margin:0;font-size:10px;color:var(--muted)}.image-state.generating{color:#1f2fe0}.image-state.error{color:#a3122e}.image-state.ready{color:#237a27}
       .slot-actions{display:flex;gap:4px;flex-wrap:wrap}
       .mini{display:inline-flex;gap:3px;align-items:center;font-size:10px;padding:2px 6px;border:1px solid var(--ink);border-radius:3px;background:#fff;cursor:pointer}
+      .design-source{display:grid;gap:4px;font-size:11px;border:1px solid var(--border);background:#fff;padding:6px 8px}.design-source .src-options{display:flex;gap:6px 14px;flex-wrap:wrap}.design-source label.src-option{display:inline-flex;gap:5px;align-items:center;font-weight:700;white-space:nowrap;color:var(--ink)}.design-source label.src-option input{width:auto;height:auto;padding:0;margin:0;border:0;flex:none}.stack-toggle{display:flex;gap:5px;align-items:flex-start;font-size:10px;font-weight:700;margin-top:4px}.stack-toggle input{width:auto;padding:0;margin:2px 0 0;flex:none}
+      .extra-strip{list-style:none;margin:6px 0 0;padding:0;display:flex;gap:6px;flex-wrap:wrap}.extra-strip li{display:grid;gap:2px;width:84px;font-size:10px}.extra-strip .extra-thumb{display:block;max-height:84px;overflow:hidden}.extra-strip b{font-size:9px;letter-spacing:.04em}
+      .extra-images{margin-top:6px;font-size:11px}.extra-images summary{cursor:pointer}.extra-images .extra{display:grid;gap:2px}.extra-images .extra label{font-size:10px;display:flex;gap:3px;align-items:center}.extra-images button[aria-pressed=true]{outline:2px solid var(--accent,#1F2FE0)}
       .picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.picker button{border:1px solid var(--border);background:#fff;padding:3px;border-radius:4px;cursor:pointer;min-width:0}
       .copy p{margin:0;font-size:12px;line-height:1.6}.copy ul{margin:0;padding-left:16px;font-size:12px}.tags{color:#1f2fe0}
       .actions{display:flex;flex-wrap:wrap;gap:6px}
@@ -597,6 +660,7 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       .modes{display:grid;gap:4px}
       .modes button,.angle-list button{display:grid;gap:2px;text-align:left;font:inherit;padding:6px 8px;border:1.5px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;min-width:0}
       .modes button b{font-size:11px;letter-spacing:.04em}.modes button span{font-size:10px;color:var(--muted);line-height:1.4}
+      .angle-list .focus{font-size:10px;font-weight:800;color:var(--blue)}
       .modes button[aria-checked=true],.angle-list button[aria-checked=true]{border-color:var(--ink);background:#f6ff3a;box-shadow:2px 2px 0 var(--ink)}
       .angles-box{display:grid;gap:6px;padding:8px;border:1px dashed var(--border);border-radius:6px}
       .angle-list{list-style:none;margin:0;padding:0;display:grid;gap:5px}
@@ -612,6 +676,8 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       .quality li.bad{color:#8a1040}.quality li.ok{color:#237a27}.quality li.hint{color:#8a5a08}.quality small+ul{margin-bottom:6px}
       .revised{font-style:normal;font-size:10px;font-weight:800;padding:1px 6px;border:1px solid #1f2fe0;border-radius:999px;background:#eef1ff;color:#1f2fe0;cursor:help}
       .review-box .scores{font-weight:700}
+      .user-rating .rating-grid{display:grid;gap:4px;margin:4px 0}.user-rating label{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:11px;font-weight:600;color:var(--ink)}.user-rating label em{font-style:normal;color:var(--muted);font-size:10px}.user-rating select{width:auto}.user-rating .rating-note{display:grid;justify-content:stretch}
+      .angle-list .brief{font-size:10px;color:var(--muted)}
       .copy ol{margin:0;padding-left:18px;font-size:12px;line-height:1.6}
       .editor-notes{border:1.5px dashed var(--ink);border-radius:8px;padding:8px 10px;background:#fbfbf4;display:grid;gap:8px}
       .editor-notes summary{cursor:pointer;font-size:12px;font-weight:800;display:flex;gap:6px;align-items:center}
@@ -623,5 +689,16 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
       .handoff b{font-family:ui-monospace,monospace}
       @media(max-width:1000px){.prod{grid-template-columns:1fr}.slides{grid-template-columns:1fr}}
     `}</style>
+  </div>;
+}
+
+/** V3(E4) 사용자 평가. AI 편집 리뷰 점수와 따로 저장·표시한다(출처: user). 게시 후 성과(저장·공유 수)와도 섞지 않는다. */
+function UserRatingPanel({ rating, planTitle, onSave }: { rating?: UserRating; planTitle: string; onSave: (rating: UserRating) => void }) {
+  const [draft, setDraft] = useState<{ scores: UserRating["scores"]; note: string }>(() => ({ scores: rating?.scores ?? {}, note: rating?.note ?? "" }));
+  const stale = rating && rating.planTitle !== planTitle;
+  return <div className="copy user-rating" data-testid="user-rating"><small>내 평가 · 사용자 평가(AI 점수와 별개, 1~5){rating ? ` · 저장 ${new Date(rating.ratedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}{stale ? " · 이전 기획에 대한 평가" : ""}</small>
+    <div className="rating-grid">{userRatingItems.map((item) => <label key={item.id}><span>{item.label} <em>{item.rubric}</em></span><select value={draft.scores[item.id] ?? ""} onChange={(event) => setDraft((current) => ({ ...current, scores: { ...current.scores, [item.id]: event.target.value ? Number(event.target.value) : undefined } }))} data-testid={`user-rating-${item.id}`}><option value="">—</option>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>)}</div>
+    <label className="rating-note">한 줄 메모<input value={draft.note} maxLength={300} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} placeholder="예: 3번 장이 2번을 반복함" data-testid="user-rating-note"/></label>
+    <button type="button" className="mini" onClick={() => onSave({ source: "user", scores: draft.scores, note: draft.note.trim(), ratedAt: new Date().toISOString(), planTitle })} disabled={!Object.values(draft.scores).some(Boolean)} data-testid="user-rating-save">평가 저장</button>
   </div>;
 }

@@ -30,6 +30,8 @@ export const editorialContextLockSchema = z.object({
   /** 사용자가 직접 제공한 자료(메모·링크). 검증되지 않은 자료로 다룬다. */
   userMaterials: z.string().max(1500).default(""),
   evidenceStatus: z.enum(["OBSERVED", "EMERGING", "INSUFFICIENT EVIDENCE"]).default("EMERGING"),
+  /** V3(E1) 경량 잠금: 현상 선택 없이 들어온 프로젝트에서 사용자가 고른 방향의 초점으로 만든 잠금(서버에서만, 저장하지 않음). */
+  soft: z.boolean().optional(),
 });
 export type EditorialContextLock = z.infer<typeof editorialContextLockSchema>;
 
@@ -93,11 +95,30 @@ export function buildContextLock(context: PhenomenonContext, why?: { report?: Tr
   };
 }
 
+/**
+ * V3(E1) 경량 잠금: 키워드·Collision·Lab 경로처럼 현상을 고르지 않고 들어온 프로젝트에서, 사용자가 고른 방향의 초점(focus)으로 잠금을 만든다.
+ * 고른 방향의 유형이 직접 다루는 주제(역사 방향의 역사, 입문 방향의 입문, 큐레이션의 구매)는 금지하지 않는다. 근거 상태는 방향의 evidence_fit을 따른다.
+ */
+export function lockFromAngle(angle: { angle_id: string; title: string; focus?: string; angle_type?: string; evidence_ids: string[]; evidence_fit: "grounded" | "partial" | "needs_research" }, keyword: string): EditorialContextLock | undefined {
+  const focus = angle.focus?.trim();
+  if (!focus) return undefined;
+  const allowed = new Set(angle.angle_type === "history" ? ["history"] : angle.angle_type === "guide" || angle.angle_type === "howto" ? ["beginner"] : angle.angle_type === "curation" ? ["purchase"] : []);
+  return {
+    enabled: true, soft: true, selectedPhenomenonId: `angle:${angle.angle_id}`.slice(0, 120), selectedPhenomenon: focus.slice(0, 80), parentKeyword: keyword.slice(0, 60),
+    subject: "", object: "", direction: "", coreBehavior: focus.slice(0, 300), culturalContext: "", editorialFocus: `"${angle.title}" — ${focus}`.slice(0, 300),
+    observedEvidenceIds: angle.evidence_ids.filter((id) => id.startsWith("T1:")).map((id) => id.slice(3)).slice(0, 16), creativeHypothesis: "",
+    prohibitedTopicDrift: defaultDrift({ keyword, object: "", direction: "" }).filter((item) => !allowed.has(item.id)), userMaterials: "",
+    evidenceStatus: angle.evidence_fit === "grounded" ? "OBSERVED" : angle.evidence_fit === "partial" ? "EMERGING" : "INSUFFICIENT EVIDENCE",
+  };
+}
+
 /** 제작·방향 제안 프롬프트에 넣는 잠금 지시. */
 export function lockInstructions(lock: EditorialContextLock, stage: "angles" | "production") {
   const limited = lockEvidenceLimited(lock);
   return [
-    `CONTEXT LOCK (highest priority — above the angle, the research and the parent keyword): the piece is about ONE selected phenomenon: "${lock.selectedPhenomenon}" (parent keyword: ${lock.parentKeyword}). Core behavior: ${lock.coreBehavior || "(see phenomenon)"}.${lock.direction ? ` Direction: ${lock.direction}.` : ""}${lock.culturalContext ? ` Cultural context: ${lock.culturalContext}` : ""}`,
+    lock.soft
+      ? `ANGLE FOCUS LOCK (from the angle the user picked): the piece is about ONE specific thing inside "${lock.parentKeyword}": "${lock.selectedPhenomenon}". Do not widen it into an introduction of ${lock.parentKeyword} in general.`
+      : `CONTEXT LOCK (highest priority — above the angle, the research and the parent keyword): the piece is about ONE selected phenomenon: "${lock.selectedPhenomenon}" (parent keyword: ${lock.parentKeyword}). Core behavior: ${lock.coreBehavior || "(see phenomenon)"}.${lock.direction ? ` Direction: ${lock.direction}.` : ""}${lock.culturalContext ? ` Cultural context: ${lock.culturalContext}` : ""}`,
     `EDITORIAL FOCUS: ${lock.editorialFocus || lock.selectedPhenomenon}.`,
     stage === "angles"
       ? "Every angle must be a different way to tell THIS phenomenon (e.g. comparisons inside it, how people actually do it, the creators and their content, how the cultures connect, what readers can try or watch). An angle about the parent keyword in general is not allowed. Use angle_type freely but never history of the parent keyword or a beginner guide to it."

@@ -39,7 +39,15 @@ const SOURCE_NARRATION = /(보도|기사|자료|발표|설명|소개|분석)(에
 /** 인용 부호·괄호 안의 원어(곡명·작품명)는 허용한다. */
 const QUOTED = /[「『‘'“"(（][^」』’'”")）]*[」』’'”")）]/g;
 const FOREIGN_SCRIPT = /[぀-ヿ一-鿿]/;
+/** E0 G2: 1인칭 체험(먹어 봤다·가 봤다·써 봤다·솔직 후기 …). */
+export const FIRST_PERSON_EXPERIENCE = /(직접|제가|내가|저희가|우리가)\s*\S{0,6}(먹어\s*봤|가\s*봤|가봤|다녀왔|써\s*봤|써봤|입어\s*봤|사\s*봤|해\s*봤|해봤|타\s*봤|방문했|구매했|체험했)|(먹어|가|써|입어|사)\s*봤(어요|는데|더니|습니다)|다녀왔(어요|는데|습니다)|솔직\s*후기|내돈내산/;
+/** E0 G3: 근거 없이 쓰면 안 되는 유행·인기 표현. */
+export const VIRALITY = /요즘\s*(난리|대세|핫한|핫해)|난리\s*난|난리예요|대세(예요|인|로|가|템)|핫한|핫해요|바이럴|인기\s*폭발|품절\s*대란|급상승|역대급\s*인기/;
+/** E0 FAILURE 07: 조사·통계 방법 서술. */
+const SURVEY_NARRATION = /(조사|설문|분석\s*글|보고서|통계)(에서는?|에\s*따르면|\s*결과)|(으로|로)\s*정의했|보고됐|라고\s*보고|비중이\s*높았다고/;
 
+/** 스토리보드 '새 정보'가 앞 장과 이만큼 겹치면 반복으로 본다. */
+export const PROGRESS_OVERLAP = 0.5;
 const sentences = (text: string) => text.split(/(?<=[.!?。…])\s+|\n+/).map((item) => item.trim()).filter((item) => item.length >= 6);
 const words = (text: string) => (text.match(/[\p{L}\p{N}]{2,}/gu) ?? []).map((word) => word.toLocaleLowerCase("ko-KR"));
 /** 한국어 조사·어미를 대충 떼어 비교한다(검사용). */
@@ -65,10 +73,10 @@ export function isGenericSentence(sentence: string, subjectTerms: string[], spec
   return !specificTerms.some((term) => term.length >= 2 && restWords.has(stem(term.toLocaleLowerCase("ko-KR"))));
 }
 
-type Unit = { n: number; head: string; body: string; gets: string; facts: NonNullable<ProductionPlan["slides"][number]["fact_checks"]>; detailIds: string[]; review: string[] };
+type Unit = { n: number; head: string; body: string; gets: string; facts: NonNullable<ProductionPlan["slides"][number]["fact_checks"]>; detailIds: string[]; review: string[]; newInfo: string };
 const unitsOf = (plan: ProductionPlan): Unit[] => plan.slides.length
-  ? plan.slides.map((slide) => ({ n: slide.number, head: slide.headline, body: `${slide.body} ${slide.supporting_text}`, gets: slide.reader_gets ?? "", facts: slide.fact_checks ?? [], detailIds: slide.detail_ids ?? [], review: slide.review ?? [] }))
-  : plan.scenes.map((scene, index) => ({ n: index + 1, head: scene.on_screen_text, body: scene.voice_over, gets: scene.reader_gets ?? "", facts: scene.fact_checks ?? [], detailIds: scene.detail_ids ?? [], review: scene.review ?? [] }));
+  ? plan.slides.map((slide) => ({ n: slide.number, head: slide.headline, body: `${slide.body} ${slide.supporting_text}`, gets: slide.reader_gets ?? "", facts: slide.fact_checks ?? [], detailIds: slide.detail_ids ?? [], review: slide.review ?? [], newInfo: slide.new_information ?? "" }))
+  : plan.scenes.map((scene, index) => ({ n: index + 1, head: scene.on_screen_text, body: scene.voice_over, gets: scene.reader_gets ?? "", facts: scene.fact_checks ?? [], detailIds: scene.detail_ids ?? [], review: scene.review ?? [], newInfo: "" }));
 
 /**
  * vocabulary: 소재 고유어 후보가 되는 외부 텍스트(근거 원장 제목·발췌, DNA 속성). 모델이 슬라이드에 쓴 디테일 문구는 쓰지 않는다
@@ -123,10 +131,24 @@ export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms
     locked.drift.forEach((unit) => issues.push({ unit: unit.n, problem: `잠근 현상에서 벗어남(${unit.hits.join(", ")}): "${lock.selectedPhenomenon}"의 행동·사례로 다시 쓰기` }));
     const titleDrift = driftHits(plan.title, lock);
     if (titleDrift.length) issues.push({ unit: "title", problem: `제목이 잠근 현상에서 벗어남(${titleDrift.join(", ")})` });
-    if (locked.unanchored.length > 1) locked.unanchored.forEach((n) => issues.push({ unit: n, problem: `선택한 현상 "${lock.selectedPhenomenon}"이 드러나지 않음: 이 현상의 행동·사례로 연결하기` }));
-    required("context-lock", "현상 고정(Context Lock)", locked.pass && !titleDrift.length, `이탈 슬라이드 ${locked.drift.map((unit) => `${unit.n}(${unit.hits.join("·")})`).join(", ") || "없음"}${titleDrift.length ? " · 제목 이탈" : ""} · 현상이 드러나지 않는 슬라이드 ${locked.unanchored.join(", ") || "없음"}`);
+    // 경량 잠금(방향 초점)은 초점 문구가 모델이 쓴 한 줄이라 슬라이드마다 그 단어가 나오는지는 보지 않는다(이탈 규칙만).
+    if (locked.unanchored.length > 1 && !lock.soft) locked.unanchored.forEach((n) => issues.push({ unit: n, problem: `선택한 현상 "${lock.selectedPhenomenon}"이 드러나지 않음: 이 현상의 행동·사례로 연결하기` }));
+    const lockPass = lock.soft ? !locked.drift.length : locked.pass;
+    required("context-lock", lock.soft ? "방향 초점 유지(키워드 일반 소개로 넓어지지 않음)" : "현상 고정(Context Lock)", lockPass && !titleDrift.length, `이탈 슬라이드 ${locked.drift.map((unit) => `${unit.n}(${unit.hits.join("·")})`).join(", ") || "없음"}${titleDrift.length ? " · 제목 이탈" : ""}${lock.soft ? ` · 초점 "${lock.selectedPhenomenon}"` : ` · 현상이 드러나지 않는 슬라이드 ${locked.unanchored.join(", ") || "없음"}`}`);
     if (lockEvidenceLimited(lock)) editorial("lock-gaps", "근거 부족을 알림(주제 유지)", (plan.editor_notes?.research_gaps ?? []).length > 0, `현상을 직접 보여 주는 근거 ${lock.observedEvidenceIds.length}건 · 편집 메모의 조사 필요 항목 ${(plan.editor_notes?.research_gaps ?? []).length}개`);
   }
+
+  // E0 G2 허위 경험: TREND RADAR가 하지 않은 1인칭 체험. 사용자가 경험 자료를 준 경우(USER_MATERIALS)만 허용.
+  const experienceAllowed = Boolean(input.lock?.userMaterials?.trim());
+  const experienced = units.filter((unit) => FIRST_PERSON_EXPERIENCE.test(`${unit.head} ${unit.body}`));
+  if (!experienceAllowed) experienced.forEach((unit) => issues.push({ unit: unit.n, problem: "직접 해 본 것처럼 쓴 1인칭 체험: 사용자 경험 자료가 없으면 관측 사실로(\"~한 영상이 있어요\") 바꾸기" }));
+  required("experience", "허위 경험 없음", experienceAllowed || !experienced.length, experienced.length ? `1인칭 체험 슬라이드 ${experienced.map((unit) => unit.n).join(", ")}${experienceAllowed ? " (사용자 경험 자료 있음 — 출처 표시 확인)" : ""}` : "없음");
+  // E0 G3 근거 없는 유행 주장: 인기·바이럴 표현은 그 슬라이드에 근거 있는 사실 확인이 있을 때만.
+  const viral = units.filter((unit) => VIRALITY.test(`${unit.head} ${unit.body}`) && !unit.facts.some((fact) => fact.evidence_ids.length && fact.status === "Verified Signal"));
+  const titleViral = VIRALITY.test(plan.title) || VIRALITY.test(plan.caption);
+  viral.forEach((unit) => issues.push({ unit: unit.n, problem: "근거 없는 유행·인기 주장: 관측된 것만(\"여러 곳에서 보여요\")으로 바꾸기" }));
+  if (titleViral) issues.push({ unit: "title", problem: "제목·캡션의 근거 없는 유행·인기 주장" });
+  required("virality", "근거 없는 유행 주장 없음", !viral.length && !titleViral, viral.length || titleViral ? `해당 ${[...viral.map((unit) => `${unit.n}번`), ...(titleViral ? ["제목·캡션"] : [])].join(", ")}` : "없음");
 
   /* ---------- B. 편집 신호(참고, 통과 여부는 편집 리뷰가 판단) ---------- */
   const genericSentences = units.flatMap((unit) => sentences(`${unit.head}. ${unit.body}`).filter((sentence) => isGenericSentence(sentence, subjectTerms, specificTerms)).map((sentence) => `${unit.n}번: ${sentence}`));
@@ -140,8 +162,24 @@ export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms
   const narrated = units.filter((unit) => SOURCE_NARRATION.test(`${unit.head} ${unit.body}`));
   narrated.forEach((unit) => hints.push({ unit: unit.n, problem: "출처를 서술하는 문장(보도 요약형)" }));
   editorial("not-report", "보도·분석 요약형 서술이 아님", narrated.length <= 1, narrated.length ? `출처 서술 슬라이드 ${narrated.map((unit) => unit.n).join(", ")}` : "없음");
+  // E0 FAILURE 07: 조사·통계 방법을 설명하는 문장(매거진이 아니라 조사 요약).
+  const surveyed = units.filter((unit) => SURVEY_NARRATION.test(`${unit.head} ${unit.body}`));
+  surveyed.forEach((unit) => hints.push({ unit: unit.n, problem: "조사·통계 방법 서술: 독자가 얻는 것이 없으면 빼거나 장면으로 바꾸기" }));
+  editorial("not-survey", "조사·통계 요약형 서술이 아님", !surveyed.length, surveyed.length ? `조사 서술 슬라이드 ${surveyed.map((unit) => unit.n).join(", ")}` : "없음");
   if (isGenericTitle(plan.title)) hints.push({ unit: "title", problem: "흔한 제목 틀" });
   editorial("title", "제목 구조", !isGenericTitle(plan.title), `구조: ${titleStructure(plan.title)}${isGenericTitle(plan.title) ? " · 흔한 틀" : ""} (좋은 후킹인지는 편집 리뷰가 판단)`);
+  // V3(E2) 새 정보: 스토리보드가 있는 계획만. 앞 슬라이드와 '새 정보'가 겹치거나 비어 있는 본문 슬라이드(같은 결론 반복, E0 FAILURE 04).
+  if (units.some((unit) => unit.newInfo.trim())) {
+    const repeated: number[] = [];
+    units.forEach((unit, i) => {
+      if (i === 0 || i === units.length - 1) return;
+      const info = unit.newInfo.trim();
+      if (!info) { repeated.push(unit.n); hints.push({ unit: unit.n, problem: "새로 주는 정보가 비어 있음: 앞 장에 없던 정보 하나를 정하기" }); return; }
+      const earlier = units.slice(0, i).find((prev) => prev.newInfo.trim() && ideaSimilarity(prev.newInfo, info) >= PROGRESS_OVERLAP);
+      if (earlier) { repeated.push(unit.n); hints.push({ unit: unit.n, problem: `${earlier.n}번과 같은 정보를 반복: 이 장에서만 알게 되는 것으로 바꾸기` }); }
+    });
+    editorial("progressive", "장마다 새 정보(스토리보드)", !repeated.length, repeated.length ? `새 정보가 없거나 겹치는 슬라이드 ${repeated.join(", ")}` : "모두 새 정보");
+  }
   const noValue = units.slice(0, -1).filter((unit) => !unit.gets.trim());
   editorial("flow", "슬라이드마다 독자가 얻는 것", !noValue.length, noValue.length ? `비어 있는 슬라이드 ${noValue.map((unit) => unit.n).join(", ")}` : "모두 있음");
 

@@ -70,6 +70,13 @@ export const slideImageSchema = z.object({
   errorMessage: z.string().max(500).optional(),
 });
 export type SlideImage = z.infer<typeof slideImageSchema>;
+/** 슬라이드 추가 이미지의 역할(Figma MY TEMPLATES 슬롯 배정): background → BG_IMAGE, main → IMAGE_MAIN, detail → IMAGE_2~4. */
+export const slideImageRoles = ["background", "main", "detail"] as const;
+export const slideImageRefSchema = z.object({ assetId: z.string().max(160), role: z.enum(slideImageRoles).optional() });
+export type SlideImageRef = z.infer<typeof slideImageRefSchema>;
+/** V3(E2) 슬라이드가 보여 줄 장면. 이미지 브리프가 잠금보다 먼저 쓴다. */
+export const storyboardSceneSchema = z.object({ subject: z.string().max(200), action: z.string().max(300), object: z.string().max(200) });
+export type StoryboardScene = z.infer<typeof storyboardSceneSchema>;
 export const productionSlideSchema = z.object({
   slide_id: z.string(), number: z.number(), type: z.enum(slideTypes),
   headline: z.string(), body: z.string(), supporting_text: z.string(),
@@ -86,8 +93,13 @@ export const productionSlideSchema = z.object({
   revised: z.string().optional(),
   /** 서버가 붙이는 검토 메모(게시용 아님). */
   review: z.array(z.string()).optional(),
+  /** V3(E2) 스토리보드: 앞 슬라이드에 없던, 이 장이 새로 주는 정보 한 줄 · 보여 줄 장면(주체·행동·대상). 제작자용. */
+  new_information: z.string().optional(),
+  scene: storyboardSceneSchema.optional(),
   /** 슬라이드 고유 이미지 상태. image_ref는 이전 프로젝트·플러그인 하위 호환용으로 함께 유지한다. */
   image: slideImageSchema.optional(),
+  /** 슬라이드당 여러 이미지(순서 = 배정 순서). 없으면 image 한 장으로 처리한다. */
+  images: z.array(slideImageRefSchema).max(8).optional(),
 });
 export const productionSceneSchema = z.object({
   scene_id: z.string(), time_range: z.string(), description: z.string(), visual_direction: z.string(),
@@ -153,6 +165,18 @@ export function resolvedSlideImageAssetId(slide: Pick<ProductionSlide, "image" |
   if (current && available.has(current)) return current;
   if (legacy && available.has(legacy)) return legacy;
   return "";
+}
+
+/**
+ * 슬라이드 이미지 목록. slide.images가 있으면 그 순서를 쓰고, 대표 이미지(slide.image)가 목록에 없으면 main으로 맨 앞에 둔다.
+ * slide.images가 없는 이전 데이터는 대표 이미지 한 장짜리 목록이 된다. 프로젝트에 없는 자산·중복은 뺀다.
+ */
+export function resolvedSlideImages(slide: ProductionSlide, assets: Array<Pick<ImageAssetRef, "id">>): SlideImageRef[] {
+  const available = new Set(assets.map((asset) => asset.id));
+  const main = resolvedSlideImageAssetId(slide, assets);
+  const list = (slide.images ?? []).filter((item) => available.has(item.assetId));
+  const ordered = main && !list.some((item) => item.assetId === main) ? [{ assetId: main, role: "main" as const }, ...list] : list;
+  return ordered.filter((item, index) => ordered.findIndex((other) => other.assetId === item.assetId) === index);
 }
 
 /** 이전 image_ref 프로젝트를 새 구조로 읽고, 두 필드를 항상 같은 값으로 쓴다. */
@@ -336,6 +360,17 @@ export function validateProduction(plan: ProductionPlan, settings: ProductionSet
 
 /* ---------- 프로젝트(저장 단위) ---------- */
 
+/** V3(E4) 사용자 평가 항목(EDITORIAL_QUALITY_RUBRIC S1·S2·S4·S5·S7). 출처는 항상 user. */
+export const userRatingItems = [
+  { id: "specificity", label: "현상이 구체적인가", rubric: "S1" },
+  { id: "value", label: "독자가 얻는 게 분명한가", rubric: "S2" },
+  { id: "hook", label: "제목이 주제와 맞고 흥미로운가", rubric: "S4" },
+  { id: "flow", label: "장마다 새 정보가 있는가", rubric: "S5" },
+  { id: "visual", label: "이미지가 메시지를 보여 주는가", rubric: "S7" },
+] as const;
+export type UserRatingItem = (typeof userRatingItems)[number]["id"];
+export type UserRating = { source: "user"; scores: Partial<Record<UserRatingItem, number>>; note: string; ratedAt: string; planTitle: string };
+
 export type StudioProject = {
   id: string;
   mode: "single" | "creative";
@@ -360,6 +395,12 @@ export type StudioProject = {
   review?: EditorialReview;
   /** DESIGN ENGINE V2: 카드뉴스 디자인 설정(비우면 자동). */
   design?: Partial<DesignControls>;
+  /** V3(E4): 사용자가 직접 매긴 품질 평가(1~5). AI 편집 리뷰 점수와 섞지 않는다. */
+  userRating?: UserRating;
+  /** P12: 카드뉴스 디자인 소스. "templates"면 사용자의 Figma 템플릿(MY TEMPLATES)으로 출력한다. 비우면 AUTO DESIGN. */
+  designSource?: "auto" | "templates";
+  /** P14: 슬라이드 ID → 고른 Figma 템플릿 ID(TEMPLATE_BODY_01 …). 없는 슬라이드는 플러그인 자동 배정. 웹은 선택만 저장하고 템플릿 원본은 바꾸지 않는다. */
+  templateAssignments?: Record<string, string>;
   /** 이 프로젝트에서 쓰는 이미지: 실제 근거(REAL REFERENCE)·콘셉트 시안·제작용 이미지. */
   assets: ImageAssetRef[];
   /** 사용자가 생성 결과를 직접 고쳤는지(다시 생성 전 확인용). */

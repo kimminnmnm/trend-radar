@@ -143,6 +143,22 @@ export function rowToSnapshot(row: CloudRow): LiveAnalysisSnapshot {
   };
 }
 
+/** 특정 트렌드의 내 클라우드 분석(최신순). RLS로 본인 행만 온다. Trend Lab이 Collision의 빠진 스냅샷을 복원할 때 쓴다. */
+export async function loadCloudAnalysesFor(trendIds: string[], client?: SupabaseClient) {
+  const supabase = client ?? getSupabaseBrowserClient();
+  if (!supabase) return { configured: false, authenticated: false, analyses: [] as LiveAnalysisSnapshot[] };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { configured: true, authenticated: false, analyses: [] as LiveAnalysisSnapshot[] };
+  const base = "id,trend_id,trend_name,keywords,period_months,source,report,naver_signal,prompt_version,analyzed_at";
+  const query = (columns: string) => supabase.from("trend_analyses").select(columns).in("trend_id", trendIds).order("created_at", { ascending: false }).limit(20).returns<CloudRow[]>();
+  let { data, error } = await query(`${base},evidence,signal_stats,youtube,dna,dna_generated_at,dna_model`);
+  if (error && /youtube|column/i.test(error.message)) ({ data, error } = await query(`${base},evidence,signal_stats,dna,dna_generated_at,dna_model`));
+  if (error && /column/i.test(error.message)) ({ data, error } = await query(base));
+  if (error) return { configured: true, authenticated: true, analyses: [] as LiveAnalysisSnapshot[], error: cloudHint(error.message) };
+  const seen = new Set<string>();
+  return { configured: true, authenticated: true, analyses: (data || []).map(rowToSnapshot).filter((item) => !seen.has(item.trendId) && Boolean(seen.add(item.trendId))) };
+}
+
 export async function loadCloudAnalyses(client?: SupabaseClient, limit = 50) {
   const supabase = client ?? getSupabaseBrowserClient();
   if (!supabase) return { configured: false, authenticated: false, analyses: [] as LiveAnalysisSnapshot[] };

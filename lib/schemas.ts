@@ -52,6 +52,15 @@ export const whyInsightSchema = z.object({
  * T5: WHY가 넘겨받는 "선택한 현상" 맥락. 키워드 문자열이 아니라 현상 ID·주체·행동·대상·방향·문화 맥락·관측 기간·근거 ID·근거 상태.
  * keyword = Parent Keyword. 발견(T1) 후보는 주체·대상을 따로 뽑지 않으므로 빈 값일 수 있다(지어내지 않음).
  */
+/** V3(E1): 방향 제안에 넘기는 WHAT'S HAPPENING NOW? 세부 현상 후보(클라이언트 저장 기록에서 온 요약 — 근거 ID 없음). */
+export const observedPhenomenonSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  behavior: z.string().trim().max(300).default(""),
+  status: z.enum(["Observed", "Emerging Signal"]),
+  independentSources: z.number().int().min(0).max(50).default(0),
+});
+export type ObservedPhenomenon = z.infer<typeof observedPhenomenonSchema>;
+
 export const phenomenonContextSchema = z.object({
   phenomenonId: z.string().trim().min(1).max(120),
   keyword: z.string().trim().min(1).max(60),

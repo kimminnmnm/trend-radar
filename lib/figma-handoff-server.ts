@@ -43,7 +43,7 @@ type PgError = { code?: string; message?: string };
 const missingSchema = (error: PgError) => error.code === "PGRST202" || error.code === "PGRST205" || error.code === "42P01" || error.code === "42883";
 
 /** PostgREST 호출. jwt가 없으면 anon 키로 부른다(플러그인용 함수만 anon 실행 권한이 있다). */
-async function rest<T>(path: string, init: { method?: string; body?: unknown; jwt?: string; prefer?: string } = {}): Promise<T> {
+export async function rest<T>(path: string, init: { method?: string; body?: unknown; jwt?: string; prefer?: string } = {}): Promise<T> {
   const { origin, anon } = supabaseConfig();
   let response: Response;
   try {
@@ -63,7 +63,7 @@ async function rest<T>(path: string, init: { method?: string; body?: unknown; jw
   if (/FIGMA_PAIRING_BUSY/.test(error.message ?? "")) throw new HandoffError("RATE_LIMITED", 429);
   throw new HandoffError("UPSTREAM_ERROR", 502);
 }
-const rpc = <T>(fn: string, args: Record<string, unknown>, jwt?: string) => rest<T>(`rpc/${fn}`, { method: "POST", body: args, jwt });
+export const rpc = <T>(fn: string, args: Record<string, unknown>, jwt?: string) => rest<T>(`rpc/${fn}`, { method: "POST", body: args, jwt });
 
 export const contentHash = (exported: HandoffExport) => handoffContentHash(exported, sha256);
 

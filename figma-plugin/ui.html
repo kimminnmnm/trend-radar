@@ -30,6 +30,17 @@
   details{margin-top:10px}
   summary{cursor:pointer;color:var(--figma-color-text-secondary,#5d6170)}
   [hidden]{display:none !important}
+  fieldset{border:1px solid var(--figma-color-border,#c9cde0);border-radius:8px;padding:8px 10px;margin:0 0 10px}
+  legend{font-weight:700;font-size:11px;padding:0 4px}
+  .mode{display:grid;grid-template-columns:auto 1fr;gap:0 6px;align-items:start;margin:2px 0;cursor:pointer}
+  .mode small{grid-column:2;color:var(--figma-color-text-secondary,#5d6170)}
+  .tpl{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:2px;font-size:11px}
+  .tpl .miss{color:var(--figma-color-text-danger,#c0392b)}
+  .summary{display:block;margin-top:2px;font-size:11px;opacity:.75}
+  .problems{margin-top:4px;font-size:11px;color:var(--figma-color-text-warning,#9a5b00);white-space:pre-wrap}
+  .assign{display:grid;gap:4px;margin-top:6px;max-height:200px;overflow:auto}
+  .assign label{display:grid;grid-template-columns:1fr 150px;gap:6px;align-items:center;font-size:11px}
+  .assign select{font:inherit;font-size:11px;padding:2px;border:1px solid var(--figma-color-border,#c9cde0);border-radius:4px;background:transparent;color:inherit}
 </style>
 </head>
 <body>
@@ -38,6 +49,24 @@
     <button type="button" role="tab" id="tab-remote" aria-selected="true">TREND RADAR에서 가져오기</button>
     <button type="button" role="tab" id="tab-file" aria-selected="false">JSON 파일</button>
   </div>
+
+  <fieldset id="export-mode">
+    <legend>EXPORT MODE</legend>
+    <label class="mode"><input type="radio" name="export-mode" value="auto" checked><b>AUTO DESIGN</b><small>Studio가 기획한 디자인으로 새 프레임을 그립니다(기존 방식).</small></label>
+    <label class="mode"><input type="radio" name="export-mode" value="templates"><b>MY TEMPLATES</b><small>이 파일 “Templates” 페이지의 템플릿을 복제해 내용을 넣습니다. 원본은 바꾸지 않습니다.</small></label>
+    <div id="templates-panel" hidden>
+      <div class="row"><p style="margin:4px 0 0">템플릿 8종</p><button type="button" class="secondary" id="scan-templates">다시 찾기</button></div>
+      <ul class="tpl" id="template-list"></ul>
+      <div class="problems" id="template-problems"></div>
+      <label class="mode" style="margin-top:6px"><input type="checkbox" id="font-fallback-on"><b>글꼴이 없는 텍스트에 대체 글꼴 쓰기</b><small>기본은 꺼짐: 템플릿 글꼴을 바꾸지 않고, 고칠 수 없는 레이어는 견본 문구가 남지 않게 숨깁니다. 켜면 그 레이어만 아래 글꼴로 바꿉니다.</small></label>
+      <select id="font-fallback" aria-label="대체 글꼴" disabled><option value="Noto Sans KR|Regular">Noto Sans KR Regular</option><option value="Noto Sans KR|Bold">Noto Sans KR Bold</option><option value="Pretendard|Regular">Pretendard Regular</option><option value="Pretendard|Bold">Pretendard Bold</option></select>
+      <div class="row" style="margin-top:6px"><button type="button" class="secondary" id="sync-templates">SYNC MY TEMPLATES</button><button type="button" class="secondary" id="render-previews">미리보기 렌더링 → 웹</button></div>
+      <small class="summary">SYNC: 템플릿 8종을 PNG로 내보내 TREND RADAR(Content Studio 갤러리)에 등록합니다. 미리보기 렌더링: 선택한 작업 내용을 임시 페이지의 복제본에 넣어 PNG로 보내고 그 페이지는 지웁니다. 둘 다 원본 템플릿을 바꾸지 않습니다.</small>
+      <p class="problems" id="sync-note"></p>
+      <p class="problems" id="assign-note"></p>
+      <div class="assign" id="assign" aria-label="슬라이드별 템플릿"></div>
+    </div>
+  </fieldset>
 
   <section id="remote">
     <div id="disconnected" hidden>
@@ -69,11 +98,123 @@
   </section>
 
   <div id="status" class="status" role="status"></div>
+  <button type="button" id="ack-build" hidden>경고를 확인했습니다 — 템플릿으로 만들기</button>
   <button type="button" class="secondary" id="force-build" hidden>한 번 더 만들기(기존 프레임은 그대로 둠)</button>
 <script>
   var SCHEMA = "trend-radar.figma-export/v1";
   var SUCCESS = "Figma에 편집 가능한 카드뉴스가 생성되었습니다.";
   var $ = function (id) { return document.getElementById(id); };
+  var TEMPLATE_KINDS = { COVER: "표지", BODY: "본문", CTA: "CTA" };
+  var exportMode = "auto", inventory = null, preview = null, autoAssign = {}, chosen = {}, acknowledged = false, templateVersions = {};
+  /** PNG 바이트 → base64(서버 전송용). */
+  function b64(bytes) { var text = ""; for (var i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(text); }
+  /** 변경 감지(P15): 지금 템플릿의 디자인 지문을 마지막으로 동기화한 지문과 비교한다. 다르면 웹 썸네일이 이전 디자인이다. */
+  async function checkTemplateChanges() {
+    if (!auth.token || !inventory) return;
+    try {
+      var stored = (await api("/api/figma/templates")).templates || [], byId = {};
+      stored.forEach(function (item) { byId[item.templateId] = item; templateVersions[item.templateId] = item.version; });
+      var names = Object.keys(inventory.templates);
+      var changed = names.filter(function (name) { return byId[name] && byId[name].designHash && byId[name].designHash !== inventory.templates[name].designHash; });
+      var unsynced = names.filter(function (name) { return !byId[name]; });
+      var lines = [];
+      if (!stored.length) lines.push("아직 TREND RADAR에 등록하지 않았습니다. SYNC MY TEMPLATES를 누르면 Content Studio에서 썸네일로 고를 수 있습니다.");
+      else {
+        if (changed.length) lines.push("마지막 동기화 이후 Figma에서 바뀐 템플릿(웹 썸네일은 이전 디자인): " + changed.join(", ") + " → SYNC MY TEMPLATES");
+        if (unsynced.length) lines.push("아직 등록하지 않은 템플릿: " + unsynced.join(", "));
+        if (!changed.length && !unsynced.length) lines.push("웹에 등록된 템플릿과 지금 디자인이 같습니다.");
+      }
+      $("sync-note").textContent = lines.join("\n");
+      if (changed.length) await api("/api/figma/templates", { method: "POST", body: { action: "changes", changed: changed } });
+    } catch (error) { $("sync-note").textContent = "동기화 상태 확인 실패: " + error.message; }
+  }
+  async function uploadTemplates(message) {
+    var done = [], failed = [], present = [];
+    for (var i = 0; i < message.items.length; i += 1) {
+      var item = message.items[i];
+      present.push(item.template.templateId);
+      setStatus("템플릿 등록 중 " + (i + 1) + "/" + message.items.length + " · " + item.template.templateId);
+      try {
+        if (item.ok) { var saved = await api("/api/figma/templates", { method: "POST", body: { action: "sync", template: Object.assign({}, item.template, { thumbnail: b64(item.bytes) }) } }); templateVersions[saved.templateId] = saved.version; done.push(saved.templateId + " v" + saved.version); }
+        else { await api("/api/figma/templates", { method: "POST", body: { action: "failed", template: Object.assign({}, item.template, { error: item.error }) } }); failed.push(item.template.templateId + " (" + item.error + ")"); }
+      } catch (error) { failed.push(item.template.templateId + " (" + error.message + ")"); }
+    }
+    try { await api("/api/figma/templates", { method: "POST", body: { action: "finish", present: present } }); } catch (error) { failed.push("마무리 실패: " + error.message); }
+    var lines = ["SYNC MY TEMPLATES · 원본 템플릿은 바꾸지 않았습니다.", "등록: " + (done.join(", ") || "없음")];
+    if (failed.length) lines.push("실패(웹에는 이전 썸네일 유지, SYNC FAILED 표시): " + failed.join(", "));
+    if (message.missing && message.missing.length) lines.push("Templates 페이지에 없음(웹에 MISSING TEMPLATE 표시): " + message.missing.join(", "));
+    setStatus(lines.join("\n"), failed.length ? "error" : "ok");
+    $("sync-templates").disabled = false;
+    checkTemplateChanges();
+  }
+  async function uploadPreviews(message) {
+    var done = [], failed = [];
+    for (var i = 0; i < message.items.length; i += 1) {
+      var item = message.items[i];
+      setStatus("미리보기 올리는 중 " + (i + 1) + "/" + message.items.length);
+      try { await api("/api/figma/templates", { method: "POST", body: { action: "preview", preview: { projectId: preview.project.id, slideId: item.slideId, templateId: item.templateId, previewKey: item.previewKey || "none", templateVersion: templateVersions[item.templateId] || null, png: b64(item.bytes) } } }); done.push(item.slideId + " → " + item.templateId); }
+      catch (error) { failed.push(item.slideId + " (" + error.message + ")"); }
+    }
+    var lines = [done.length ? "렌더링 미리보기 " + done.length + "장을 Content Studio로 보냈습니다(프로젝트 " + preview.project.id + "). 웹 MY TEMPLATES PREVIEW에서 “미리보기 새로고침”을 누르세요. 임시 페이지는 지웠고 원본 템플릿은 그대로입니다." : "보낸 미리보기가 없습니다."];
+    if (message.skipped && message.skipped.length) lines.push("미리보기 없음: " + message.skipped.join(", "));
+    if (failed.length) lines.push("올리지 못함: " + failed.join(", "));
+    setStatus(lines.join("\n"), failed.length ? "error" : "ok");
+    $("render-previews").disabled = false;
+  }
+  function fontFallback() { if (!$("font-fallback-on").checked) return null; var parts = $("font-fallback").value.split("|"); return { family: parts[0], style: parts[1] }; }
+  /** 생성 전 경고: 이번에 쓸 템플릿에서 견본 문구가 남거나 글꼴·이미지 문제가 있는 곳. */
+  function pendingWarnings() {
+    if (exportMode !== "templates" || !inventory || !preview || !Array.isArray(preview.slides)) return [];
+    var used = {};
+    preview.slides.forEach(function (unit) { var name = chosen[unit.id] && chosen[unit.id] !== "AUTO" ? chosen[unit.id] : autoAssign[unit.id]; if (name) used[name] = true; });
+    var lines = [];
+    Object.keys(used).forEach(function (name) {
+      var t = inventory.templates[name]; if (!t) return;
+      (t.warnings || []).forEach(function (warning) { if (fontFallback() && /^글꼴 없음/.test(warning)) return; lines.push(name + " · " + warning); });
+    });
+    return lines;
+  }
+  function slideKind(type) { return type === "cover" ? "COVER" : type === "cta" || type === "closing" ? "CTA" : "BODY"; }
+  function renderTemplates() {
+    $("templates-panel").hidden = exportMode !== "templates";
+    var list = $("template-list"); list.innerHTML = "";
+    if (!inventory) { list.innerHTML = "<li>템플릿을 찾는 중…</li>"; return; }
+    Object.keys(inventory.templates).forEach(function (name) {
+      var t = inventory.templates[name], li = document.createElement("li");
+      li.textContent = (t.warnings && t.warnings.length ? "⚠ " : "✓ ") + name + " · " + (t.slots.join(", ") || "플레이스홀더 없음") + (t.fonts && t.fonts.length ? " · 글꼴 " + t.fonts.join(", ") : "");
+      if (t.warnings && t.warnings.length) { var warn = document.createElement("div"); warn.className = "problems"; warn.textContent = t.warnings.join("\n"); li.appendChild(warn); }
+      if (t.summary) { var info = document.createElement("small"); info.className = "summary"; info.textContent = t.summary; li.appendChild(info); }
+      list.appendChild(li);
+    });
+    inventory.missing.forEach(function (name) { var li = document.createElement("li"); li.className = "miss"; li.textContent = "✗ " + name + " · 없음"; list.appendChild(li); });
+    $("template-problems").textContent = inventory.problems.join("\n");
+    renderAssign();
+  }
+  /** 슬라이드마다 템플릿 고르기. 기본은 AUTO(플러그인이 유형·이미지·반복을 보고 고른 값). */
+  function renderAssign() {
+    var box = $("assign"); box.innerHTML = "";
+    if (!inventory || !preview || !Array.isArray(preview.slides)) { if (inventory) box.textContent = "JSON을 불러오거나 작업을 고르면 슬라이드별로 템플릿을 고를 수 있습니다."; return; }
+    var names = Object.keys(inventory.templates);
+    preview.slides.forEach(function (unit, index) {
+      var kind = slideKind(unit.type), label = document.createElement("label"), select = document.createElement("select");
+      var head = (unit.template && unit.template.fields && unit.template.fields.TITLE) || "";
+      label.appendChild(document.createTextNode(String(index + 1).padStart(2, "0") + " " + TEMPLATE_KINDS[kind] + " · " + head.slice(0, 18)));
+      var auto = document.createElement("option"); auto.value = "AUTO"; auto.textContent = "AUTO → " + (autoAssign[unit.id] || "AUTO DESIGN(템플릿 없음)"); select.appendChild(auto);
+      names.filter(function (name) { return inventory.templates[name].kind === kind; }).concat(names.filter(function (name) { return inventory.templates[name].kind !== kind; })).forEach(function (name) { var option = document.createElement("option"); option.value = name; option.textContent = name + (inventory.templates[name].kind !== kind ? " (다른 유형)" : ""); select.appendChild(option); });
+      select.value = chosen[unit.id] || "AUTO";
+      select.setAttribute("data-slide", unit.id);
+      select.onchange = function () { chosen[unit.id] = select.value; acknowledged = false; };
+      label.appendChild(select); box.appendChild(label);
+    });
+  }
+  function setPreview(data) {
+    preview = data; chosen = {}; autoAssign = {}; acknowledged = false;
+    // Content Studio에서 고른 템플릿(P14)을 기본 선택으로. 플러그인에서 바꿀 수 있다.
+    (data && data.slides || []).forEach(function (unit) { if (unit.template && unit.template.templateId) chosen[unit.id] = unit.template.templateId; });
+    if (data && data.project && data.project.designSource === "templates" && exportMode !== "templates") {
+      var radio = document.querySelector("input[name=export-mode][value=templates]");
+      if (radio) { radio.checked = true; exportMode = "templates"; renderTemplates(); send({ type: "scan-templates" }); }
+    } if (exportMode === "templates" && data && data.slides) send({ type: "suggest-templates", slides: data.slides }); renderAssign(); }
   var auth = { token: null, server: "http://localhost:3000" };
   var handoffs = [], selected = null, fileData = null, pending = null, polling = null;
 
@@ -140,7 +281,7 @@
       row.children[0].textContent = item.code;
       row.children[1].textContent = item.title || "(제목 없음)";
       row.children[2].textContent = (item.format === "cardnews" ? "카드뉴스 " + item.unitCount + "장" : "숏폼 장면 " + item.unitCount + "개") + " · " + fmt(item.createdAt) + (item.expired ? " · 만료됨" : " · " + fmt(item.expiresAt) + "까지") + (item.importCount ? " · Figma에서 " + item.importCount + "회 만듦" : "");
-      if (!item.expired) row.addEventListener("click", function () { selected = item.id; renderList(); });
+      if (!item.expired) row.addEventListener("click", function () { selected = item.id; renderList(); previewRemote(true); });
       list.appendChild(row);
     });
     $("build-remote").disabled = !selected;
@@ -153,6 +294,7 @@
       var valid = handoffs.filter(function (item) { return !item.expired; });
       if (!valid.some(function (item) { return item.id === selected; })) selected = valid.length ? valid[0].id : null;
       renderList();
+      if (selected) previewRemote(true);
       if (note) setStatus(note, "error");
       else if (!quiet) setStatus(valid.length ? "가장 최근 작업을 선택했습니다. 코드를 Content Studio 화면과 확인하세요." : handoffs.length ? "모든 작업이 만료됐습니다. Content Studio에서 다시 보내세요." : "");
     } catch (error) { renderList(); if (!quiet) setStatus(error.message, "error"); }
@@ -161,6 +303,8 @@
   /** AI 이미지만 받는다(축소본 data URL 또는 Supabase 서명 링크). 실제 근거 이미지는 받지 않는다. */
   async function fetchImages(data) {
     var images = {}, failed = {};
+    // 주소 없이 온 AI 이미지(계정 저장 실패·로그인 없이 보냄 등)도 원인을 남긴다.
+    (data.assets || []).filter(function (a) { return a.status !== "REAL REFERENCE" && !(a.figmaImage && a.figmaImage.url); }).forEach(function (a) { failed[a.id] = "이미지 주소가 작업에 없음(Content Studio에서 로그인 후 “Figma로 보내기” — 계정 저장소에 이미지가 올라가야 함)"; });
     var wanted = (data.assets || []).filter(function (a) { return a.status !== "REAL REFERENCE" && a.figmaImage && a.figmaImage.url; });
     for (var i = 0; i < wanted.length; i += 1) {
       var asset = wanted[i], url = asset.figmaImage.url;
@@ -171,15 +315,24 @@
         var response = await fetch(url);
         if (!response.ok) { failed[asset.id] = "HTTP " + response.status + (response.status === 400 || response.status === 403 ? " · 링크 만료 가능" : ""); continue; }
         images[asset.id] = new Uint8Array(await response.arrayBuffer());
-      } catch (error) { failed[asset.id] = "이미지 로딩 실패"; }
+      } catch (error) { failed[asset.id] = "이미지 로딩 실패(네트워크·허용 도메인 확인): " + (error && error.message ? error.message : error); }
     }
+    Object.keys(failed).forEach(function (id) { console.warn("[TREND RADAR] 이미지 " + id + ": " + failed[id]); });
     return { images: images, failed: failed };
   }
   async function build(data, meta, force) {
+    var warnings = pendingWarnings();
+    if (warnings.length && !acknowledged) {
+      pending = { data: data, meta: meta, ack: true };
+      setStatus("만들기 전에 확인하세요(템플릿 원본은 바꾸지 않습니다):\n- " + warnings.join("\n- "), "error");
+      $("ack-build").hidden = false; $("build-remote").disabled = !selected; $("build-file").disabled = !fileData;
+      return;
+    }
+    $("ack-build").hidden = true;
     var got = await fetchImages(data);
     pending = { data: data, meta: meta, images: got.images, failed: got.failed };
     setStatus("프레임 만드는 중…");
-    send({ type: "build", data: data, images: got.images, failed: got.failed, handoffId: meta.handoffId || null, code: meta.code || null, force: Boolean(force) });
+    send({ type: "build", data: data, images: got.images, failed: got.failed, handoffId: meta.handoffId || null, code: meta.code || null, force: Boolean(force), mode: exportMode, assignments: exportMode === "templates" ? chosen : {}, fontFallback: exportMode === "templates" ? fontFallback() : null });
   }
   async function buildRemote(force) {
     var item = handoffs.find(function (h) { return h.id === selected; });
@@ -192,6 +345,10 @@
     } catch (error) { $("build-remote").disabled = false; setStatus(error.message, "error"); if (error.status === 410) loadList(error.message); }
   }
 
+  async function previewRemote(any) {
+    if ((exportMode !== "templates" && !any) || !selected) return;
+    try { var data = (await api("/api/figma/handoffs/" + selected)).handoff; if (data && data.schema === SCHEMA) setPreview(data); } catch (error) { setStatus("슬라이드 목록을 불러오지 못했습니다: " + error.message, "error"); }
+  }
   function readFile(text) {
     fileData = null; $("build-file").disabled = true; $("summary").innerHTML = "";
     if (!text.trim()) { setStatus(""); return; }
@@ -204,8 +361,28 @@
     [(p.title || "") + " · " + (fileData.slides || []).length + "개 · " + (p.canvas ? p.canvas.width + "×" + p.canvas.height : ""), "AI 이미지 " + withImage.length + "/" + ai.length + " 포함", "실제 근거 이미지 " + (assets.length - ai.length) + "개 · 링크 자리표시"].forEach(function (line) { var li = document.createElement("li"); li.textContent = line; summary.appendChild(li); });
     $("summary").appendChild(summary);
     setStatus(""); $("build-file").disabled = false;
+    setPreview(fileData);
   }
 
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=export-mode]"), function (input) {
+    input.addEventListener("change", function () { exportMode = input.value; renderTemplates(); if (exportMode === "templates") { send({ type: "scan-templates" }); if (preview) setPreview(preview); else previewRemote(); } });
+  });
+  $("sync-templates").onclick = function () {
+    if (!auth.token) { setStatus("템플릿을 동기화하려면 먼저 TREND RADAR에 연결하세요(TREND RADAR에서 가져오기 탭).", "error"); return; }
+    $("sync-templates").disabled = true; setStatus("템플릿을 PNG로 내보내는 중…"); send({ type: "sync-templates" });
+  };
+  $("render-previews").onclick = async function () {
+    if (!auth.token) { setStatus("미리보기를 보내려면 먼저 TREND RADAR에 연결하세요.", "error"); return; }
+    if (!preview || !preview.handoff || !preview.project) { setStatus("Content Studio에서 “Figma로 보내기”한 작업을 목록에서 고르세요(JSON 파일은 웹으로 보낼 수 없습니다).", "error"); return; }
+    $("render-previews").disabled = true;
+    var got = await fetchImages(preview);
+    setStatus("임시 페이지에서 렌더링 중…");
+    send({ type: "render-previews", data: preview, images: got.images, failed: got.failed, assignments: chosen, fontFallback: fontFallback() });
+  };
+  $("scan-templates").onclick = function () { inventory = null; acknowledged = false; renderTemplates(); send({ type: "scan-templates" }); };
+  $("font-fallback-on").addEventListener("change", function () { $("font-fallback").disabled = !$("font-fallback-on").checked; acknowledged = false; });
+  $("font-fallback").addEventListener("change", function () { acknowledged = false; });
+  $("ack-build").onclick = function () { if (!pending || !pending.ack) return; acknowledged = true; $("ack-build").hidden = true; build(pending.data, pending.meta, false); };
   $("tab-remote").onclick = function () { showTab("remote"); };
   $("tab-file").onclick = function () { showTab("file"); };
   $("connect").onclick = function () { connect(); };
@@ -216,7 +393,7 @@
   $("disconnect").onclick = function () { auth.token = null; send({ type: "clear-auth" }); render(); setStatus("이 기기에서 연결을 해제했습니다. 웹에서 연결 토큰은 30일 뒤 만료됩니다."); };
   $("file-input").addEventListener("change", function (event) { var file = event.target.files[0]; if (file) file.text().then(function (text) { $("json").value = text; readFile(text); }); });
   $("json").addEventListener("input", function (event) { readFile(event.target.value); });
-  $("force-build").onclick = function () { if (!pending) return; $("force-build").hidden = true; setStatus("다시 만드는 중…"); send({ type: "build", data: pending.data, images: pending.images, failed: pending.failed, handoffId: pending.meta.handoffId, code: pending.meta.code, force: true }); };
+  $("force-build").onclick = function () { if (!pending) return; $("force-build").hidden = true; setStatus("다시 만드는 중…"); send({ type: "build", data: pending.data, images: pending.images, failed: pending.failed, handoffId: pending.meta.handoffId, code: pending.meta.code, force: true, mode: exportMode, assignments: exportMode === "templates" ? chosen : {}, fontFallback: exportMode === "templates" ? fontFallback() : null }); };
   $("build-file").onclick = function () { if (fileData) { $("build-file").disabled = true; build(fileData, {}, false); } };
 
   window.onmessage = function (event) {
@@ -234,7 +411,11 @@
       $("force-build").hidden = false;
       return;
     }
-    if (message.type === "error") { setStatus((message.code === "RENDER" ? "일부 슬라이드 생성 실패: " : "") + message.message, "error"); return; }
+    if (message.type === "template-thumbnails") { uploadTemplates(message); return; }
+    if (message.type === "previews-rendered") { uploadPreviews(message); return; }
+    if (message.type === "templates") { inventory = message.inventory; renderTemplates(); checkTemplateChanges(); if (preview && preview.slides) send({ type: "suggest-templates", slides: preview.slides }); return; }
+    if (message.type === "assignments") { autoAssign = message.assignments || {}; $("assign-note").textContent = message.note || ""; renderAssign(); return; }
+    if (message.type === "error") { $("render-previews").disabled = false; $("sync-templates").disabled = false; setStatus((message.code === "RENDER" ? "일부 슬라이드 생성 실패: " : "") + message.message, "error"); return; }
     if (message.type === "done") {
       var r = message.report, fails = Object.keys(message.failedImages || {});
       var fonts = Object.keys(r.fontFallbacks || {}).map(function (k) { return k + " → " + r.fontFallbacks[k]; });
@@ -243,6 +424,22 @@
       if (fails.length) lines.push("이미지 로딩 실패: " + fails.map(function (id) { return id + " (" + message.failedImages[id] + ")"; }).join(", "));
       if (fonts.length) lines.push("폰트 대체: " + fonts.join(", "));
       if (r.mode === "scene") lines.push("Studio 디자인 적용" + (r.fitted ? " · 글자 크기 자동 맞춤 " + r.fitted + "곳" : ""));
+      if (r.mode === "templates") {
+        lines.push("MY TEMPLATES · 원본 템플릿은 바꾸지 않았습니다." + (r.outputPage ? " 출력 페이지: " + r.outputPage : ""));
+        if (r.templatesUsed.length) lines.push("사용한 템플릿: " + r.templatesUsed.join(", "));
+        if (r.fallbackSlides.length) lines.push("템플릿 없이 AUTO DESIGN으로 만든 슬라이드: " + r.fallbackSlides.join(", "));
+        if (r.assignmentNote) lines.push(r.assignmentNote);
+        if (r.imageNeeded.length) lines.push("이미지를 넣지 못한 슬롯(이유):\n- " + r.imageNeeded.join("\n- "));
+        if (r.backgroundFallbacks && r.backgroundFallbacks.length) lines.push("배경 이미지 대신 단색으로 채운 배경 슬롯:\n- " + r.backgroundFallbacks.join("\n- "));
+        if (r.frameBackgrounds && r.frameBackgrounds.length) lines.push("투명한 템플릿 프레임에 깐 배경색(복제본만): " + r.frameBackgrounds.join(", "));
+        if (r.imagesUnused && r.imagesUnused.length) lines.push("넣을 자리가 없어 빠진 이미지:\n- " + r.imagesUnused.join("\n- "));
+        if (r.imageBase && r.imageBase.length) lines.push("IMAGE 칠이 없는 슬롯이라 맨 아래 단색 바탕을 이미지로 바꾼 곳(그라데이션·오버레이 유지): " + r.imageBase.join(", "));
+        if (r.imageCovered.length) lines.push("이미지 위에 불투명한 채우기가 있어 가려질 수 있는 곳: " + r.imageCovered.join(", "));
+        if (r.fontMissing.length) lines.push("글꼴이 없어 숨긴 텍스트(템플릿 글꼴을 설치하거나 대체 글꼴을 켜세요): " + r.fontMissing.join(", "));
+        if (r.fontReplaced.length) lines.push("대체 글꼴로 넣은 텍스트(사용자 선택): " + r.fontReplaced.join(", "));
+        if (r.hiddenSlots.length) lines.push("내용이 없어 숨긴 레이어: " + r.hiddenSlots.join(", "));
+        if (r.problems.length) lines.push("템플릿 확인: " + r.problems.join(" / "));
+      }
       if (r.overflows && r.overflows.length) lines.push("글자 넘침(최소 크기에서도 김): " + r.overflows.join(", ") + " — 문구를 줄이거나 상자를 늘려 주세요.");
       setStatus(lines.join("\n"), r.failedFrames && r.failedFrames.length ? "error" : "ok");
       if (pending && pending.meta.handoffId) api("/api/figma/handoffs/" + pending.meta.handoffId, { method: "POST" }).then(function () { loadList(null, true); }).catch(function () {});

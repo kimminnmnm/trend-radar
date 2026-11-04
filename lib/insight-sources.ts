@@ -19,6 +19,30 @@ export function buildInsightSources(snapshots: LiveAnalysisSnapshot[], collision
   return [...collisionSources, ...trendSources];
 }
 
+/**
+ * URL로 받은 Collision ID 조회. 다른 출처로 조용히 바꾸지 않는다.
+ * loading: 저장 데이터를 아직 읽는 중 · not-found: 이 브라우저(현재 계정)에 없음(삭제·다른 계정·다른 브라우저)
+ * incomplete: Collision은 있지만 구성 트렌드의 WHY 스냅샷이 없거나 근거가 없어 검토 입력이 부족함 · ready: 그대로 검토 가능.
+ */
+export type CollisionLookup =
+  | { state: "loading" }
+  | { state: "not-found"; id: string }
+  | { state: "incomplete"; collision: SavedCollision; contexts: TrendContext[]; missing: Array<{ key: string; name: string; reason: "no-snapshot" | "no-evidence" }> }
+  | { state: "ready"; source: InsightSource };
+export function resolveCollisionSource(id: string, snapshots: LiveAnalysisSnapshot[] | null, collisions: SavedCollision[] | null): CollisionLookup {
+  if (snapshots === null || collisions === null) return { state: "loading" };
+  const collision = collisions.find((item) => item.id === id);
+  if (!collision) return { state: "not-found", id };
+  const byId = new Map(snapshots.map((item) => [item.trendId, item] as const));
+  const contexts: TrendContext[] = [], missing: Array<{ key: string; name: string; reason: "no-snapshot" | "no-evidence" }> = [];
+  collision.trendKeys.forEach((key, index) => {
+    const snapshot = byId.get(key), context = snapshot ? toTrendContext(snapshot) : null;
+    if (context) contexts.push(context); else missing.push({ key, name: collision.trendNames[index] ?? key, reason: snapshot ? "no-evidence" : "no-snapshot" });
+  });
+  if (missing.length) return { state: "incomplete", collision, contexts, missing };
+  return { state: "ready", source: { id: `collision:${collision.id}`, kind: "collision", label: collision.trendNames.join(" × "), detail: `Collision · ${collision.result.title}`, contexts, collision } };
+}
+
 export function readQueryParam(name: string) {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get(name);

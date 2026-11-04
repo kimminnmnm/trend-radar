@@ -139,6 +139,8 @@ export type SavedCollision = {
   validation: ValidationLog;
   /** 분석 당시의 네임스페이스 근거 원장(T1:IG-01 …). 이후 재분석과 무관하게 인용을 보존한다. */
   ledger?: EvidenceItem[];
+  /** 로그인 중 저장한 Collision의 계정. 다른 계정에서는 보이지 않는다(소유자 없는 이전 항목은 그대로 보인다). */
+  ownerId?: string;
 };
 
 export type SavedLabReview = {

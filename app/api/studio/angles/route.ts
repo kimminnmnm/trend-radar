@@ -6,7 +6,7 @@ import { errorResponse, invalidRequest, noStore } from "@/lib/api-response";
 import { creativeConceptSchema } from "@/lib/content-production";
 import { ANGLE_PROMPT_VERSION, contentModes } from "@/lib/editorial";
 import { createAngles } from "@/lib/openai-editorial";
-import { trendContextSchema } from "@/lib/schemas";
+import { observedPhenomenonSchema, trendContextSchema } from "@/lib/schemas";
 import { editorialContextLockSchema } from "@/lib/editorial-lock";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,8 @@ const requestSchema = z.object({
   customTopic: z.string().trim().max(200).default(""),
   /** T6: 편집 맥락 잠금. 있으면 5개 방향 모두 선택한 현상을 다루고 금지 이탈을 피한다. */
   contextLock: editorialContextLockSchema.optional(),
+  /** V3(E1): 이 키워드의 WHAT'S HAPPENING NOW? 세부 현상 후보(있을 때만). */
+  phenomena: z.array(observedPhenomenonSchema).max(8).default([]),
   force: z.boolean().default(false),
 }).refine((value) => value.trends.length > 0 || value.concept, { message: "트렌드 분석 또는 Creative Collision 아이디어가 필요합니다." })
   .refine((value) => value.mode !== "concept" || value.concept, { message: "CREATIVE CONCEPT 모드는 Creative Collision 아이디어가 필요합니다." });
@@ -35,10 +37,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return invalidRequest(parsed.error.issues);
   let access;
   try { access = await requirePaidAccess(request); } catch (error) { return errorResponse(error); }
-  const { trends, concept, mode, settings, customTopic, force, contextLock } = parsed.data;
-  const cacheKey = hashKey({ v: ANGLE_PROMPT_VERSION, trends: trends.map((trend) => [trend.key, trend.analyzedAt]), concept, mode, settings, customTopic, contextLock: contextLock ?? null });
+  const { trends, concept, mode, settings, customTopic, force, contextLock, phenomena } = parsed.data;
+  const cacheKey = hashKey({ v: ANGLE_PROMPT_VERSION, trends: trends.map((trend) => [trend.key, trend.analyzedAt]), concept, mode, settings, customTopic, contextLock: contextLock ?? null, phenomena });
   try {
-    const { value, cached } = await runGuarded(access.clientKey, cacheKey, 12 * 60 * 60 * 1000, () => createAngles(trends, concept, mode, settings, customTopic, contextLock), { bypassCache: force });
+    const { value, cached } = await runGuarded(access.clientKey, cacheKey, 12 * 60 * 60 * 1000, () => createAngles(trends, concept, mode, settings, customTopic, contextLock, phenomena), { bypassCache: force });
     return NextResponse.json({ cached, generatedAt: new Date().toISOString(), promptVersion: ANGLE_PROMPT_VERSION, mode, ...value }, { headers: noStore });
   } catch (error) {
     return errorResponse(error, "콘텐츠 방향 제안에 실패했습니다.");

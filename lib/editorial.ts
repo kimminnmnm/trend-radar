@@ -7,16 +7,19 @@ import { ideaSimilarity } from "./creative-collision";
  * - 흐름: 트렌드(또는 Creative 아이디어) → 콘텐츠 모드 → 콘텐츠 방향(Angle) 5개 → 사용자가 선택 → 카드뉴스·숏폼.
  * - 게시용 콘텐츠(PUBLISHING)와 제작자 검증 메모(EDITOR NOTES)를 나눈다. 서버 검증은 그대로 적용한다.
  */
-export const EDITORIAL_PROMPT_VERSION = "studio-editorial-v3";
-/** v3(ENGINE V2): 소재 중심 방향 — 리서치 항목 하나를 방향 하나로 옮기지 않는다. 사용자 지정 주제 우선. */
-export const ANGLE_PROMPT_VERSION = "studio-angles-v4";
+export const EDITORIAL_PROMPT_VERSION = "studio-editorial-v5";
+/**
+ * v5(EDITORIAL ENGINE V3 · E1): 현상 중심 방향 — 방향마다 초점(focus: 구체적 현상·행동·장면)을 정하고,
+ * 키워드의 역사·입문·준비물 방향을 기본값으로 만들지 않는다(E0 실패 분석 FAILURE 01·10). 사용자 지정 주제가 여전히 최우선.
+ */
+export const ANGLE_PROMPT_VERSION = "studio-angles-v6";
 
 export const contentModes = ["editorial", "digging", "curation", "concept", "report"] as const;
 export type ContentMode = (typeof contentModes)[number];
 export const DEFAULT_CONTENT_MODE: ContentMode = "editorial";
 export const contentModeInfo: Record<ContentMode, { label: string; short: string; description: string; examples: string[] }> = {
-  editorial: { label: "TREND EDITORIAL", short: "에디토리얼", description: "트렌드·브랜드·인물·문화를 재미있게 소개해요. 검색량 분석은 주제가 아니에요.", examples: ["야구 알못을 위한 기아타이거즈 입덕 가이드", "요즘 다시 주목받는 디지털카메라의 매력"] },
-  digging: { label: "CULTURE DIGGING", short: "컬처 디깅", description: "문화적 배경·팬덤·역사·숨은 이야기를 파고들어요.", examples: ["타이거즈 응원 문화가 특별한 이유", "보컬로이드가 하나의 팬덤 문화가 된 과정"] },
+  editorial: { label: "TREND EDITORIAL", short: "에디토리얼", description: "소재 안에서 지금 일어나는 구체적인 현상·장면을 골라 재미있게 보여 줘요. 키워드 소개·검색량 분석이 주제가 아니에요.", examples: ["아웃송에 맞춰 추는 응원, 삐끼삐끼", "로블록스 눈매를 현실 얼굴에 옮기면"] },
+  digging: { label: "CULTURE DIGGING", short: "컬처 디깅", description: "팬덤 의식·장면의 의미·숨은 이야기를 파고들어요. 역사·기원은 지금의 현상을 이해하는 데 필요할 때만.", examples: ["타이거즈 응원석이 색으로 하나가 되는 순간", "보컬로이드 팬들이 생일을 함께 축하하는 방식"] },
   curation: { label: "CURATION", short: "큐레이션", description: "실제로 있는 장소·콘텐츠·제품·경험을 골라 소개해요. 없는 것을 추천하지 않아요.", examples: ["야구 입문자에게 추천하는 응원 아이템", "레트로 감성 카메라 콘텐츠 모음"] },
   concept: { label: "CREATIVE CONCEPT", short: "크리에이티브 콘셉트", description: "Creative Collision의 가상 제품·캠페인·팝업 아이디어를 콘텐츠로 만들어요. 가상 콘셉트임을 표시해요.", examples: ["필터 대신 프레임, 네 컷 사진 부스(콘셉트 제안)"] },
   report: { label: "TREND REPORT", short: "트렌드 리포트", description: "기존 WHY 기반 분석 보고서형. 검색 관심도·변화·배경·근거와 한계를 설명해요.", examples: ["헤이세이 레트로, 검색 관심도로 본 6개월"] },
@@ -26,6 +29,26 @@ export const parseContentMode = (value: unknown, fallback: ContentMode = DEFAULT
 /* ---------- E2 콘텐츠 방향(Angle) ---------- */
 
 export const evidenceFits = ["grounded", "partial", "needs_research"] as const;
+/**
+ * V3(E1) 편집 유형(E0 Taxonomy A~F). 콘텐츠 모드가 아니라 방향(브리프)의 필드다 — 모드는 그대로 두고 유형이 구조·후킹을 정한다.
+ * 리뷰·비교(D)는 사용자 경험 자료가 없으면 경험 후기가 아니라 같은 기준의 정보 비교로 쓴다.
+ */
+export const editorialTypes = ["decoding", "curation", "experience", "comparison", "micro", "collision"] as const;
+export type EditorialType = (typeof editorialTypes)[number];
+export const editorialTypeLabels: Record<EditorialType, string> = { decoding: "A 문화 해석", curation: "B 트렌드 큐레이션", experience: "C 경험 제안", comparison: "D 비교", micro: "E 마이크로 현상", collision: "F 문화 결합" };
+/** 유형별 기본 스토리 구조(제작 프롬프트에 한 줄로). */
+export const editorialTypeStructure: Record<EditorialType, string> = {
+  decoding: "CULTURE DECODING: scene → what fans read in it → where that reading comes from (official vs fan interpretation, say which) → repeat with new scenes → what to look for next time. Warn about spoilers on the cover if any.",
+  curation: "TREND CURATION: define the scope (item, place, period) → N real items, each with what makes it different under the same criteria → how to choose. Only real items; no invented names, prices or addresses.",
+  experience: "EXPERIENCE GUIDE: a route or sequence the reader can follow (where, what, in which order) with real places or steps — never written as the editor's own visit.",
+  comparison: "COMPARISON: fix the criteria first → each option on the same criteria → who each one suits. Without user-provided experience this is an information comparison, not a first-person review.",
+  micro: "MICRO PHENOMENON: the scene/behavior itself → who does it and how → concrete observed examples → what to notice when you watch it. Keep claims modest when evidence is limited.",
+  collision: "CULTURAL COLLISION: where the two cultures actually meet (an observed behavior) → examples → what each side brings → keep any AI-proposed combination clearly marked as an idea, not a fact.",
+};
+/** 독자 가치 유형: 읽고 나서 얻는 것. */
+export const readerValueTypes = ["learn", "do", "choose", "feel", "save"] as const;
+export type ReaderValueType = (typeof readerValueTypes)[number];
+export const readerValueLabels: Record<ReaderValueType, string> = { learn: "알게 됨", do: "따라 할 수 있음", choose: "고를 수 있음", feel: "공감·재미", save: "저장 리스트" };
 /** 독자 경험 유형. 소재에 맞는 것을 고르며, 모든 키워드에 같은 다섯 가지를 기계적으로 쓰지 않는다. */
 export const angleTypes = ["guide", "fandom", "history", "curation", "experience", "people", "howto", "comparison", "behind", "trivia", "custom"] as const;
 export type AngleType = (typeof angleTypes)[number];
@@ -47,6 +70,12 @@ export const contentAngleSchema = z.object({
   angle_type: z.enum(angleTypes).optional(),
   /** v3: 리서치의 특정 사건·기사 하나를 중심으로 한 방향이면 그 항목, 아니면 빈 문자열. 5개 중 최대 2개. */
   research_anchor: z.string().max(200).optional(),
+  /** v5(E1): 이 방향이 다루는 구체적인 현상·행동·장면 한 줄(키워드 자체가 아님). 이전에 저장된 방향에는 없다. */
+  focus: z.string().trim().max(200).optional(),
+  /** v6(E1 브리프): 편집 유형(A~F), 독자 가치 유형, 대표 장면(표지 이미지가 될 한 장면). */
+  editorial_type: z.enum(editorialTypes).optional(),
+  reader_value: z.enum(readerValueTypes).optional(),
+  key_scene: z.string().trim().max(240).optional(),
 });
 export type ContentAngle = z.infer<typeof contentAngleSchema>;
 export const angleResultSchema = z.object({ angles: z.array(contentAngleSchema) });
@@ -85,8 +114,20 @@ export type AngleValidation = {
   lockDrift?: string[];
   /** V2.1: 제목 구조 분포와 몰린 구조. */
   structures?: Partial<Record<TitleStructure, number>>; crowdedStructures?: TitleStructure[];
+  /** V3(E1): 서로 다른 초점(현상·장면) 수, 키워드의 역사·기원·입문·준비물을 다루는 방향(기본값으로 두지 않음). */
+  focusCount?: number; basicAngles?: string[];
 };
 export const MAX_ANCHORED_ANGLES = 2;
+/** 키워드 자체의 역사·기원·입문·준비물 방향(E0 FAILURE 10). 사용자 주제가 요청하지 않았다면 5개 중 1개까지. */
+const BASIC_ANGLE = /역사|기원|유래|어디서\s*(왔|시작)|탄생|시초|출발점|입문|초보|첫\s*직관|준비물|뭐부터|어디부터|기초|정의/;
+export const isBasicAngle = (angle: Pick<ContentAngle, "title" | "editorial_perspective">) => BASIC_ANGLE.test(`${angle.title} ${angle.editorial_perspective}`);
+export const MAX_BASIC_ANGLES = 1;
+/** 초점이 비슷하면 같은 현상으로 센다(초점이 없는 이전 방향은 제목으로). */
+function distinctFocusCount(angles: ContentAngle[]) {
+  const kept: string[] = [];
+  for (const angle of angles) { const focus = (angle.focus || angle.title).trim(); if (!kept.some((prev) => ideaSimilarity(prev, focus) >= ANGLE_DUPLICATE_THRESHOLD)) kept.push(focus); }
+  return kept.length;
+}
 /**
  * 사용자 지정 주제에서 벗어난 방향 검출: 주제의 핵심 단어(조사·어미를 뗀 2자 이상, 흔한 말 제외)가 방향 글에 하나도 없으면 이탈.
  * (실측: 글자 2-gram 유사도 기준은 짧은 제목에서 주제를 지킨 방향 5개를 모두 이탈로 잘못 판정했다.)
@@ -125,12 +166,17 @@ export function validateAngles(raw: { angles: ContentAngle[] }, ledgerIds: strin
   for (const angle of angles) { const kind = titleStructure(angle.title); structures[kind] = (structures[kind] ?? 0) + 1; }
   // statement는 다른 구조에 걸리지 않은 제목을 모두 받는 기본값이라 몰림으로 세지 않는다(실측: 구체적이고 다양한 제목 4개를 몰림으로 오판해 불필요한 재생성 2회).
   const crowdedStructures = (Object.entries(structures) as Array<[TitleStructure, number]>).filter(([kind, count]) => kind !== "statement" && count > (kind === "subject-comma-question" ? MAX_SUBJECT_COMMA_QUESTION : MAX_SAME_STRUCTURE)).map(([kind]) => kind);
-  return { angles, validation: { structures, crowdedStructures, removedEvidenceIds: [...new Set(removed)], genericTitles, droppedDuplicates, downgradedFit, anchored: angles.filter((angle) => angle.research_anchor?.trim()).length, typeCount: new Set(angles.map((angle) => angle.angle_type ?? "custom")).size, offTopic } };
+  return { angles, validation: { structures, crowdedStructures, removedEvidenceIds: [...new Set(removed)], genericTitles, droppedDuplicates, downgradedFit, anchored: angles.filter((angle) => angle.research_anchor?.trim()).length, typeCount: new Set(angles.map((angle) => angle.angle_type ?? "custom")).size, offTopic, focusCount: distinctFocusCount(angles), basicAngles: angles.filter(isBasicAngle).map((angle) => angle.title) } };
 }
-/** 다시 만들 조건: 방향 부족·뻔한 제목·리서치 사건 중심 방향 과다·독자 경험 유형 부족(지정 주제가 없을 때)·같은 제목 구조 몰림. 주제 이탈은 표시만 한다. */
+/**
+ * 다시 만들 조건: 방향 부족·뻔한 제목·리서치 사건 중심 방향 과다·같은 제목 구조 몰림, 그리고 지정 주제가 없을 때
+ * 서로 다른 초점(현상·장면) 4개 미만 또는 역사·입문·준비물 방향 2개 이상. 주제 이탈은 표시만 한다.
+ * (V2의 "독자 경험 유형 4개 이상" 강제는 매번 역사·입문 방향을 끼워 넣어 V3에서 뺐다 — typeCount는 표시용으로 남긴다.)
+ */
 export function needsAngleRegeneration(result: { angles: ContentAngle[]; validation: AngleValidation }, customTopic = "") {
   const v = result.validation;
-  return result.angles.length < 4 || (v.lockDrift?.length ?? 0) > 0 || v.genericTitles.length >= 2 || (v.anchored ?? 0) > MAX_ANCHORED_ANGLES || (!customTopic.trim() && (v.typeCount ?? 5) < 4) || (v.crowdedStructures?.length ?? 0) > 0;
+  const free = !customTopic.trim();
+  return result.angles.length < 4 || (v.lockDrift?.length ?? 0) > 0 || v.genericTitles.length >= 2 || (v.anchored ?? 0) > MAX_ANCHORED_ANGLES || (free && ((v.focusCount ?? 5) < 4 || (v.basicAngles?.length ?? 0) > MAX_BASIC_ANGLES)) || (v.crowdedStructures?.length ?? 0) > 0;
 }
 
 /** 사용자가 입력한 주제를 AI 제안 없이 그대로 방향으로 쓴다. */

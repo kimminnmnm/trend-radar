@@ -2,7 +2,8 @@ import "server-only";
 import { callStructured, js } from "./openai-client";
 import { buildMultiContext } from "./openai-insight";
 import { ideaSimilarity } from "./creative-collision";
-import { angleResultSchema, ANGLE_COUNT, angleTypes, contentModeInfo, evidenceFits, GENERIC_TITLE_PATTERNS, MAX_ANCHORED_ANGLES, needsAngleRegeneration, validateAngles, type ContentAngle, type ContentMode } from "./editorial";
+import { angleResultSchema, ANGLE_COUNT, angleTypes, contentModeInfo, editorialTypes, evidenceFits, GENERIC_TITLE_PATTERNS, MAX_ANCHORED_ANGLES, MAX_BASIC_ANGLES, needsAngleRegeneration, readerValueTypes, validateAngles, type ContentAngle, type ContentMode } from "./editorial";
+import type { ObservedPhenomenon } from "./schemas";
 import type { CreativeConcept } from "./content-production";
 import type { EvidenceItem, TrendContext } from "./schemas";
 import { driftHits, lockAnchored, lockInstructions, type EditorialContextLock } from "./editorial-lock";
@@ -22,11 +23,15 @@ const subjectBasics = (trend: TrendContext, ref: string) => ({
 });
 const ledgerOf = (trends: TrendContext[]) => trends.flatMap((trend, index) => trend.evidence.map((item) => ({ ...item, id: `T${index + 1}:${item.id}` })));
 
-/** 방향 제안용: 소재 기본 정보 + 리서치 "제목" 목록만(발췌·WHY 사건 없음). */
-export function buildAngleContext(trends: TrendContext[], mode: ContentMode) {
+/**
+ * 방향 제안용: 소재 기본 정보 + 리서치 "제목" 목록만(발췌·WHY 사건 없음).
+ * V3(E1): 이 키워드로 WHAT'S HAPPENING NOW?를 실행한 기록이 있으면 그 세부 현상 후보(제목·행동·관측 상태·독립 출처 수)도 넣는다.
+ * 현상 후보의 근거 ID는 다른 원장(Discovery)의 것이라 넣지 않는다 — 방향의 근거 ID는 이 소재 원장에서만.
+ */
+export function buildAngleContext(trends: TrendContext[], mode: ContentMode, phenomena: ObservedPhenomenon[] = []) {
   if (mode === "report") return buildMultiContext(trends);
   const ledger = ledgerOf(trends);
-  return { ledger, prompt: JSON.stringify({ subjects: trends.map((trend, index) => subjectBasics(trend, `T${index + 1}`)), research_titles: ledger.filter((item) => item.kind !== "naver_series").map(({ id, kind, title }) => ({ id, kind, title })) }) };
+  return { ledger, prompt: JSON.stringify({ subjects: trends.map((trend, index) => subjectBasics(trend, `T${index + 1}`)), observed_phenomena: phenomena.map(({ title, behavior, status, independentSources }) => ({ title, behavior, status, independent_sources: independentSources })), research_titles: ledger.filter((item) => item.kind !== "naver_series").map(({ id, kind, title }) => ({ id, kind, title })) }) };
 }
 
 /** 선택한 방향에 맞는 자료만 고른다: 방향이 인용한 근거 → 방향 글과 겹치는 자료 순, 최대 8개. 검색 관심도 시계열은 넣지 않는다. */
@@ -52,39 +57,43 @@ export function buildProductionContext(trends: TrendContext[], mode: ContentMode
 
 const angleJsonSchema = js.obj({
   angles: js.arr(js.obj({
-    angle_id: js.str, angle_type: js.enumOf(angleTypes.filter((type) => type !== "custom")), title: js.str, hook: js.str, editorial_perspective: js.str, target_audience: js.str, reader_benefit: js.str,
+    angle_id: js.str, angle_type: js.enumOf(angleTypes.filter((type) => type !== "custom")), focus: js.str, editorial_type: js.enumOf(editorialTypes), reader_value: js.enumOf(readerValueTypes), key_scene: js.str, title: js.str, hook: js.str, editorial_perspective: js.str, target_audience: js.str, reader_benefit: js.str,
     content_structure: js.strArr, suggested_visuals: js.strArr, research_requirements: js.strArr, research_anchor: js.str, evidence_ids: js.strArr, evidence_fit: js.enumOf(evidenceFits),
   })),
 });
 
 const modeGuide: Record<ContentMode, string> = {
-  editorial: "TREND EDITORIAL: introduce the subject (a trend, brand, team, person, culture) in a fun, approachable way for people who are curious but not experts. Search volume or analysis is NOT the topic.",
-  digging: "CULTURE DIGGING: explore the cultural background, fandom rituals, history and hidden stories behind the subject.",
+  editorial: "TREND EDITORIAL: pick one specific thing happening inside the subject (a behavior, scene, ritual, meme, look, object people use now) and show it in a fun, approachable way. Introducing the subject in general, search volume or analysis is NOT the topic.",
+  digging: "CULTURE DIGGING: explore fandom rituals, the meaning of specific scenes or memes, and hidden stories inside the subject. History or origin only when it explains a phenomenon happening now — never as the main topic.",
   curation: "CURATION: introduce real places, content, products or experiences related to the subject. Only items that appear in the research or are unmistakably real and well known; never invent items, prices, addresses or availability.",
   concept: "CREATIVE CONCEPT: turn the given Creative Collision concept (a HYPOTHETICAL product, space, campaign or pop-up) into content. Always present it as a concept proposal, never as a real launch.",
   report: "TREND REPORT: explain the trend as an analysis — search interest changes, background, evidence and limits.",
 };
 
 export const STYLE = "Korean, natural 해요체 like a Korean SNS content editor in their 20s; short clear sentences; no report tone; no stacked adjectives or AI-ish filler (e.g. '감성 가득', '매력 넘치는', '특별한 경험'); minimal jargon.";
-export const FACT_RULE = "FACTS: the research items are real collected sources (ids like T1:WEB-03). You may also use well-established public knowledge about the subject, but never invent numbers, records, dates, quotes, people, prices or collaborations. Any factual statement not backed by a research id must be marked for verification (not stated as certain).";
+export const FACT_RULE = "FACTS: the research items are real collected sources (ids like T1:WEB-03). Well-established public knowledge is allowed only when it directly explains the chosen phenomenon — never fill slides with founding dates, records, definitions or the history of the subject. Never invent numbers, records, dates, quotes, people, prices or collaborations. Any factual statement not backed by a research id must be marked for verification (not stated as certain).";
+/** E0 원칙 11·12: TREND RADAR는 체험하지 않았고, 관측 근거 없이 유행을 말하지 않는다. 제작·편집 리뷰 공통. */
+export const TRUST_RULE = "TRUST: never write a first-person experience (I/we ate, visited, tried, bought — '직접 먹어봤', '가 봤는데', '써 봤더니', '솔직 후기') unless USER_MATERIALS provide that experience, and then attribute it to the user. Never claim popularity or virality ('요즘 난리난', '대세', '핫한', '바이럴', '품절 대란', '급상승', '1위') unless a cited research item states it; otherwise describe what is observed ('이런 영상이 있어요', '여러 곳에서 보여요').";
 
 const angleInstructions = (mode: ContentMode, hasConcept: boolean, customTopic: string) => [
   "You are the planning editor of TREND RADAR Content Studio. Think like an SNS content editor who finds what is fun about a subject — not like an analyst summarizing research. Propose content angles BEFORE any copy is written. Return only the JSON schema.",
   modeGuide[mode],
   customTopic
     ? `USER TOPIC (highest priority): the user wrote the topic "${customTopic}". All ${ANGLE_COUNT} angles must be about exactly this topic — different ways to tell it (structure, entry point, tone, reader situation). Never switch to another subject, event or trend from the research.`
-    : `SUBJECT FIRST: start from the subject itself and from what different readers would enjoy (a total beginner, a fan, someone nostalgic, someone planning to try it). Pick the ${ANGLE_COUNT} reader experiences that suit THIS subject best (angle_type: guide, fandom, history, curation, experience, people, howto, comparison, behind, trivia) — at least 4 different types, chosen for this subject, not a fixed template. Example for a baseball team: a beginner's guide to becoming a fan, the cheering culture, the club's history, a first stadium-visit guide, stadium gear and food.`,
+    : `PHENOMENON FIRST: do not explain the keyword — find what is actually happening inside it. Start from OBSERVED_PHENOMENA (real candidates found by WHAT'S HAPPENING NOW?; prefer OBSERVED, treat EMERGING as an early limited signal) and, if none fit, from concrete behaviors, scenes, rituals, memes, looks or objects inside this subject. Each angle has focus: ONE specific phenomenon, behavior or scene in one line (never just the keyword). The ${ANGLE_COUNT} angles must cover at least 4 different focuses; angle_type is free (guide, fandom, history, curation, experience, people, howto, comparison, behind, trivia). Do not propose the history/origin of the subject, a definition, or a generic beginner/preparation guide (at most ${MAX_BASIC_ANGLES} such angle, and only if it is tied to a specific phenomenon). Example for a baseball team: the out-song cheer dance and where it came from on the field, how the stands match team colors in the postseason — scenes and behaviors, not 'the team'.`,
   `RESEARCH_TITLES are optional seasoning, NOT a menu of topics. Do not turn research items into angles one by one. At most ${MAX_ANCHORED_ANGLES} angles may be built around one specific event or news item from the research; for those set research_anchor to that item (title or id), for all others research_anchor is an empty string. Never build an angle around search interest or analysis limits.`,
   hasConcept ? "The CREATIVE_CONCEPT is hypothetical. Every angle must keep it a concept proposal (e.g. '이런 팝업이 있다면'), never imply it exists or is officially licensed." : "",
   `title: Korean, concrete and specific to THIS subject, makes a reader curious, ideally <= 28 characters. Never use template titles like these patterns: ${GENERIC_TITLE_PATTERNS.map((pattern) => pattern.source).join(" | ")}. A title must not work if you swap in another subject's name. Vary the title STRUCTURE across the 5 angles (a concrete scene, a number or list, a contrast like "A 대신 B", a quote, a how-to, a question) — at most one "‹subject›, question?" title and at most two of the same structure. No clickbait claims that cannot be supported.`,
-  "hook: the first-slide line. editorial_perspective: the editor's point of view. target_audience and reader_benefit: who reads and what they actually get (to learn, to do, to feel). content_structure: 4-8 story beats (what each slide gives the reader), not a list of research items. suggested_visuals: 2-4 concrete visual ideas. research_requirements: concrete facts to check or find before publishing.",
+  "BRIEF per angle: editorial_type — decoding (meaning of scenes/memes/works), curation (real items gathered under one scope), experience (a route or way to enjoy it with real places/steps), comparison (options on the same criteria; without user experience it is an information comparison, never a first-person review), micro (one small behavior or scene), collision (two cultures that actually meet; AI ideas marked as ideas). reader_value — learn, do, choose, feel or save (a list worth saving). key_scene — the one scene a designer would put on the cover to show this angle (people doing the focus behavior), not a logo or a generic picture of the subject. hook: the first-slide line. editorial_perspective: the editor's point of view. target_audience and reader_benefit: who reads and what they actually get (to learn, to do, to feel). content_structure: 4-8 story beats (what each slide gives the reader), not a list of research items. suggested_visuals: 2-4 concrete visual ideas. research_requirements: concrete facts to check or find before publishing.",
   "evidence_ids: research ids that support the angle (may be empty). evidence_fit: grounded, partial, or needs_research. A good angle may need new research — that is fine; do not prefer an angle just because research exists.",
   `Write in ${STYLE}`,
   FACT_RULE,
+  TRUST_RULE,
 ].filter(Boolean).join(" ");
 
-export async function createAngles(trends: TrendContext[], concept: CreativeConcept | undefined, mode: ContentMode, settings: { format: string; target: string; goal: string; tone?: string }, customTopic = "", lock?: EditorialContextLock) {
-  const context = buildAngleContext(trends, mode);
+export async function createAngles(trends: TrendContext[], concept: CreativeConcept | undefined, mode: ContentMode, settings: { format: string; target: string; goal: string; tone?: string }, customTopic = "", lock?: EditorialContextLock, phenomena: ObservedPhenomenon[] = []) {
+  // 잠금이 있으면 이미 하나의 현상에 고정돼 있어 후보 목록을 넣지 않는다.
+  const context = buildAngleContext(trends, mode, lock?.enabled ? [] : phenomena);
   const topic = customTopic.trim();
   const input = `MODE: ${contentModeInfo[mode].label}\n${context.prompt}\nCREATIVE_CONCEPT: ${JSON.stringify(concept ?? null)}\nUSER_TOPIC: ${topic || "(none)"}\nFORMAT: ${settings.format}\nUSER_TARGET: ${settings.target || "(none)"}\nUSER_TONE: ${settings.tone || "(none)"}\nUSER_GOAL: ${settings.goal || "(none)"}`;
   const ids = context.ledger.map((item) => item.id);
@@ -99,7 +108,7 @@ export async function createAngles(trends: TrendContext[], concept: CreativeConc
   // 방향 부족·뻔한 제목·리서치 사건 중심 방향 과다·유형 부족·지정 주제 이탈이면 한 번만 다시 만든다.
   if (needsAngleRegeneration(result, topic)) {
     const v = result.validation;
-    const retry = await call(` RETRY — fix these problems from the previous answer: ${[v.genericTitles.length ? `template titles (${v.genericTitles.join(" / ")})` : "", (v.anchored ?? 0) > MAX_ANCHORED_ANGLES ? `${v.anchored} angles were built on single research items (max ${MAX_ANCHORED_ANGLES})` : "", !topic && (v.typeCount ?? 5) < 4 ? `only ${v.typeCount} reader-experience types` : "", v.offTopic?.length ? `angles off the user topic (${v.offTopic.join(" / ")})` : "", v.lockDrift?.length ? `angles that left the locked phenomenon or hit prohibited drift (${v.lockDrift.join(" / ")})` : "", result.angles.length < 4 ? "too few distinct angles" : "", v.crowdedStructures?.length ? `too many titles with the same structure (${v.crowdedStructures.join(", ")})` : ""].filter(Boolean).join("; ")}.`);
+    const retry = await call(` RETRY — fix these problems from the previous answer: ${[v.genericTitles.length ? `template titles (${v.genericTitles.join(" / ")})` : "", (v.anchored ?? 0) > MAX_ANCHORED_ANGLES ? `${v.anchored} angles were built on single research items (max ${MAX_ANCHORED_ANGLES})` : "", !topic && (v.focusCount ?? 5) < 4 ? `only ${v.focusCount} different focuses (each angle needs its own specific phenomenon or scene)` : "", !topic && (v.basicAngles?.length ?? 0) > MAX_BASIC_ANGLES ? `too many history/origin/beginner angles about the keyword (${(v.basicAngles ?? []).join(" / ")})` : "", v.offTopic?.length ? `angles off the user topic (${v.offTopic.join(" / ")})` : "", v.lockDrift?.length ? `angles that left the locked phenomenon or hit prohibited drift (${v.lockDrift.join(" / ")})` : "", result.angles.length < 4 ? "too few distinct angles" : "", v.crowdedStructures?.length ? `too many titles with the same structure (${v.crowdedStructures.join(", ")})` : ""].filter(Boolean).join("; ")}.`);
     result = { ...retry, validation: { ...retry.validation, regenerated: true } };
   }
   return { angles: result.angles as ContentAngle[], validation: result.validation, model: result.model };

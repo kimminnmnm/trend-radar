@@ -118,8 +118,32 @@ export function saveStudioProject(project: StudioProject) {
   return write(STUDIO_PROJECT_KEY, [{ ...normalized, ownerId: prev?.ownerId ?? owner ?? undefined }, ...all.filter((item) => !(item.id === project.id && visibleTo(owner)(item)))].slice(0, 40));
 }
 
-export function getCollisions(): SavedCollision[] { return read<SavedCollision>(COLLISION_KEY); }
-export function saveCollision(item: SavedCollision) { return write(COLLISION_KEY, [item, ...getCollisions().filter((saved) => saved.id !== item.id)].slice(0, 30)); }
+/** 브라우저 저장 공간(localStorage)이 꽉 차 저장하지 못한 Collision을 이 탭에만 임시로 둔다(탭을 닫으면 사라짐). */
+const SESSION_COLLISION_KEY = "trend-radar-collisions-tab";
+function readTab<T>(key: string): T[] {
+  if (typeof window === "undefined") return [];
+  try { const value = JSON.parse(sessionStorage.getItem(key) ?? "[]"); return Array.isArray(value) ? value as T[] : []; }
+  catch { return []; }
+}
+export function getCollisions(): SavedCollision[] {
+  const saved = read<SavedCollision>(COLLISION_KEY);
+  const tabOnly = readTab<SavedCollision>(SESSION_COLLISION_KEY).filter((item) => !saved.some((other) => other.id === item.id));
+  return [...tabOnly, ...saved].filter(visibleTo(getSessionOwner()));
+}
+/** 저장 위치: "local"(이 브라우저) · "tab"(공간 부족 → 이 탭에만 임시) · false(둘 다 실패). */
+export function saveCollision(item: SavedCollision): "local" | "tab" | false {
+  const owner = getSessionOwner();
+  const owned = { ...item, ownerId: item.ownerId ?? owner ?? undefined };
+  // 다른 계정의 Collision은 지우지 않는다(목록 상한은 이 계정에서 보이는 것만 센다).
+  const all = read<SavedCollision>(COLLISION_KEY).filter((saved) => saved.id !== owned.id);
+  const mine = all.filter(visibleTo(owner)).slice(0, 29), others = all.filter((saved) => !visibleTo(owner)(saved));
+  if (write(COLLISION_KEY, [owned, ...mine, ...others])) return "local";
+  try {
+    sessionStorage.setItem(SESSION_COLLISION_KEY, JSON.stringify([owned, ...readTab<SavedCollision>(SESSION_COLLISION_KEY).filter((saved) => saved.id !== owned.id)].slice(0, 10)));
+    window.dispatchEvent(new Event(STORAGE_EVENT));
+    return "tab";
+  } catch { return false; }
+}
 export function removeCollision(id: string) { return write(COLLISION_KEY, getCollisions().filter((item) => item.id !== id)); }
 
 export function getLabReviews(): SavedLabReview[] { return read<SavedLabReview>(LAB_KEY); }

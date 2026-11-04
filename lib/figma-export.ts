@@ -1,4 +1,5 @@
-import { canvasSize, resolvedSlideImageAssetId, settingsMode, type StudioProject } from "./content-production";
+import { canvasSize, resolvedSlideImageAssetId, resolvedSlideImages, settingsMode, type ProductionSlide, type StudioProject } from "./content-production";
+import { previewKeyFor, TEMPLATE_ID_PATTERN } from "./figma-templates";
 import { contentModeInfo } from "./editorial";
 import type { CardDesign } from "./card-design";
 import type { ImageAssetRef } from "./image-assets";
@@ -37,12 +38,48 @@ export const DEFAULT_TOKENS = {
 const templateFor = (type: string, hasImage: boolean, format: StudioProject["settings"]["format"]): LayoutTemplateId =>
   format === "shortform" ? "video-frame" : type === "cover" ? (hasImage ? "cover-fullbleed" : "text-only") : type === "cta" || type === "closing" ? "cta-end" : type === "evidence" ? "quote-card" : hasImage ? "text-top-image-bottom" : "text-only";
 
+/**
+ * P: 사용자 Figma 템플릿(MY TEMPLATES)용 슬라이드 내용. 플러그인이 템플릿 복제본의 같은 이름 레이어에 넣는다.
+ * kind: 슬라이드 유형 → 템플릿 묶음(COVER·BODY·CTA). images는 이 슬라이드(slideId) 고유의 자산만 — 다른 슬라이드 이미지를 빌려 오지 않는다.
+ */
+export const TEMPLATE_PLACEHOLDERS = ["TITLE", "SUBTITLE", "BODY", "CATEGORY", "IMAGE_MAIN", "IMAGE_1", "IMAGE_2", "IMAGE_3", "IMAGE_4", "BG_IMAGE", "PAGE_NUMBER", "CTA"] as const;
+export type TemplateKind = "COVER" | "BODY" | "CTA";
+export const templateKindOf = (type: string): TemplateKind => type === "cover" ? "COVER" : type === "cta" || type === "closing" ? "CTA" : "BODY";
+
 /** 플러그인이 내려받아 IMAGE fill로 쓸 주소. AI 생성 이미지에만 붙는다(실제 근거 이미지는 복제하지 않고 링크로만 둔다). */
 export type FigmaImageSource = { url: string; expiresAt: string | null; kind: "signed" | "inline" };
 type ExportAsset = { id: string; status: ImageAssetRef["status"]; title: string; source: { kind: "storage"; path: string } | { kind: "url"; url: string } | { kind: "embedded"; note: string } | { kind: "missing" }; figmaImage?: FigmaImageSource; width?: number; height?: number; rights: string; attribution: string; prompt?: string; model?: string };
 
-/** design: Studio가 기획한 카드뉴스 디자인(장면). 있으면 플러그인이 이 장면대로 그리고, 없으면(이전 JSON) 기존 방식으로 그린다. */
-export function toFigmaExport(project: StudioProject, exportedAt = new Date().toISOString(), images: Record<string, FigmaImageSource> = {}, options: { design?: CardDesign } = {}) {
+/**
+ * MY TEMPLATES용 슬라이드 내용(웹 미리보기·Figma 내보내기 공용). templateId: 사용자가 고른 템플릿(없으면 플러그인 자동 배정).
+ * previewKey: 내용·템플릿·템플릿 버전이 같으면 같은 값 → Figma에서 렌더링한 미리보기가 지금 내용과 맞는지 확인한다.
+ */
+export function slideTemplateContent(project: StudioProject, slide: ProductionSlide, index: number, total: number, templateVersions: Record<string, number> = {}) {
+  const category = (project.contextLock?.enabled ? project.contextLock.parentKeyword : project.source.trendNames.join(" × ")) || contentModeInfo[settingsMode(project.settings)].label;
+  const imageList = resolvedSlideImages(slide, project.assets);
+  const main = imageList.find((item) => item.role === "main")?.assetId ?? imageList.find((item) => item.role !== "background")?.assetId ?? imageList[0]?.assetId ?? null;
+  const rest = imageList.filter((item) => item.assetId !== main && item.role !== "background").map((item) => item.assetId);
+  const fields = {
+    TITLE: slide.headline, SUBTITLE: slide.supporting_text, BODY: slide.body, CATEGORY: category,
+    PAGE_NUMBER: `${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`,
+    CTA: slide.cta || (templateKindOf(slide.type) === "CTA" ? project.settings.cta : ""),
+  };
+  const chosen = project.templateAssignments?.[slide.slide_id];
+  const templateId = chosen && TEMPLATE_ID_PATTERN.test(chosen) ? chosen : null;
+  return {
+    kind: templateKindOf(slide.type), fields,
+    // IMAGE_MAIN 템플릿 기준(IMAGE_1~4는 각자 다른 사진). 실제 배정은 플러그인이 템플릿에 있는 슬롯을 보고 imageList로 정한다.
+    images: { IMAGE_MAIN: main, IMAGE_1: rest[0] ?? null, IMAGE_2: rest[1] ?? null, IMAGE_3: rest[2] ?? null, IMAGE_4: rest[3] ?? null, BG_IMAGE: imageList.find((item) => item.role === "background")?.assetId ?? null },
+    imageList, templateId,
+    previewKey: previewKeyFor({ fields, imageList }, templateId, templateId ? templateVersions[templateId] ?? null : null),
+  };
+}
+
+/**
+ * design: Studio가 기획한 카드뉴스 디자인(장면). 있으면 플러그인이 이 장면대로 그리고, 없으면(이전 JSON) 기존 방식으로 그린다.
+ * templateVersions: 동기화된 MY TEMPLATES 버전(미리보기 키에 넣는다).
+ */
+export function toFigmaExport(project: StudioProject, exportedAt = new Date().toISOString(), images: Record<string, FigmaImageSource> = {}, options: { design?: CardDesign; templateVersions?: Record<string, number> } = {}) {
   const plan = project.plan;
   const canvas = canvasSize(project.settings.aspect);
   const assets: ExportAsset[] = project.assets.map((asset) => ({
@@ -54,7 +91,8 @@ export function toFigmaExport(project: StudioProject, exportedAt = new Date().to
   }));
   const text = (id: string, role: keyof typeof DEFAULT_TOKENS.typography, content: string) => content ? [{ id, type: "TEXT" as const, role, content, typographyToken: `typography.${role}` }] : [];
   const units = project.settings.format === "cardnews"
-    ? (plan?.slides ?? []).map((slide) => {
+    ? (plan?.slides ?? []).map((slide, index, all) => {
+        const total = all.length;
         // 깨진/오래된 참조는 Figma payload에 보내지 않는다. export의 IMAGE는
         // 반드시 같은 프로젝트 assets에 실제로 존재하는 자산만 가리킨다.
         const imageAssetId = resolvedSlideImageAssetId(slide, project.assets);
@@ -70,6 +108,7 @@ export function toFigmaExport(project: StudioProject, exportedAt = new Date().to
         ],
         designNotes: { visualDirection: slide.visual_direction, layoutHint: slide.layout_hint, imagePrompt: slide.image_prompt },
         sourceAttribution: slide.evidence_ids,
+        template: slideTemplateContent(project, slide, index, total, options.templateVersions),
       })})
     : (plan?.scenes ?? []).map((scene, index) => ({
         id: scene.scene_id, type: "scene", number: index + 1, timeRange: scene.time_range, layoutTemplateId: "video-frame" as LayoutTemplateId,
@@ -88,6 +127,9 @@ export function toFigmaExport(project: StudioProject, exportedAt = new Date().to
       contentMode: settingsMode(project.settings), contentModeLabel: contentModeInfo[settingsMode(project.settings)].label,
       angle: project.angle ? { title: project.angle.title, hook: project.angle.hook, perspective: project.angle.editorial_perspective, audience: project.angle.target_audience } : null,
       visualTheme: { name: "trend-radar-y2k-pixel", tokens: DEFAULT_TOKENS }, layoutTemplates: LAYOUT_TEMPLATES,
+      /** MY TEMPLATES 배경 대체 색(BG_COLOR 레이어·템플릿 배경이 없을 때): 카드 디자인 대표색, 없으면 기본 테마 surface. */
+      designSource: project.designSource ?? "auto",
+      palette: { primary: options.design?.colors.primary ?? DEFAULT_TOKENS.color.surface, source: options.design ? "card-design" : "theme" },
     },
     slides: units,
     assets,

@@ -28,4 +28,16 @@ const prepare: CloudPrep = async ({ supabase, userId }, item) => {
   return { cloud: { ...item, payload: { kind: "studio-project", project: cloud } }, local: { ...item, payload: { kind: "studio-project", project: local } }, note: assetReportText(report) || undefined };
 };
 
-export const saveProjectEverywhere = (project: StudioProject) => saveItemEverywhere(studioSavedItem(project), prepare);
+/**
+ * 저장하고, 방금 저장한 프로젝트(클라우드 이미지 경로 반영)를 함께 돌려준다.
+ * 브라우저 저장 공간이 꽉 차 로컬 저장이 실패해도 localStorage의 예전 사본을 다시 읽지 않도록, 호출한 쪽은 이 project를 쓴다.
+ */
+export async function saveProjectEverywhere(project: StudioProject) {
+  let prepared: StudioProject | null = null;
+  const result = await saveItemEverywhere(studioSavedItem(project), async (context, item) => {
+    const out = await prepare(context, item);
+    if (out.local && isStudioProjectPayload(out.local.payload)) prepared = out.local.payload.project;
+    return out;
+  });
+  return { ...result, project: prepared ?? syncProjectSlideImages(project) };
+}

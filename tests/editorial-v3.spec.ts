@@ -6,6 +6,7 @@ import old from "./fixtures/editorial-studio.json";
 import base from "./fixtures/live-pipeline.json";
 import t6 from "./fixtures/context-lock-t6.json";
 import t8 from "./fixtures/e2e-t8.json";
+import v3run from "./fixtures/editorial-v3-run.json";
 import { editorialTypeStructure, editorialTypes, isBasicAngle, needsAngleRegeneration, validateAngles, type ContentAngle } from "../lib/editorial";
 import { slideImageBrief } from "../lib/image-brief";
 import { editorialQualityGate } from "../lib/editorial-quality";
@@ -216,5 +217,49 @@ test.describe("E4 user rating in Content Studio", () => {
     await page.getByTestId("editor-notes").locator("summary").click();
     await expect(page.getByTestId("user-rating-specificity")).toHaveValue("5");
     await expect(page.getByTestId("user-rating")).toContainText("사용자 평가(AI 점수와 별개");
+  });
+});
+
+/* ---------- V3 실측(2026-11-04, OpenAI 9회: 방향 3 · 제작 3 · 편집 리뷰 3) ---------- */
+
+type V3Run = { runs: Record<"kia" | "chiikawa" | "roblox", { angles: { angles: ContentAngle[]; validation: { focusCount?: number; basicAngles?: string[] } }; picked: string; production: { plan: ProductionPlan } }> };
+const recorded = v3run as unknown as V3Run;
+
+test.describe("V3 recorded run (real OpenAI responses, not user ratings)", () => {
+  test("angles: no keyword history/beginner angles, five distinct focuses, every angle carries the brief", () => {
+    for (const key of ["kia", "chiikawa", "roblox"] as const) {
+      const { angles } = recorded.runs[key].angles;
+      const v = validateAngles({ angles }, []).validation;
+      expect(v.basicAngles, key).toEqual([]);
+      expect(v.focusCount, key).toBeGreaterThanOrEqual(4);
+      for (const item of angles) {
+        expect(item.focus?.length, `${key} ${item.title}`).toBeGreaterThan(10);
+        expect(item.editorial_type, item.title).toBeTruthy();
+        expect(item.key_scene?.length, item.title).toBeGreaterThan(5);
+      }
+    }
+    // 이전 기록: KIA V2 · 치이카와 V2 방향에는 역사·입문 방향이 있었다.
+    expect(validateAngles({ angles: f2.angles["기아타이거즈"].angles }, []).validation.basicAngles?.length).toBeGreaterThan(0);
+    expect(validateAngles({ angles: f2.angles["치이카와"].angles }, []).validation.basicAngles?.length).toBeGreaterThan(0);
+  });
+
+  test("productions carry a storyboard (new information + scene) on every slide", () => {
+    for (const key of ["kia", "chiikawa", "roblox"] as const) for (const slide of recorded.runs[key].production.plan.slides) {
+      expect(slide.new_information?.length, `${key} ${slide.number}`).toBeGreaterThan(5);
+      expect(slide.scene?.action?.length, `${key} ${slide.number}`).toBeGreaterThan(3);
+    }
+  });
+
+  test("data-limit notes leaking into publishing copy (found in this run) are now a required failure; clean pieces pass", () => {
+    const chiikawa = editorialQualityGate(recorded.runs.chiikawa.production.plan, { subjectTerms: ["치이카와"] });
+    expect(chiikawa.failing).toContain("no-limits-in-copy");
+    expect(chiikawa.issues.filter((issue) => /자료 한계/.test(issue.problem)).map((issue) => issue.unit)).toEqual(expect.arrayContaining([1, 3]));
+    const kia = editorialQualityGate(recorded.runs.kia.production.plan, { subjectTerms: ["기아타이거즈", "KIA"] });
+    expect(kia.issues.some((issue) => issue.unit === 5 && /자료 한계/.test(issue.problem))).toBe(true);
+    for (const plan of [recorded.runs.roblox.production.plan, (t6 as unknown as { after: { production: { plan: ProductionPlan } } }).after.production.plan, (t8 as unknown as { D: { production: { plan: ProductionPlan } } }).D.production.plan]) {
+      expect(editorialQualityGate(plan, { subjectTerms: ["로블록스"] }).checks.find((check) => check.id === "no-limits-in-copy")?.pass).toBe(true);
+    }
+    const source = fs.readFileSync("lib/openai-production.ts", "utf8");
+    expect(source).toContain("LIMITED EVIDENCE: never write about missing data");
   });
 });

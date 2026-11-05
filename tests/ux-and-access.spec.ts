@@ -19,6 +19,10 @@ test.describe("first-run UX", () => {
     const onboarding = page.getByTestId("onboarding");
     await expect(onboarding).toBeVisible();
     await expect(onboarding.getByText("② 왜 뜨나")).toBeVisible();
+    // V4 P1-3: 목적부터 고르고, DNA·섞어 보기는 선택 단계로 보인다
+    await expect(onboarding.getByTestId("onboarding-purposes").locator("a")).toHaveCount(3);
+    await expect(onboarding.getByTestId("onboarding-purpose-make")).toHaveAttribute("href", "/studio");
+    await expect(onboarding.locator("li.optional")).toHaveCount(2);
     await onboarding.getByRole("button", { name: "둘러볼게요" }).click();
     await expect(onboarding).toHaveCount(0);
     await page.reload();
@@ -58,8 +62,31 @@ test.describe("analysis journey", () => {
     await expect(bar.getByTestId("journey-trend")).toHaveText("러닝");
     await expect(bar.locator("li.done")).toHaveCount(2); // 찾기, WHY
     await expect(bar.getByRole("link", { name: "② 왜 뜨나" })).toHaveAttribute("aria-current", "step");
+    // V4: 단일 트렌드의 다음 단계는 콘텐츠 제작(DNA·섞어 보기는 선택 단계로 표시)
+    await expect(bar.getByTestId("journey-next")).toContainText("이 트렌드로 콘텐츠 만들기");
+    await expect(bar.locator("li.optional")).toHaveCount(2);
+    await expect(bar.getByTestId("journey-alt")).toHaveAttribute("href", "/collision");
     await bar.getByTestId("journey-next").click();
-    await expect(page).toHaveURL(/\/trends\/live-.+\/dna$/);
+    await expect(page).toHaveURL(/\/studio\?(trend=live-|project=studio-single-live-)/); // Studio가 프로젝트를 만들며 ?project=로 바꾼다
+  });
+
+  test("V4 P1-1: a Content Studio production project marks the content step done", async ({ page }) => {
+    const project = { id: "studio-journey", mode: "single", title: "러닝 카드뉴스", source: { trendKeys: [why.snapshot.trendId], trendNames: ["러닝"] }, settings: { format: "cardnews", aspect: "4:5", slideCount: 6, durationSec: 30, target: "", tone: "", brand: "", goal: "", cta: "" }, assets: [], edited: false, createdAt: "2026-11-05T00:00:00.000Z", updatedAt: "2026-11-05T00:00:00.000Z" };
+    await seed(page, { "trend-radar-onboarded": "1", "trend-radar-live-analyses": [why.snapshot], "trend-radar-studio-projects": [project] });
+    await page.goto(RUNNING_WHY);
+    const bar = page.getByTestId("journey-bar");
+    await expect(bar.getByRole("link", { name: "③ 콘텐츠 만들기" })).toBeVisible();
+    await expect(bar.locator("li.done")).toHaveCount(3); // 찾기, WHY, 콘텐츠
+    await expect(bar.getByTestId("journey-next")).toHaveCount(0);
+    await expect(bar.getByTestId("journey-done")).toContainText("콘텐츠를 만들었습니다");
+  });
+
+  test("V4 P1-2: on the Collision screen the next step follows the mixing path", async ({ page }) => {
+    await seed(page, { "trend-radar-onboarded": "1", "trend-radar-live-analyses": [why.snapshot] });
+    await page.goto("/collision");
+    const bar = page.getByTestId("journey-bar");
+    await expect(bar.getByTestId("journey-next")).toContainText("다른 트렌드와 섞어 보기");
+    await expect(bar.getByTestId("journey-alt")).toHaveCount(0);
   });
 
   test("demo trend pages are clearly marked as not real data", async ({ page }) => {

@@ -194,6 +194,23 @@ export type NowTrendReport = {
   methodology: string[];
 };
 
+/** 웹 검색으로 찾은 해시태그 후보(출처는 검색 도구가 실제로 조회한 URL만). */
+export type IgPulseCandidate = { tag: string; keyword?: string; category?: string; summary?: string; sources?: Array<{ url: string; title?: string }> };
+export type IgPulseScanSummary = {
+  mode: "discover" | "refresh";
+  /** 웹 검색이 찾은 후보 수(출처 확인된 것만, 중복 제거 전) */
+  discovered: number;
+  /** 이번 스캔의 신규 후보 수: 웹 후보 + 대기열 중 추적·최근 조회 기록에 없는 태그 */
+  newCandidates: number;
+  /** 이미 조회한 적 있는 후보 수(한도를 쓰지 않고 다시 잼) */
+  knownCandidates: number;
+  /** 실제로 측정을 시도한 태그 수 */
+  measured: number;
+  /** 이번에 처음 측정해 Instagram에서 확인된 신규 태그 수 */
+  added: number;
+  /** 한도·개수 제한으로 다음 스캔으로 넘긴 신규 후보 수 */
+  deferredNew: number;
+};
 /** Instagram 해시태그 최근 게시 속도. 전체 게시물 수가 아니라 recent_media(최근 24시간)에서 측정한 값이다. */
 export type IgPulseItem = {
   tag: string;
@@ -229,10 +246,13 @@ export type IgPulseReport = {
   promptVersion: string;
   model: string | null;
   items: IgPulseItem[];
-  deferred: Array<{ tag: string; reason: string }>;
+  /** candidate: 한도·개수 제한으로 이번에 재지 못한 신규 후보의 정보(다음 스캔 대기열로 옮긴다). 추적 태그 보류에는 없다. */
+  deferred: Array<{ tag: string; reason: string; candidate?: IgPulseCandidate }>;
   failed: Array<{ tag: string; reason: string }>;
   droppedUnverified: number;
   searchedSources: number;
+  /** RESCAN 요약(2026-11 이후 보고서만). discover: 신규 후보 탐색 + 측정 · refresh: 기존 추적 태그만 재측정. */
+  scan?: IgPulseScanSummary;
   quota: {
     limit: number;
     reserve: number;

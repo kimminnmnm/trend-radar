@@ -19,8 +19,11 @@ export function DataBadge({ status, detail }: { status: DataStatus; detail?: str
 /** 창 타이틀바 오른쪽의 최소화·최대화·닫기 장식. 동작 없는 시각 요소다. */
 export function WinButtons() { return <span className="win-buttons" aria-hidden><i>_</i><i>□</i><i className="close">×</i></span>; }
 
-export function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: React.ReactNode; description: string; action?: React.ReactNode }) {
-  return <header className="page-header window"><div className="titlebar"><Eyebrow>{eyebrow}</Eyebrow><WinButtons /></div><div className="window-body"><div><h1>{title}</h1><p>{description}</p></div>{action}</div></header>;
+/** V4 P1-7: 화면마다 같은 틀의 짧은 안내 — 이 화면에서 하는 일 · 먼저 누를 것 · 결과를 어디에 쓰는지. */
+export type PageGuide = { what: string; first: string; next: string };
+export function PageHeader({ eyebrow, title, description, action, guide }: { eyebrow: string; title: React.ReactNode; description: string; action?: React.ReactNode; guide?: PageGuide }) {
+  return <header className="page-header window"><div className="titlebar"><Eyebrow>{eyebrow}</Eyebrow><WinButtons /></div><div className="window-body"><div><h1>{title}</h1><p>{description}</p>
+    {guide && <ul className="page-guide" data-testid="page-guide"><li><b>이 화면</b>{guide.what}</li><li><b>먼저</b>{guide.first}</li><li><b>결과는</b>{guide.next}</li></ul>}</div>{action}</div></header>;
 }
 
 export function SectionHeading({ index, title, description }: { index?: string; title: string; description?: string }) {

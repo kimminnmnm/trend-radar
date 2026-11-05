@@ -103,6 +103,9 @@ a { color:inherit; text-decoration:none; }
 .page-header h1 { margin:0 0 12px; max-width:920px; font-family:var(--font-display); font-size:clamp(28px,3.6vw,46px); font-weight:700; letter-spacing:-.01em; line-height:1.15; color:#14161f; }
 .page-header p { max-width:740px; margin:0; color:#2e3140; line-height:1.75; font-size:15px; }
 .page-header h1 em { font-style:italic; color:#2b9a1c; }
+.page-guide { list-style:none; margin:14px 0 0; padding:0; display:grid; gap:4px; max-width:740px; font-size:13px; color:#2e3140; line-height:1.55; }
+.page-guide li { display:grid; grid-template-columns:56px 1fr; gap:8px; }
+.page-guide b { font-size:11px; font-weight:800; letter-spacing:.04em; color:#1f2fe0; padding-top:1px; }
 .eyebrow { color:var(--title); font-size:12px; font-weight:700; letter-spacing:.06em; display:flex; align-items:center; gap:8px; }
 .eyebrow>span { width:8px; height:8px; border-radius:50%; background:currentColor; }
 .titlebar .eyebrow { color:#fff; font-size:13px; letter-spacing:.03em; }
@@ -243,6 +246,9 @@ input[type=checkbox],input[type=radio] { accent-color:#3fae1c; width:16px; heigh
 .journey li.active a { color:#fff; background:var(--gloss),linear-gradient(180deg,#a8e04e,#16a34a); border-color:#16a34a; }
 .journey li a:hover { filter:brightness(1.05); text-decoration:underline; }
 .journey .all-done { font-size:13px; font-weight:700; color:#1d7f22; }
+.journey li.optional a { border-style:dashed; font-weight:500; }
+.journey-next-wrap { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.journey-alt { font-size:12px; color:#555a6b; text-decoration:underline; }
 .journey.demo { background:rgba(255,248,220,.95); box-shadow:var(--drop),0 0 0 2px #e8b34a; }
 
 /* ── UX: 첫 방문 안내 ── */
@@ -262,6 +268,16 @@ input[type=checkbox],input[type=radio] { accent-color:#3fae1c; width:16px; heigh
 .ob-legend i { font-style:normal; }
 .tag-ai { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; background:#f3e8ff; color:#6b3fa0; border:1px solid #d8c2f2; }
 .ob-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+.ob-purposes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:16px; }
+.ob-purpose { display:grid; gap:4px; align-content:start; padding:14px; border-radius:12px; border:1.5px solid #1f2fe0; background:#f5f6ff; color:#14161f; text-decoration:none; }
+.ob-purpose:hover { filter:brightness(1.03); }
+.ob-purpose svg { width:22px; height:22px; color:#1f2fe0; }
+.ob-purpose b { font-size:15px; }
+.ob-purpose p { margin:0; font-size:13px; line-height:1.55; color:#2e3140; }
+.ob-purpose small { font-size:12px; color:#6e7386; }
+.ob-purpose span { display:inline-flex; align-items:center; gap:4px; margin-top:4px; font-size:13px; font-weight:700; color:#1f2fe0; }
+.ob-body li.optional { border-style:dashed; background:#fff; }
+@media(max-width:720px){ .ob-purposes { grid-template-columns:1fr; } }
 
 /* ── LIVE / DEMO 구분: DEMO는 주황 사선 줄무늬 ── */
 .data-badge.demo { color:#6b4100; border-color:#d08a00; background:repeating-linear-gradient(135deg,#ffe08a 0 6px,#fff3c4 6px 12px); }

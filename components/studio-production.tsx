@@ -62,6 +62,33 @@ const observedPhenomenaFor = (keyword: string) => {
 };
 const findProject = (id: string): StudioProject | null => getStudioProject(id) ?? getSavedItems().flatMap((item) => isStudioProjectPayload(item.payload) && item.payload.project.id === id ? [syncProjectSlideImages(item.payload.project)] : [])[0] ?? null;
 
+
+/**
+ * V4 P1-4: 근거가 부족한 방향을 고르면 생성 전에 대안을 보여 준다(V3 실측: 치이카와 "일하고 보상받는 장면"이 근거 없이 4장 + 자료 한계 문구로 실패).
+ * 고르는 것은 사용자다 — 자동으로 바꾸지 않는다. 추가 조사는 체크만 켜고, 실제 호출은 생성 버튼을 눌러야 일어난다.
+ */
+function ThinEvidenceOptions({ fit, research, onResearch, slides, onFewerSlides, alternatives, onChoose, hasLock }: { hasLock: boolean; fit: "partial" | "needs_research"; research: boolean; onResearch: () => void; slides: number | null; onFewerSlides: () => void; alternatives: ContentAngle[]; onChoose: (angle: ContentAngle) => void }) {
+  return <div className="thin-evidence" role="note" data-testid="thin-evidence">
+    <b>{fit === "needs_research" ? "이 방향은 분석 자료에 근거가 거의 없어요." : "이 방향은 근거가 일부만 있어요."}</b>
+    <p>그대로 만들면 장수가 줄거나 일반적인 문장이 늘 수 있어요. 아래 중 하나를 골라 보세요.</p>
+    <ol>
+      <li data-testid="thin-research">A. 디테일 추가 조사 — 웹 검색 1회 추가{research ? <span className="ok"> · 켜져 있음</span> : <button type="button" className="mini" onClick={onResearch}>조사 켜기</button>}</li>
+      <li>B. 주제 좁히기 — 위 “관점”을 자료에 실제로 있는 장면·사례 하나로 고쳐 쓰기</li>
+      <li data-testid="thin-slides">C. 장수 줄이기{slides !== null && slides > 4 ? <button type="button" className="mini" onClick={onFewerSlides}>4장으로 줄이기</button> : <span className="ok"> · 현재 {slides ?? "—"}장</span>}</li>
+      <li data-testid="thin-alternatives">D. 근거가 충분한 다른 방향{alternatives.length ? <span className="alts">{alternatives.slice(0, 3).map((angle) => <button type="button" className="mini" key={angle.angle_id} onClick={() => onChoose(angle)}>{angle.title}</button>)}</span> : <span className="ev"> — 지금 제안 중에는 없어요. 방향을 다시 제안받아 보세요.</span>}</li>
+      <li data-testid="thin-materials">E. 내가 아는 자료 넣기 — {hasLock ? "위 편집 맥락 잠금의 USER MATERIALS에" : "위 “관점”에"} 직접 확인한 사실·장면을 적으면 생성에 반영돼요(검증 전 자료로 다룹니다)</li>
+    </ol>
+    <style jsx>{`
+      .thin-evidence{display:grid;gap:4px;padding:8px 10px;border:1.5px dashed #c77700;border-radius:6px;background:#fff8e8;font-size:12px;color:#4a3300}
+      .thin-evidence p{margin:0}.thin-evidence ol{margin:2px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+      .thin-evidence li{line-height:1.5}.thin-evidence .ok{color:#237a27}.thin-evidence .ev{color:var(--muted)}
+      .thin-evidence .alts{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+      .mini{display:inline-flex;gap:3px;align-items:center;font-size:10px;padding:2px 6px;margin-left:6px;border:1px solid var(--ink);border-radius:3px;background:#fff;cursor:pointer}
+      .alts .mini{margin-left:0;text-align:left}
+    `}</style>
+  </div>;
+}
+
 export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapshot[] }) {
   const [project, setProject] = useState<StudioProject | null>(null);
   const [boot, setBoot] = useState<"loading" | "ready" | "missing">("loading");
@@ -508,6 +535,11 @@ export function StudioProduction({ snapshots }: { snapshots: LiveAnalysisSnapsho
             <p className="note">구성 · {project.angle.content_structure.join(" → ")}</p>
             {project.angle.research_requirements.length > 0 && <p className="note">리서치 필요 · {project.angle.research_requirements.join(" / ")}</p>}
           </div>}
+          {project.angle && project.angle.angle_type !== "custom" && project.angle.evidence_fit !== "grounded" && <ThinEvidenceOptions
+            fit={project.angle.evidence_fit} hasLock={Boolean(lock)}
+            research={deepResearch} onResearch={() => setDeepResearch(true)}
+            slides={project.settings.format === "cardnews" ? project.settings.slideCount : null} onFewerSlides={() => setSettings({ slideCount: 4 })}
+            alternatives={(project.angles?.items ?? []).filter((angle) => angle.evidence_fit === "grounded" && angle.angle_id !== project.angle?.angle_id)} onChoose={chooseAngle}/>}
         </div>
         {project.settings.format === "cardnews" && <div className="settings design-set" data-testid="design-controls"><small>DESIGN · 카드뉴스 디자인</small>
           <div className="design-source" role="radiogroup" aria-label="DESIGN SOURCE" data-testid="design-source"><small>DESIGN SOURCE</small>

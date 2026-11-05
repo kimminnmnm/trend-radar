@@ -1,7 +1,7 @@
 import type { CreativeRun } from "./creative-collision";
 import { syncProjectSlideImages, type StudioProject } from "./content-production";
 import type { DismissedTag } from "./ig-pulse-view";
-import type { SavedItemTombstone, CultureRelationFeedback, CultureRelationRecord, CultureVersionRecord, IgPulseReport, InstagramManualSearchRecord, LiveAnalysisSnapshot, NowTrendReport, SavedCollision, SavedItem, SavedLabReview, WatchCandidate } from "./types";
+import type { SavedItemTombstone, CultureRelationFeedback, CultureRelationRecord, CultureVersionRecord, IgPulseCandidate, IgPulseReport, InstagramManualSearchRecord, LiveAnalysisSnapshot, NowTrendReport, SavedCollision, SavedItem, SavedLabReview, WatchCandidate } from "./types";
 import { isLiveTrendId, liveTrendId } from "./live-trend";
 import { connectionContextOf, connectionPayloadOf, isPhenomenonPayload, phenomenonPayloadOf, type ConnectionRun, type DiscoveryReport, type SavedPhenomenonPayload } from "./discovery";
 import type { TrendWebSession } from "./trend-web";
@@ -19,14 +19,26 @@ function read<T>(key: string): T[] {
   catch { return []; }
 }
 
+/** V4 P0: 브라우저 저장 실패(대부분 저장 공간 부족). 화면 공통 경고 막대가 받는다 — 저장 실패가 조용히 묻히지 않게. */
+export const STORAGE_FAILED_EVENT = "trend-radar:storage-failed";
 function write<T>(key: string, items: T[]) {
   try {
     localStorage.setItem(key, JSON.stringify(items));
     window.dispatchEvent(new Event(STORAGE_EVENT));
     return true;
   } catch {
+    try { window.dispatchEvent(new CustomEvent(STORAGE_FAILED_EVENT, { detail: { key } })); } catch { /* 이벤트도 못 보내면 무시 */ }
     return false;
   }
+}
+/** 이 앱이 쓰는 브라우저 저장 공간(항목별 크기, 큰 순). 문자 수 × 2바이트로 어림한다(브라우저가 UTF-16으로 센다). */
+export function storageUsage(): Array<{ key: string; bytes: number }> {
+  if (typeof window === "undefined") return [];
+  try {
+    const rows: Array<{ key: string; bytes: number }> = [];
+    for (let i = 0; i < localStorage.length; i += 1) { const key = localStorage.key(i); if (key?.startsWith("trend-radar")) rows.push({ key, bytes: (localStorage.getItem(key)?.length ?? 0) * 2 }); }
+    return rows.sort((a, b) => b.bytes - a.bytes);
+  } catch { return []; }
 }
 
 /*
@@ -239,6 +251,11 @@ export function recordIgQuotaUse(entry: Omit<IgQuotaAuditEntry, "releaseAt">) {
   const releaseAt = new Date(new Date(entry.searchedAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
   return write(IG_QUOTA_AUDIT_KEY, [{ ...entry, releaseAt }, ...getIgQuotaAudit().filter((item) => item.tag.toLocaleLowerCase() !== key)].slice(0, 60));
 }
+const IG_QUEUE_KEY = "trend-radar-ig-queue";
+/** 다음 RESCAN 대기열: 한도 때문에 아직 재지 못한 신규 후보(측정값이 아니다). 계정별로 나눈다. */
+export type IgQueuedCandidate = IgPulseCandidate & { queuedAt: string; reason: string };
+export function getIgQueue(): IgQueuedCandidate[] { return read<IgQueuedCandidate & { ownerId?: string }>(IG_QUEUE_KEY).filter(ownedVisible(getSessionOwner())); }
+export function saveIgQueue(items: IgQueuedCandidate[]) { const owner=getSessionOwner();const others=read<IgQueuedCandidate & { ownerId?: string }>(IG_QUEUE_KEY).filter((item)=>!ownedVisible(owner)(item));return write(IG_QUEUE_KEY,[...items.slice(0,20).map((item)=>({...item,ownerId:owner??undefined})),...others]); }
 const IG_DISMISSED_KEY = "trend-radar-ig-dismissed";
 /** 추적에서 뺀 태그와 뺀 시각. 그 이전 측정은 보드에서 숨긴다. */
 export function getIgDismissed(): DismissedTag[] { const owner=getSessionOwner();return read<OwnedDismissedTag>(IG_DISMISSED_KEY).filter(ownedVisible(owner)).map(({tag,at})=>({tag,at})); }
@@ -293,7 +310,7 @@ export function saveRelationFeedback(item: CultureRelationFeedback) {
 }
 
 export function clearLocalAnalysisData() {
-  const keys = [KEY, LIVE_KEY, COLLISION_KEY, LAB_KEY, WATCH_KEY, NOW_KEY, IG_PULSE_KEY, IG_TRACK_KEY, IG_QUOTA_AUDIT_KEY, IG_DISMISSED_KEY, IG_MANUAL_SEARCH_KEY, CULTURE_VERSIONS_KEY, CULTURE_RELATIONS_KEY, RELATION_FEEDBACK_KEY, SAVED_TOMBSTONE_KEY, CREATIVE_KEY, STUDIO_PROJECT_KEY, DISCOVERY_KEY, CONNECTION_RUNS_KEY, TREND_WEB_KEY];
+  const keys = [KEY, LIVE_KEY, COLLISION_KEY, LAB_KEY, WATCH_KEY, NOW_KEY, IG_PULSE_KEY, IG_TRACK_KEY, IG_QUEUE_KEY, IG_QUOTA_AUDIT_KEY, IG_DISMISSED_KEY, IG_MANUAL_SEARCH_KEY, CULTURE_VERSIONS_KEY, CULTURE_RELATIONS_KEY, RELATION_FEEDBACK_KEY, SAVED_TOMBSTONE_KEY, CREATIVE_KEY, STUDIO_PROJECT_KEY, DISCOVERY_KEY, CONNECTION_RUNS_KEY, TREND_WEB_KEY];
   try {
     keys.forEach((key) => localStorage.removeItem(key));
     window.dispatchEvent(new Event(STORAGE_EVENT));

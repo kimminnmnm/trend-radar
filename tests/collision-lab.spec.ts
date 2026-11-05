@@ -181,3 +181,17 @@ test.describe("Collision → Trend Lab when browser storage is full", () => {
     await expect(page.getByTestId("lab-collision-missing")).toHaveCount(0);
   });
 });
+
+test.describe("V4 P0 · Content Studio keeps the requested collision", () => {
+  test("an unknown collision ID in Studio is reported (no silent switch); a valid one is selected", async ({ page }) => {
+    await seed(page, {});
+    await page.goto("/studio?collision=collision-does-not-exist");
+    await expect(page.getByTestId("studio-collision-missing")).toContainText("collision-does-not-exist");
+    await expect(page.getByTestId("studio-collision-missing").getByRole("link", { name: "Trend Lab에서 확인하기" })).toHaveAttribute("href", "/lab?collision=collision-does-not-exist");
+    await expect(page.locator("#studio-source")).toHaveCount(0);
+    await page.getByTestId("studio-collision-pick-other").click();
+    await expect(page.locator("#studio-source")).toBeVisible();
+    await page.goto(`/studio?collision=${COLLISION.id}`);
+    await expect(page.locator("#studio-source")).toHaveValue(`collision:${COLLISION.id}`);
+  });
+});

@@ -119,8 +119,9 @@ test.describe("media pipeline (no browser)", () => {
   });
 });
 
-async function seed(page: Page, items: unknown[]) {
-  await page.goto("/");
+/** path: 데이터를 넣을 때 열어 둘 화면. Overview("/")는 열자마자 사진 자동 채우기를 시작할 수 있어, 그 호출 횟수를 세는 테스트는 다른 화면에서 넣는다(V4 P2-6). */
+async function seed(page: Page, items: unknown[], path = "/") {
+  await page.goto(path);
   await page.evaluate((data) => { localStorage.clear(); localStorage.setItem("trend-radar-onboarded", "1"); localStorage.setItem("trend-radar-live-analyses", JSON.stringify(data)); }, items);
 }
 const WHY = (trend: LiveAnalysisSnapshot) => `/trends/${encodeURIComponent(trend.trendId)}/why`;
@@ -202,7 +203,7 @@ test.describe("visual discovery UI", () => {
       calls.push(route.request().postDataJSON());
       await route.fulfill({ json: { results: [{ hashtag: "러닝", ok: true, collectedAt: "2026-10-30T01:00:00.000Z", cached: false, images: [{ permalink: ledger.url, imageUrl: "https://scontent.cdninstagram.com/v/a.jpg", mediaType: "IMAGE", edge: "top_media" }] }] } });
     });
-    await seed(page, [vocaloid, run]);
+    await seed(page, [vocaloid, run], "/settings");
     await page.evaluate(() => sessionStorage.clear());
     calls.length = 0;
     await page.goto("/discover");
@@ -219,7 +220,7 @@ test.describe("visual discovery UI", () => {
     await stubRemoteMedia(page);
     const calls: Array<{ hashtags: string[] }> = [];
     await page.route("**/api/media/instagram-images", (route) => { calls.push(route.request().postDataJSON()); return route.fulfill({ json: { results: [] } }); });
-    await seed(page, [{ ...run, instagram: undefined }]);
+    await seed(page, [{ ...run, instagram: undefined }], "/settings");
     await page.evaluate(() => sessionStorage.clear());
     calls.length = 0;
     await page.goto("/discover");
@@ -231,7 +232,7 @@ test.describe("visual discovery UI", () => {
     await stubRemoteMedia(page);
     let count = 0;
     await page.route("**/api/media/instagram-images", (route) => { count += 1; return route.fulfill({ status: 401, json: { error: "ACCESS_REQUIRED", message: "접근 권한이 필요합니다." } }); });
-    await seed(page, [run]);
+    await seed(page, [run], "/settings");
     await page.evaluate(() => sessionStorage.clear());
     count = 0;
     await page.goto("/discover");

@@ -7,7 +7,8 @@ import { ideaSimilarity } from "./creative-collision";
  * - 흐름: 트렌드(또는 Creative 아이디어) → 콘텐츠 모드 → 콘텐츠 방향(Angle) 5개 → 사용자가 선택 → 카드뉴스·숏폼.
  * - 게시용 콘텐츠(PUBLISHING)와 제작자 검증 메모(EDITOR NOTES)를 나눈다. 서버 검증은 그대로 적용한다.
  */
-export const EDITORIAL_PROMPT_VERSION = "studio-editorial-v5";
+/** v7(V4 P1-6): 출처 서술 2장 이상을 필수 검사로 올림 — 이전 캐시 결과를 재사용하지 않게. */
+export const EDITORIAL_PROMPT_VERSION = "studio-editorial-v7";
 /**
  * v5(EDITORIAL ENGINE V3 · E1): 현상 중심 방향 — 방향마다 초점(focus: 구체적 현상·행동·장면)을 정하고,
  * 키워드의 역사·입문·준비물 방향을 기본값으로 만들지 않는다(E0 실패 분석 FAILURE 01·10). 사용자 지정 주제가 여전히 최우선.

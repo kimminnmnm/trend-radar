@@ -43,6 +43,11 @@ const FOREIGN_SCRIPT = /[぀-ヿ一-鿿]/;
 export const FIRST_PERSON_EXPERIENCE = /(직접|제가|내가|저희가|우리가)\s*\S{0,6}(먹어\s*봤|가\s*봤|가봤|다녀왔|써\s*봤|써봤|입어\s*봤|사\s*봤|해\s*봤|해봤|타\s*봤|방문했|구매했|체험했)|(먹어|가|써|입어|사)\s*봤(어요|는데|더니|습니다)|다녀왔(어요|는데|습니다)|솔직\s*후기|내돈내산/;
 /** E0 G3: 근거 없이 쓰면 안 되는 유행·인기 표현. */
 export const VIRALITY = /요즘\s*(난리|대세|핫한|핫해)|난리\s*난|난리예요|대세(예요|인|로|가|템)|핫한|핫해요|바이럴|인기\s*폭발|품절\s*대란|급상승|역대급\s*인기/;
+/**
+ * V3 실측(2026-11-04): 근거가 적은 방향에서 모델이 지어내지 않는 대신 "자료 한계"를 게시 문구에 썼다
+ * ("현재 자료에는 … 정보가 없어요", "확정해 말할 수 없어요", "원본 여부는 … 확인해야 해요"). 한계는 EDITOR NOTES에만.
+ */
+export const LIMITS_IN_COPY = /(현재\s*)?자료(에는|로는|만으로는?)\s|자료가\s*(없|부족)|정보가\s*없어요|확정해\s*말할\s*수\s*없|단정할\s*수\s*없|확인되지\s*않았|(확인|검증)(해야|이\s*필요)\s*해요|원본\s*여부|실제\s*회차를\s*재현하는\s*대신|게시\s*맥락으로\s*따로/;
 /** E0 FAILURE 07: 조사·통계 방법 서술. */
 const SURVEY_NARRATION = /(조사|설문|분석\s*글|보고서|통계)(에서는?|에\s*따르면|\s*결과)|(으로|로)\s*정의했|보고됐|라고\s*보고|비중이\s*높았다고/;
 
@@ -150,6 +155,15 @@ export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms
   if (titleViral) issues.push({ unit: "title", problem: "제목·캡션의 근거 없는 유행·인기 주장" });
   required("virality", "근거 없는 유행 주장 없음", !viral.length && !titleViral, viral.length || titleViral ? `해당 ${[...viral.map((unit) => `${unit.n}번`), ...(titleViral ? ["제목·캡션"] : [])].join(", ")}` : "없음");
 
+  // V3: 자료 한계·검증 메모가 게시 문구로 새어 나옴(독자에게는 의미 없는 제작자 메모).
+  const leaked = units.filter((unit) => LIMITS_IN_COPY.test(`${unit.head} ${unit.body}`));
+  leaked.forEach((unit) => issues.push({ unit: unit.n, problem: "자료 한계·검증 메모가 게시 문구에 있음: 확인된 다른 디테일로 바꾸거나 빼고, 한계는 편집 메모(research_gaps)로" }));
+  required("no-limits-in-copy", "게시 문구에 자료 한계·검증 메모 없음", !leaked.length, leaked.length ? `해당 슬라이드 ${leaked.map((unit) => unit.n).join(", ")}` : "없음");
+  // V4 P1-6: 출처 서술("뉴시스 보도는", "~가 소개했어요")이 2장 이상이면 보도 요약형 전개 — 필수 실패로 편집 리뷰가 고쳐 쓴다. 1장은 아래 편집 신호.
+  const narrated = units.filter((unit) => SOURCE_NARRATION.test(`${unit.head} ${unit.body}`));
+  if (narrated.length >= 2) narrated.forEach((unit) => issues.push({ unit: unit.n, problem: "출처를 서술하는 문장(보도 요약형): 출처 이름 없이 사실·장면으로 바로 쓰고, 출처는 fact_checks에만" }));
+  required("no-source-narration", "출처 서술 2장 미만(보도 요약형 아님)", narrated.length <= 1, narrated.length ? `출처 서술 슬라이드 ${narrated.map((unit) => unit.n).join(", ")}` : "없음");
+
   /* ---------- B. 편집 신호(참고, 통과 여부는 편집 리뷰가 판단) ---------- */
   const genericSentences = units.flatMap((unit) => sentences(`${unit.head}. ${unit.body}`).filter((sentence) => isGenericSentence(sentence, subjectTerms, specificTerms)).map((sentence) => `${unit.n}번: ${sentence}`));
   const genericSlides = units.filter((unit) => sentences(`${unit.head}. ${unit.body}`).every((sentence) => isGenericSentence(sentence, subjectTerms, specificTerms)));
@@ -159,9 +173,8 @@ export function editorialQualityGate(plan: ProductionPlan, input: { subjectTerms
   const noDetail = middle.filter((unit) => !unit.detailIds.length);
   noDetail.forEach((unit) => hints.push({ unit: unit.n, problem: "Detail Bank 디테일을 쓰지 않음" }));
   editorial("detail-use", "Detail Bank 활용", bank.length > 0 && noDetail.length <= 1, bank.length ? `디테일 ${bank.length}개(근거 ${verifiedBank.length}) · 디테일 없는 본문 슬라이드 ${noDetail.map((unit) => unit.n).join(", ") || "없음"}` : "Detail Bank 없음");
-  const narrated = units.filter((unit) => SOURCE_NARRATION.test(`${unit.head} ${unit.body}`));
-  narrated.forEach((unit) => hints.push({ unit: unit.n, problem: "출처를 서술하는 문장(보도 요약형)" }));
-  editorial("not-report", "보도·분석 요약형 서술이 아님", narrated.length <= 1, narrated.length ? `출처 서술 슬라이드 ${narrated.map((unit) => unit.n).join(", ")}` : "없음");
+  if (narrated.length === 1) hints.push({ unit: narrated[0].n, problem: "출처를 서술하는 문장(보도 요약형)" });
+  editorial("not-report", "보도·분석 요약형 서술이 아님", !narrated.length, narrated.length ? `출처 서술 슬라이드 ${narrated.map((unit) => unit.n).join(", ")}` : "없음");
   // E0 FAILURE 07: 조사·통계 방법을 설명하는 문장(매거진이 아니라 조사 요약).
   const surveyed = units.filter((unit) => SURVEY_NARRATION.test(`${unit.head} ${unit.body}`));
   surveyed.forEach((unit) => hints.push({ unit: unit.n, problem: "조사·통계 방법 서술: 독자가 얻는 것이 없으면 빼거나 장면으로 바꾸기" }));

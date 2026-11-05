@@ -31,7 +31,7 @@ export function ContentStudio(){
   // 저장된 기획 브리프·Collision·Lab 링크는 BRIEF 화면에서, 프로젝트·Creative·단일 트렌드 진입은 PRODUCTION 화면에서 연다.
   // 데모 Lab에서 넘어온 진입(?demo=lab)은 데모 기획안 화면으로 연다 — 기본 탭(PRODUCTION)은 그대로 두고, 출발지가 데모일 때만.
   useEffect(()=>{const frame=requestAnimationFrame(()=>{if(readQueryParam("plan")||readQueryParam("collision")||readQueryParam("lab"))setModeChoice("live");else if(readQueryParam("project")||readQueryParam("creative")||readQueryParam("trend")||readQueryParam("phenomenon"))setModeChoice("production");else if(readQueryParam("demo"))setModeChoice("demo")});return()=>cancelAnimationFrame(frame)},[]);
-  return <div className="page"><PageHeader eyebrow="07 / CONTENT STUDIO" title="Turn cultural insight into a brief." description="LIVE WHY·DNA·Collision·Lab 결과를 실제 입력으로 전달해 근거가 연결된 콘텐츠 기획안을 만듭니다. 참고 자료 URL은 AI가 아니라 서버의 근거 원장에서 붙입니다."/>
+  return <div className="page"><PageHeader guide={{what:"분석 근거로 카드뉴스·숏폼 원고와 이미지를 만듭니다.",first:"콘텐츠 방향 5개 제안받기 → 방향 하나 고르기 → 만들기 순서로 누르세요(누를 때만 API 비용).",next:"편집한 결과는 자동 저장되고, Figma로 보내 디자인을 이어 가거나 Workspace에서 다시 엽니다."}} eyebrow="07 / CONTENT STUDIO" title="Turn cultural insight into a brief." description="LIVE WHY·DNA·Collision·Lab 결과를 실제 입력으로 전달해 근거가 연결된 콘텐츠 기획안을 만듭니다. 참고 자료 URL은 AI가 아니라 서버의 근거 원장에서 붙입니다."/>
     <div className="chip-select mode-switch"><button type="button" aria-pressed={mode==="production"} onClick={()=>setModeChoice("production")} data-testid="studio-tab-production">PRODUCTION · 카드뉴스·숏폼</button><button type="button" aria-pressed={mode==="live"} onClick={()=>setModeChoice("live")} data-testid="studio-tab-brief">LIVE BRIEF · {sources.length} SOURCES</button><button type="button" aria-pressed={mode==="demo"} onClick={()=>setModeChoice("demo")}>DEMO EXAMPLE</button></div>
     {mode==="production"?(snapshots===null?<div className="state-box panel"><LoaderCircle className="spin"/><p>저장된 LIVE 분석을 불러오고 있습니다.</p></div>:<StudioProduction snapshots={snapshots}/>):mode==="live"?<LiveStudio sources={sources} loading={snapshots===null}/>:<DemoStudio/>}
     <style jsx>{`.mode-switch{margin-bottom:18px}`}</style>
@@ -58,7 +58,9 @@ function LiveStudio({sources,loading}:{sources:ReturnType<typeof buildInsightSou
     if(collision)setSourceChoice(`collision:${collision}`);
     if(lab)setLabChoice(lab);
   });return()=>cancelAnimationFrame(frame)},[]);
-  const source=sources.find(item=>item.id===sourceChoice)??sources[0];
+  // V4 P0: URL로 지정한 Collision을 찾지 못하면 첫 출처로 바꾸지 않는다(Trend Lab과 같은 규칙). 지정이 없을 때만 첫 출처.
+  const source=sources.find(item=>item.id===sourceChoice)??(sourceChoice?undefined:sources[0]);
+  const missingCollision=sourceChoice?.startsWith("collision:")&&!source?sourceChoice.slice("collision:".length):null;
   const keys=source?.contexts.map(c=>c.key).join("|");
   const matchingLabs=(labs??[]).filter(item=>item.trendKeys.join("|")===keys);
   const lab=matchingLabs.find(item=>item.id===labChoice);
@@ -83,6 +85,7 @@ function LiveStudio({sources,loading}:{sources:ReturnType<typeof buildInsightSou
   const copy=async()=>{if(!current)return;await navigator.clipboard.writeText([current.payload.plan.hooks[0],current.payload.plan.caption,current.payload.plan.cta].filter(Boolean).join("\n\n"));setToast("후킹 문구·캡션·CTA를 복사했습니다.")};
 
   if(loading)return <div className="state-box panel"><LoaderCircle className="spin"/><p>저장된 LIVE 분석을 불러오고 있습니다.</p></div>;
+  if(missingCollision&&!current)return <div className="state-box panel" data-testid="studio-collision-missing"><AlertTriangle/><h3>요청한 Collision을 이 브라우저에서 찾지 못했거나, 구성 트렌드의 WHY 분석이 빠졌습니다.</h3><p>ID <code>{missingCollision}</code> — 다른 분석으로 자동으로 바꾸지 않았습니다. Trend Lab에서 무엇이 빠졌는지 확인하고 복구할 수 있습니다.</p><div className="row"><Link className="button primary" href={`/lab?collision=${encodeURIComponent(missingCollision)}`}>Trend Lab에서 확인하기</Link>{sources.length>0&&<button type="button" className="button" onClick={()=>setSourceChoice(sources[0].id)} data-testid="studio-collision-pick-other">다른 분석 소스로 진행</button>}</div></div>;
   if(!sources.length&&!current)return <div className="state-box panel"><DataBadge status="NOT ANALYZED"/><h3>기획에 사용할 LIVE 분석이 없습니다.</h3><p>TREND WHY를 LIVE로 실행하면 그 결과로 콘텐츠 기획안을 만들 수 있습니다.</p><Link className="button primary" href="/discover">Analyze a keyword</Link></div>;
   const plan=current?.payload.plan;const firstContext=source?.contexts[0];
   return <div className="studio-layout"><aside className="panel"><div className="source-stack"><small>CONNECTED INSIGHTS · 실제 API 입력</small>

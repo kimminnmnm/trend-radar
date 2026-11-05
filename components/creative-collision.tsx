@@ -16,6 +16,7 @@ import { AssetImage, ImageGenerator } from "./image-generator";
 import { getCollisions, getCreativeRuns, getSavedItems, saveCreativeRun } from "@/lib/storage";
 import { buildCreativeInputs, requestCreativeRun, type SelectedConnectionInput } from "@/lib/creative-request";
 import { useStored } from "@/lib/use-stored";
+import { keywordFromLiveId, trendPath } from "@/lib/live-trend";
 import type { LiveAnalysisSnapshot } from "@/lib/types";
 import { CloudSaveStatus } from "./cloud-save-status";
 import { DataBadge, formatDateTime } from "./ui";
@@ -31,19 +32,29 @@ export function mergeCreativeRuns(local: CreativeRun[], savedPayloadRuns: Creati
   return [...byId.values()].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
 }
 
-export function CreativeCollision({ snapshots, initialTrendIds = [], selectedConnection = null }: { snapshots: LiveAnalysisSnapshot[]; initialTrendIds?: string[]; selectedConnection?: SelectedConnectionInput | null }) {
+/** 링크로 받은 트렌드 두 개를 저장 분석에서 찾는다. 사용자가 고른 값이 있으면 그것을 쓴다. 찾지 못한 요청 트렌드는 missingWanted로 돌려준다. */
+function resolvePair(readyIds: string[], initialTrendIds: string[], pickA: string | null, pickB: string | null) {
+  const wanted = initialTrendIds.slice(0, 2);
+  const has = (id: string | undefined) => Boolean(id) && readyIds.includes(id!);
+  const aKey = pickA ?? (has(wanted[0]) ? wanted[0] : readyIds.find((id) => !wanted.includes(id)) ?? readyIds[0] ?? "");
+  const bKey = pickB ?? (has(wanted[1]) && wanted[1] !== aKey ? wanted[1] : readyIds.find((id) => id !== aKey && !wanted.includes(id)) ?? readyIds.find((id) => id !== aKey) ?? "");
+  return { aKey, bKey, missingWanted: pickA === null && pickB === null ? wanted.filter((id) => !has(id)) : [] };
+}
+
+export function CreativeCollision({ snapshots, loading = false, initialTrendIds = [], selectedConnection = null }: { snapshots: LiveAnalysisSnapshot[]; loading?: boolean; initialTrendIds?: string[]; selectedConnection?: SelectedConnectionInput | null }) {
   const ready = useMemo(() => snapshots.filter((item) => item.whyReport || item.dna), [snapshots]);
   const localRuns = useStored(getCreativeRuns);
   const savedItems = useStored(getSavedItems);
   const collisions = useStored(getCollisions);
   const ledgerState = useStored(readCultureLedger);
   const runs = useMemo(() => mergeCreativeRuns(localRuns ?? [], (savedItems ?? []).flatMap((item) => isCreativePayload(item.payload) ? [item.payload.run] : [])), [localRuns, savedItems]);
-  const [pickA, setPickA] = useState<string | null>(() => initialTrendIds.find((id) => ready.some((item) => item.trendId === id)) ?? null);
-  const [pickB, setPickB] = useState<string | null>(() => initialTrendIds.find((id) => id !== initialTrendIds[0] && ready.some((item) => item.trendId === id)) ?? null);
-  const aKey = pickA ?? ready[0]?.trendId ?? "";
-  const bKey = pickB ?? ready.find((item) => item.trendId !== aKey)?.trendId ?? "";
+  // V4 3차: 링크로 받은 트렌드(Trend Web·Culture Map)는 저장 분석을 읽은 뒤에 고른다. 이전에는 첫 렌더(분석을 읽기 전)에만 찾아서
+  // 페이지를 바로 열면 요청한 트렌드 대신 첫 번째 저장 트렌드가 선택됐다. 찾지 못한 트렌드는 알리고, 사용자가 고르기 전에는 생성하지 않는다.
+  const [pickA, setPickA] = useState<string | null>(null);
+  const [pickB, setPickB] = useState<string | null>(null);
+  const { aKey, bKey, missingWanted } = useMemo(() => resolvePair(ready.map((item) => item.trendId), initialTrendIds, pickA, pickB), [ready, initialTrendIds, pickA, pickB]);
   const [runId, setRunId] = useState<string | null>(null);
-  const run = runs.find((item) => item.id === runId) ?? runs.find((item) => item.trendKeys[0] === aKey && item.trendKeys[1] === bKey) ?? null;
+  const run = runs.find((item) => item.id === runId) ?? (missingWanted.length ? undefined : runs.find((item) => item.trendKeys[0] === aKey && item.trendKeys[1] === bKey)) ?? null;
   const [ideaId, setIdeaId] = useState<string | null>(null);
   const idea = run?.result.ideas.find((item) => item.id === (ideaId ?? run.selectedIdeaId)) ?? run?.result.ideas[0] ?? null;
   const [state, setState] = useState<"idle" | "loading" | "sending" | "error">("idle");
@@ -92,6 +103,7 @@ export function CreativeCollision({ snapshots, initialTrendIds = [], selectedCon
   };
   const copy = async (text: string, label: string) => { try { await navigator.clipboard.writeText(text); setToast(`${label}을(를) 복사했습니다.`); } catch { setToast("복사하지 못했습니다."); } };
 
+  if (loading) return <div className="state-box panel"><LoaderCircle className="spin"/><p>저장된 LIVE 분석을 불러오고 있습니다.</p></div>;
   if (ready.length < 2) return <div className="state-box panel" data-testid="creative-not-ready"><DataBadge status="NOT ANALYZED" detail={`준비 ${ready.length}/2`}/><h3>WHY 또는 DNA가 있는 LIVE 트렌드가 2개 이상 필요합니다.</h3><p>Creative Collision은 저장된 분석 결과만 입력으로 씁니다. 데모 데이터를 대신 쓰지 않습니다.</p><Link className="button primary" href="/discover">Analyze trends</Link></div>;
 
   const signalsShared = run?.result.structure.shared_signals ?? [];
@@ -101,6 +113,7 @@ export function CreativeCollision({ snapshots, initialTrendIds = [], selectedCon
       <div className="titlebar"><span>SELECT.EXE — TREND A × B</span></div>
       <label>TREND A<select value={aKey} onChange={(event) => { setPickA(event.target.value); setRunId(null); setIdeaId(null); }} data-testid="creative-a">{ready.map((item) => <option key={item.trendId} value={item.trendId}>{item.trendName}</option>)}</select></label>
       <label>TREND B<select value={bKey} onChange={(event) => { setPickB(event.target.value); setRunId(null); setIdeaId(null); }} data-testid="creative-b">{ready.filter((item) => item.trendId !== aKey).map((item) => <option key={item.trendId} value={item.trendId}>{item.trendName}</option>)}</select></label>
+      {missingWanted.length > 0 && <div className="inputs missing-trend" role="alert" data-testid="creative-missing-trend"><small>요청한 트렌드를 찾지 못했어요</small><p>{missingWanted.map((id, index) => <span key={id}>{index > 0 ? " · " : ""}<Link href={trendPath(id, "why")}>{keywordFromLiveId(id)} WHY 분석</Link></span>)} — 이 브라우저(계정)에 WHY·DNA 분석이 없습니다. 다른 트렌드로 자동으로 바꾸지 않았어요. 위에서 직접 고르면 생성할 수 있어요.</p></div>}
       {inputs && <div className="inputs" data-testid="creative-inputs"><small>INPUTS · 저장된 분석 재사용</small><p>{inputs.report.used.map((item) => <span key={item} className="ok">{item}</span>)}</p>{inputs.report.missing.length > 0 && <p className="missing">없음: {inputs.report.missing.join(", ")} — 없는 정보는 만들지 않습니다.</p>}</div>}
       {selectedConnection && <div className="inputs" data-testid="creative-selected-connection"><small>FROM TREND WEB · {selectedConnection.verificationStatus}</small><p><span className="ok">{selectedConnection.direction}</span>{selectedConnection.title}</p><p>{selectedConnection.context}</p></div>}
       <div className="signals" data-testid="creative-shared"><small>SHARED SIGNALS {run ? "· 생성 결과" : "· DNA 라벨 미리보기"}</small>
@@ -110,7 +123,7 @@ export function CreativeCollision({ snapshots, initialTrendIds = [], selectedCon
       <div className="signals" data-testid="creative-contrast"><small>CONTRASTING SIGNALS</small>
         {run ? signalsContrast.map((item) => <SignalRow key={item.text} item={item}/>) : inputs ? <><p><b className="tag dna">A</b>{inputs.preview.onlyA.map((item) => item.label).join(", ") || "—"}</p><p><b className="tag dna">B</b>{inputs.preview.onlyB.map((item) => item.label).join(", ") || "—"}</p></> : null}
       </div>
-      <button type="button" className="button primary" onClick={() => void generate()} disabled={!inputs || state === "loading"} data-testid="creative-generate">{state === "loading" ? <><LoaderCircle className="spin"/>Generating…</> : <><Sparkles size={14}/>{run ? "새로 생성 (9개)" : "Creative Collision 생성"}</>}</button>
+      <button type="button" className="button primary" onClick={() => void generate()} disabled={!inputs || state === "loading" || missingWanted.length > 0} data-testid="creative-generate">{state === "loading" ? <><LoaderCircle className="spin"/>Generating…</> : <><Sparkles size={14}/>{run ? "새로 생성 (9개)" : "Creative Collision 생성"}</>}</button>
       {runs.length > 0 && <div className="history"><small>SAVED RUNS</small>{runs.slice(0, 8).map((item) => <button type="button" key={item.id} aria-pressed={run?.id === item.id} onClick={() => { setRunId(item.id); setIdeaId(null); setPickA(item.trendKeys[0]); setPickB(item.trendKeys[1]); }}>{item.trendNames.join(" × ")}{item.focusType ? ` · ${ideaTypeLabels[item.focusType]}` : ""}<em>{formatDateTime(item.updatedAt)}</em></button>)}</div>}
     </aside>
 

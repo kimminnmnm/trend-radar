@@ -72,7 +72,7 @@ export function Discover(){
     }catch(reason){setValidateError(reason instanceof Error?reason.message:"검증에 실패했습니다.")}finally{setValidating(false)}
   };
 
-  return <div className="page"><PageHeader eyebrow="01 / TREND DISCOVER" title="Find the signal before the noise." description="NAVER DataLab은 지정한 키워드의 상대 관심도를 비교하는 API이며 새로운 유행어 목록을 제공하지 않습니다. 그래서 후보를 실제 수집 자료에서 찾고, 같은 요청 안에서만 비교해 검증합니다."/>
+  return <div className="page"><PageHeader guide={{what:"키워드가 실제로 뜨는지, 지금 무슨 일이 일어나는지 확인합니다.",first:"키워드를 입력하고 Analyze live를 누르세요(API 비용 발생 · 결과는 저장됨).",next:"저장된 분석으로 WHY(왜 뜨나) 화면에서 원인을 보고, Content Studio에서 콘텐츠를 만듭니다."}} eyebrow="01 / TREND DISCOVER" title="Find the signal before the noise." description="NAVER DataLab은 지정한 키워드의 상대 관심도를 비교하는 API이며 새로운 유행어 목록을 제공하지 않습니다. 그래서 후보를 실제 수집 자료에서 찾고, 같은 요청 안에서만 비교해 검증합니다."/>
     <form className="search-panel panel" onSubmit={analyze}><Radar/><input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="LIVE로 분석할 키워드 입력 (예: 러닝)" aria-label="LIVE keyword"/><button className="button primary" disabled={!keyword.trim()}>Analyze live <ArrowRight size={14}/></button></form>
 
     <section className="section"><SectionHeading index="01" title="Live trends you have analyzed" description="저장된 LIVE 분석입니다. 다시 열 때는 API를 호출하지 않습니다."/>

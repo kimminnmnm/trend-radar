@@ -82,6 +82,8 @@ test.describe("Pulse RESCAN never loses history", () => {
     await expect(board.getByTestId("ig-pulse-notice")).toContainText("0개입니다. 이전 측정 결과는 그대로 유지됩니다");
     await expect(board.locator(".activity li")).toHaveCount(rowsBefore);
     await expect(board.locator(".activity li").first()).toContainText("시간 전 측정");
+    // 2026-11 재설계: 최신 스캔이 0개면 이전 측정 결과임을 분명히 표시한다.
+    await expect(board.getByTestId("ig-pulse-previous")).toContainText("이전 측정 결과");
     const after = await stored(page);
     expect(after.reports).toHaveLength(7);
     expect(after.tracked).toEqual(FIVE);

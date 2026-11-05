@@ -45,8 +45,9 @@ test.describe("Overview Instagram hashtag pulse", () => {
     await expect(top.locator(".kw b")).toHaveText("#치이카와");
     // 일부만 받은 태그는 24시간 수를 '이상'으로 표시한다.
     await expect(top.locator(".vol")).toHaveText("24h 300+개");
-    // 첫 측정뿐이라 오르는 순 칸은 비어 있고 다음 비교 시각을 안내한다.
-    await expect(board.getByTestId("rising-empty")).toContainText("이후 RESCAN하면 비교됩니다");
+    // 첫 측정뿐이라 비교할 이전 값이 없다: 오르는 순에는 상승률 없이 NEW로만 표시한다(2026-11 RESCAN 재설계).
+    await expect(board.locator(".rising li")).toHaveCount(found.length);
+    await expect(board.locator(".rising li .chg")).toHaveText(found.map(() => "NEW"));
     await expect(board.getByText(/보류\(다음 스캔\)/)).toBeVisible();
     await expect(board.getByText(/측정 실패/)).toBeVisible();
     expect(calls).toEqual([]);
@@ -58,13 +59,15 @@ test.describe("Overview Instagram hashtag pulse", () => {
     const board = page.getByTestId("ig-pulse");
     const row = (list: string, tag: string) => board.locator(`.${list} li`, { has: page.locator(".kw b", { hasText: `#${tag}` }) });
     await expect(row("rising", "치이카와").locator(".chg")).toHaveText("■ 0%");
-    // 아이브는 첫 측정에서 실패해 이전 값이 없으므로 오르는 순에는 없고 활동량 순에만 있다.
-    await expect(row("rising", "아이브")).toHaveCount(0);
+    // 아이브는 첫 측정에서 실패해 이전 값이 없다: 상승률을 만들지 않고 NEW로 표시한다.
+    await expect(row("rising", "아이브").locator(".chg")).toHaveText("NEW");
     await expect(row("activity", "아이브")).toHaveCount(1);
 
+    // 2분 간격 재측정: 이전 측정이 있는 태그는 비교 대기(오르는 순에 없음), 처음 확인된 아이브만 NEW.
     await seed(page, [fixture.second, fixture.first]);
-    await expect(board.locator(".rising li")).toHaveCount(0);
-    await expect(board.getByTestId("rising-empty")).toBeVisible();
+    await expect(board.locator(".rising li")).toHaveCount(1);
+    await expect(row("rising", "아이브").locator(".chg")).toHaveText("NEW");
+    await expect(board.getByTestId("rising-waiting")).toContainText("3개");
   });
 
   test("scan re-measures tracked tags, adds new ones, and keeps only active tags in tracking", async ({ page }) => {
@@ -84,24 +87,26 @@ test.describe("Overview Instagram hashtag pulse", () => {
     await expect(board.getByText("LIVE ANALYSIS")).toBeVisible();
     expect(sent!.track).toEqual(["치이카와"]);
     expect(sent!.add).toEqual(["새태그"]);
-    expect(sent!.discover).toBe(false);
+    // 승인을 켜면 RESCAN 한 번에 웹 후보 탐색까지 한다(별도 체크 없음).
+    expect(sent!.discover).toBe(true);
     expect(sent!.allowNew).toBe(true);
     const tracked = await page.evaluate(() => JSON.parse(localStorage.getItem("trend-radar-ig-track") ?? "[]"));
     expect(tracked).toEqual(["새태그", "치이카와", "아이브"]);
   });
 
-  test("track-only rescan keeps earlier web candidates; removing a tracked tag hides it from the board", async ({ page }) => {
-    // second는 추적 태그만 다시 잰 스캔, first는 웹 검색 후보가 포함된 스캔
+  test("the chart shows only the latest scan (earlier web candidates stay in history); removing a tracked tag hides it from the board", async ({ page }) => {
+    // second는 추적 태그만 다시 잰 스캔, first는 웹 검색 후보가 포함된 스캔. 2026-11 재설계: 과거 측정을 최신 차트에 섞지 않는다.
     await seed(page, [fixture.second, fixture.first], ["치이카와", "아이브"]);
     const board = page.getByTestId("ig-pulse");
     const tags = () => board.locator(".activity li .kw b");
-    await expect(tags()).toHaveCount(5);
-    await expect(board.locator(".activity li .kw b", { hasText: "#조조타운인무신사" })).toBeVisible();
+    await expect(tags()).toHaveCount(4);
+    await expect(board.locator(".activity li .kw b", { hasText: "#조조타운인무신사" })).toHaveCount(0);
+    await board.getByTestId("ig-pulse-history").locator("summary").click();
+    await expect(board.getByTestId("ig-pulse-history")).toContainText("#조조타운인무신사");
 
     await board.getByRole("button", { name: "치이카와 추적 해제" }).click();
-    await expect(tags()).toHaveCount(4);
+    await expect(tags()).toHaveCount(3);
     await expect(board.locator(".activity li .kw b", { hasText: "#치이카와" })).toHaveCount(0);
-    await expect(board.locator(".activity li .kw b", { hasText: "#조조타운인무신사" })).toBeVisible();
 
     await board.getByLabel("추적할 해시태그").fill("치이카와");
     await board.getByRole("button", { name: "추가" }).click();

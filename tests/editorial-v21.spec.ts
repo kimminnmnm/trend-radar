@@ -103,9 +103,9 @@ test.describe("PHASE 3 hook diversity", () => {
 test.describe("PHASE 4 required checks vs editorial review (rules, not user ratings)", () => {
   test("the gate splits required (facts·topic·language·evidence·duplicate) from editorial signals; only required failures count", () => {
     const report = gate("ballet", "발레코어");
-    expect(report.checks.filter((check) => check.group === "required").map((check) => check.id)).toEqual(["facts", "topic", "language", "evidence", "duplicate", "experience", "virality"]); // V3(E4): 허위 경험·근거 없는 유행 주장 추가
+    expect(report.checks.filter((check) => check.group === "required").map((check) => check.id)).toEqual(["facts", "topic", "language", "evidence", "duplicate", "experience", "virality", "no-limits-in-copy", "no-source-narration"]); // V3: 허위 경험·근거 없는 유행 주장·자료 한계 문구 · V4: 출처 서술 2장 이상
     expect(report.checks.filter((check) => check.group === "editorial").map((check) => check.id)).toEqual(["specific", "detail-use", "not-report", "not-survey", "title", "flow"]); // V3: 조사·통계 서술 신호
-    expect(report.total).toBe(7);
+    expect(report.total).toBe(9);
     // 원어는 「」 안이면 허용한다(곡명·작품명).
     const quoted: ProductionPlan = { ...after.productions.ballet.plan, slides: after.productions.ballet.plan.slides.map((slide, index) => index === 1 ? { ...slide, body: "「ゆるかわ」(느슨한 귀여움)이라는 말이 있어요." } : slide) };
     expect(editorialQualityGate(quoted, { subjectTerms: ["발레코어"] }).failing).not.toContain("language");

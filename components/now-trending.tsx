@@ -10,6 +10,12 @@ import { liveTrendId, trendPath } from "@/lib/live-trend";
 import type { DataStatus, NowTrendItem, NowTrendReport } from "@/lib/types";
 import { koreaDateKey } from "@/lib/korea-date";
 import { DataBadge, WinButtons, formatDateTime } from "./ui";
+import dynamic from "next/dynamic";
+import { useInterfaceStyle } from "@/lib/interface-preferences";
+import { MountInView } from "./motion";
+
+// Editorial Web(V3.1)에서만 쓰는 시계열 차트. 차트 라이브러리는 이 화면에서 필요할 때만 불러온다.
+const HighScoreChart = dynamic(() => import("./high-score-chart"), { ssr: false });
 
 const precisionLabel: Record<NowTrendItem["levelPrecision"], string> = { exact: "", estimated: "≈", low: "≈?" };
 const domain = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
@@ -39,6 +45,7 @@ export function NowTrending() {
   const status: DataStatus = state === "loading" ? "LOADING" : state === "error" && !report ? "ERROR" : fresh ? (fresh.cached ? "CACHED" : "LIVE") : report ? "SAVED" : "NOT ANALYZED";
   const items = useMemo(() => !report ? [] : sort === "change" ? report.items : [...report.items].sort((a, b) => b.stats.mean - a.stats.mean), [report, sort]);
   const top = report?.items[0];
+  const editorial = useInterfaceStyle() === "editorial";
 
   const scan = async () => {
     setState("loading"); setError("");
@@ -79,6 +86,8 @@ export function NowTrending() {
         <span className="srcs">{item.sources.slice(0, 2).map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{domain(source.url)}</a>)}</span>
         <Link className="go" href={trendPath(liveTrendId(item.keyword), "why")} aria-label={`${item.keyword} WHY 분석`}>▶</Link>
       </li>)}</ol>
+      {/* 차트는 화면에 들어올 때 그려진다(그때 선이 그려지는 모습이 곧 등장 애니메이션). 데이터는 저장된 보고서 그대로. */}
+      {editorial && <MountInView minHeight={360} testId="high-score-chart-slot"><HighScoreChart key={report.generatedAt} report={report}/></MountInView>}
       {report.insufficient.length > 0 && <p className="dropped">검색 데이터 부족으로 제외: {report.insufficient.map((item) => item.keyword).join(", ")}</p>}
       <details className="method"><summary>HOW THIS SCORE WORKS · 후보 {report.items.length + report.insufficient.length}개 · 웹 출처 {report.searchedSources}개 · 출처 미검증 제외 {report.droppedUnverified}개</summary><ul>{report.methodology.map((line) => <li key={line}>{line}</li>)}<li>대상: {report.audience.label} · 기간 {report.period.startDate}~{report.period.endDate} ({report.period.timeUnit}) · 앵커 {report.anchor ?? "—"} · {report.model} · {formatDateTime(report.generatedAt)}</li></ul></details>
     </>}

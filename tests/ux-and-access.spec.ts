@@ -65,6 +65,10 @@ test.describe("analysis journey", () => {
     // V4: 단일 트렌드의 다음 단계는 콘텐츠 제작(DNA·섞어 보기는 선택 단계로 표시)
     await expect(bar.getByTestId("journey-next")).toContainText("이 트렌드로 콘텐츠 만들기");
     await expect(bar.locator("li.optional")).toHaveCount(2);
+    // 논리적 순서: ① 찾기 → ② 왜 뜨나 → ③ DNA 분해(선택) → ④ 섞어 보기(선택) → ⑤ 콘텐츠 만들기. 번호는 필수 조건이 아니다.
+    await expect(bar.locator("li")).toHaveText([/① 찾기/, /② 왜 뜨나/, /③ DNA 분해 · 선택/, /④ 섞어 보기 · 선택/, /⑤ 콘텐츠 만들기/]);
+    await expect(bar.locator("li.optional")).toHaveText([/③ DNA 분해/, /④ 섞어 보기/]);
+    await expect(bar.getByRole("link", { name: /⑤ 콘텐츠 만들기/ })).toHaveAttribute("href", /\/studio\?trend=live-/); // DNA·Collision 없이도 바로 이동
     await expect(bar.getByTestId("journey-alt")).toHaveAttribute("href", "/collision");
     await bar.getByTestId("journey-next").click();
     await expect(page).toHaveURL(/\/studio\?(trend=live-|project=studio-single-live-)/); // Studio가 프로젝트를 만들며 ?project=로 바꾼다
@@ -75,7 +79,7 @@ test.describe("analysis journey", () => {
     await seed(page, { "trend-radar-onboarded": "1", "trend-radar-live-analyses": [why.snapshot], "trend-radar-studio-projects": [project] });
     await page.goto(RUNNING_WHY);
     const bar = page.getByTestId("journey-bar");
-    await expect(bar.getByRole("link", { name: "③ 콘텐츠 만들기" })).toBeVisible();
+    await expect(bar.getByRole("link", { name: "⑤ 콘텐츠 만들기" })).toBeVisible();
     await expect(bar.locator("li.done")).toHaveCount(3); // 찾기, WHY, 콘텐츠
     await expect(bar.getByTestId("journey-next")).toHaveCount(0);
     await expect(bar.getByTestId("journey-done")).toContainText("콘텐츠를 만들었습니다");

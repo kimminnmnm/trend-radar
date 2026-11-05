@@ -185,7 +185,7 @@ export function CreativeCollision({ snapshots, loading = false, initialTrendIds 
     </aside>
     <style jsx>{`
       .creative{display:grid;grid-template-columns:270px minmax(0,1fr) 360px;gap:14px;align-items:start}
-      .creative>*{min-width:0}.cc-left,.cc-right{overflow-wrap:anywhere}.cc-left label,.cc-left select,.focus select{min-width:0;max-width:100%;width:100%}.focus{width:100%}.focus .button{flex:0 0 auto}
+      .creative>*{min-width:0}.cc-left,.cc-right{overflow-wrap:anywhere}.cc-left label{min-width:0}.cc-left select,.focus select{min-width:0;max-width:100%;width:100%}.focus{width:100%}.focus .button{flex:0 0 auto}
       .cc-left,.cc-right{padding:0 0 14px;display:grid;gap:10px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
       .cc-left>:not(.titlebar),.cc-right>:not(.titlebar){margin:0 14px}
       .cc-left label{display:grid;gap:4px;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--blue)}

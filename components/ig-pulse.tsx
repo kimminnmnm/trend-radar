@@ -12,6 +12,7 @@ import { liveTrendId, trendPath } from "@/lib/live-trend";
 import { chartItems, chartSource, MIN_COMPARE_GAP_HOURS, nextQueue, nextTrackList, restorableTags, risingRows, type RisingRow } from "@/lib/ig-pulse-view";
 import type { DataStatus, IgPulseItem, IgPulseReport } from "@/lib/types";
 import { DataBadge, WinButtons, formatDateTime } from "./ui";
+import { useInterfaceStyle } from "@/lib/interface-preferences";
 
 const domain = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
 const originLabel: Record<IgPulseItem["origin"], string> = { tracked: "추적", manual: "직접", discovered: "발견" };
@@ -29,6 +30,23 @@ function ChangeCell({ comparison }: { comparison: RisingRow["comparison"] }) {
   const tone = pct > 15 ? "up" : pct < -15 ? "down" : "flat";
   const text = !Number.isFinite(pct) ? "▲ 이전 0" : `${pct > 0 ? "▲" : pct < 0 ? "▼" : "■"} ${Math.abs(pct)}%`;
   return <span className={`chg ${tone}`} title={`이전 측정 ${formatDateTime(comparison.previous.collectedAt)} · 시간당 ${rate(comparison.previous.perHour)}개`}>{text}</span>;
+}
+
+/**
+ * Editorial Web(V3.1) 행 툴팁: 저장된 측정값만 보여 준다. 이전 측정이 없으면 상승률을 만들지 않고, 비교할 수 없는 구간은 그렇다고 적는다.
+ */
+function PulseTip({ id, item, comparison, status }: { id: string; item: IgPulseItem; comparison: RisingRow["comparison"] | undefined; status: string }) {
+  const previous = comparison?.kind === "change" ? `${rate(comparison.previous.perHour)}/h · ${formatDateTime(comparison.previous.collectedAt)}` : comparison?.kind === "new" ? "없음(처음 측정)" : `있음 · ${MIN_COMPARE_GAP_HOURS}시간 이내라 비교 대기`;
+  const change = comparison?.kind === "change" ? (Number.isFinite(comparison.changePct) ? `${comparison.changePct > 0 ? "+" : ""}${comparison.changePct}%` : "이전 0 → 증가(비율 없음)") : comparison?.kind === "new" ? "NEW · 계산하지 않음" : "비교 대기";
+  return <span className="ed-tip" role="tooltip" id={id} data-testid="pulse-tip">
+    <b>#{item.tag}</b>
+    <span><em>게시 속도</em>{rate(item.perHour)}/h{item.rateBasis === "recent-sample" ? ` (최근 ${item.spanHours ?? "?"}시간 표본)` : " (24시간 평균)"}</span>
+    <span><em>최근 24시간</em>{item.complete ? `${item.posts24h}개` : `${item.sampled}개 이상`}</span>
+    <span><em>이전 측정</em>{previous}</span>
+    <span><em>변화율</em>{change}</span>
+    <span><em>마지막 측정</em>{formatDateTime(item.collectedAt)}</span>
+    <span><em>데이터 상태</em>{status}</span>
+  </span>;
 }
 
 function VolumeCell({ item }: { item: IgPulseItem }) {
@@ -115,6 +133,12 @@ export function IgPulse() {
   const rows = useMemo(() => source ? chartItems(source.report, dismissed).map((item) => ({ item })) : [], [source, dismissed]);
   const risingView = useMemo(() => risingRows(rows.map((row) => row.item), all), [rows, all]);
   const rising = risingView.ranked;
+  // V3.1 Editorial Web: 막대·툴팁·갱신 강조. 값은 이번 차트의 측정값 그대로(막대 길이 = 목록 안 최댓값 대비 비율).
+  const editorial = useInterfaceStyle() === "editorial";
+  const maxRate = Math.max(0, ...rows.map((row) => row.item.perHour ?? 0));
+  const maxChange = Math.max(0, ...rising.flatMap((row) => row.comparison.kind === "change" && Number.isFinite(row.comparison.changePct) ? [Math.abs(row.comparison.changePct)] : []));
+  const compareOf = new Map(rising.map((row) => [row.item.tag, row.comparison] as const));
+  const freshTags = fresh && !source?.previous ? new Set(fresh.report.items.map((item) => item.tag)) : null;
   // 비교 대기 태그가 처음 비교 가능해지는 시각(가장 최근 이전 측정 + 20시간)
   const nextCompareAt = useMemo(() => {
     const times = risingView.waiting.map((item) => {
@@ -227,6 +251,7 @@ export function IgPulse() {
     } catch (reason) { setProgress(null); setError(`새로운 측정에 실패했습니다. 이전 측정 결과는 유지됩니다. (${reason instanceof Error ? reason.message : "Instagram 해시태그 스캔 실패"})`); setState("error"); }
   };
 
+  const dataLabel = source?.previous ? `이전 측정 결과(${formatDateTime(source.report.generatedAt)})` : status === "LIVE" ? "방금 측정(LIVE)" : status === "CACHED" ? "캐시된 측정(같은 요청 재사용)" : "저장된 측정(SAVED)";
   const stages = [
     { key: "discover", label: "새로운 트렌드 탐색 중" },
     { key: "measure", label: "해시태그 측정 중" },
@@ -289,23 +314,25 @@ export function IgPulse() {
       <div className="boards">
         <section className="col" aria-label="전일 대비 오르는 해시태그">
           <header className="col-head"><b>▲ 오르는 순</b><span>전일 대비 · {MIN_COMPARE_GAP_HOURS}시간 이상 간격의 같은 방식 측정끼리 비교 · NEW: 이전 측정 없음</span></header>
-          {rising.length ? <ol className="board rising">{rising.map(({ item, comparison }, index) => <li key={item.tag}>
+          {rising.length ? <ol className="board rising">{rising.map(({ item, comparison }, index) => <li key={item.tag} {...(editorial ? { tabIndex: 0, "aria-describedby": `tip-r-${index}`, className: freshTags?.has(item.tag) ? "fresh" : undefined } : {})}>
             <span className="rk">{String(index + 1).padStart(2, "0")}</span>
             <div className="kw"><b>#{item.tag}</b><small>{comparison.kind === "change" ? `${rate(comparison.previous.perHour)}/h → ${rate(item.perHour)}/h · ${Math.round((new Date(item.collectedAt).getTime() - new Date(comparison.previous.collectedAt).getTime()) / 36e5)}시간 간격` : `처음 측정 · ${rate(item.perHour)}/h`}</small></div>
             <ChangeCell comparison={comparison}/>
             <Link className="go" href={trendPath(liveTrendId(item.keyword ?? item.tag), "why")} aria-label={`${item.keyword ?? item.tag} WHY 분석`}>▶</Link>
+            {editorial && <>{comparison.kind === "change" && Number.isFinite(comparison.changePct) && maxChange > 0 && <span className={`ed-bar ${comparison.changePct >= 0 ? "up" : "down"}`} aria-hidden style={{ "--share": `${Math.max(2, Math.abs(comparison.changePct) / maxChange * 100)}%` } as React.CSSProperties}/>}<PulseTip id={`tip-r-${index}`} item={item} comparison={comparison} status={dataLabel}/></>}
           </li>)}</ol> : <div className="col-empty" data-testid="rising-empty"><p>아직 비교할 측정이 없습니다.</p><p>같은 태그를 {MIN_COMPARE_GAP_HOURS}시간 이상 지나 다시 재면 여기에 오르는 순서대로 표시됩니다.{nextCompareAt && <> <b>{formatDateTime(nextCompareAt.toISOString())} 이후 RESCAN하면 비교됩니다.</b></>}</p></div>}
           {rising.length > 0 && risingView.waiting.length > 0 && <p className="col-note" data-testid="rising-waiting">이전 측정과 {MIN_COMPARE_GAP_HOURS}시간이 지나지 않은 태그 {risingView.waiting.length}개는 다음 측정부터 비교됩니다.</p>}
         </section>
         <section className="col" aria-label="많이 올라오는 해시태그">
           <header className="col-head"><b>● 많이 올라오는 순</b><span>시간당 게시물 수 · {source?.previous ? "이전 측정 결과" : "이번 스캔에서 측정한 태그"}만 · 과거 측정은 섞지 않음</span></header>
-          {rows.length ? <ol className="board activity">{rows.map(({ item }, index) => <li key={item.tag}>
+          {rows.length ? <ol className="board activity">{rows.map(({ item }, index) => <li key={item.tag} {...(editorial ? { tabIndex: 0, "aria-describedby": `tip-a-${index}`, className: freshTags?.has(item.tag) ? "fresh" : undefined } : {})}>
             <span className="rk">{String(index + 1).padStart(2, "0")}</span>
             <div className="kw"><b>#{item.tag}</b><small>{originLabel[item.origin]}{item.category ? ` · ${item.category}` : ""}{item.keyword && item.keyword.replace(/\s+/g, "") !== item.tag ? ` · ${item.keyword}` : ""}{report && ageHours(item, report) >= 1 && <em> · {ageHours(item, report)}시간 전 측정</em>}</small>
               <span className="links">{item.samplePosts[0] && <a href={item.samplePosts[0].permalink} target="_blank" rel="noreferrer" title="가장 최근 게시물">최근 게시물<ExternalLink/></a>}{item.sources.slice(0, 1).map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" title={item.summary}>{domain(source.url)}</a>)}</span></div>
             <span className="rate" title={item.rateBasis === "24h-full" ? "24시간 평균" : `최근 ${item.spanHours ?? "?"}시간 표본 기준`}><b>{rate(item.perHour)}</b>/h{item.rateBasis === "recent-sample" && <i>*</i>}</span>
             <VolumeCell item={item}/>
             <Link className="go" href={trendPath(liveTrendId(item.keyword ?? item.tag), "why")} aria-label={`${item.keyword ?? item.tag} WHY 분석`}>▶</Link>
+            {editorial && <>{maxRate > 0 && <span className="ed-bar" aria-hidden style={{ "--share": `${Math.max(2, (item.perHour ?? 0) / maxRate * 100)}%` } as React.CSSProperties}/>}<PulseTip id={`tip-a-${index}`} item={item} comparison={compareOf.get(item.tag)} status={dataLabel}/></>}
           </li>)}</ol> : <p className="col-empty">측정된 해시태그가 없습니다.</p>}
         </section>
       </div>

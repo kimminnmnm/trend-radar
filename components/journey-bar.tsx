@@ -53,16 +53,17 @@ export function JourneyBar() {
   const steps = [
     { key: "discover", label: "① 찾기", href: "/discover", done: true, active: pathname === "/discover", optional: false },
     { key: "why", label: "② 왜 뜨나", href: trendPath(id, "why"), done: Boolean(current?.whyReport), active: pathname.endsWith("/why"), optional: false },
-    { key: "studio", label: "③ 콘텐츠 만들기", href: `/studio?trend=${encodeURIComponent(id)}`, done: produced, active: pathname === "/studio", optional: false },
-    { key: "dna", label: "+ DNA 분해", href: trendPath(id, "dna"), done: Boolean(current?.dna), active: pathname.endsWith("/dna"), optional: true },
-    { key: "collision", label: "+ 섞어 보기", href: "/collision", done: collided, active: pathname === "/collision", optional: true },
+    // 번호는 기능의 논리적 순서다(필수 완료 조건 아님). DNA·섞어 보기는 선택 단계 — 건너뛰고 ⑤로 바로 갈 수 있다.
+    { key: "dna", label: "③ DNA 분해", href: trendPath(id, "dna"), done: Boolean(current?.dna), active: pathname.endsWith("/dna"), optional: true },
+    { key: "collision", label: "④ 섞어 보기", href: "/collision", done: collided, active: pathname === "/collision", optional: true },
+    { key: "studio", label: "⑤ 콘텐츠 만들기", href: `/studio?trend=${encodeURIComponent(id)}`, done: produced, active: pathname === "/studio", optional: false },
   ];
   const order = creativePath ? ["why", "collision", "studio"] : ["why", "studio"];
   const next = order.map((key) => steps.find((step) => step.key === key)!).find((step) => !step.done);
   const nextLabel: Record<string, string> = { why: "WHY 분석 실행", collision: "다른 트렌드와 섞어 보기", studio: "이 트렌드로 콘텐츠 만들기" };
   return <nav className="journey" aria-label="분석 진행 상황" data-testid="journey-bar">
     <div className="journey-now"><span className="pill live">분석 중</span><p><b data-testid="journey-trend">{name}</b>{current ? "" : " · 아직 WHY 분석 전"}</p></div>
-    <ol>{steps.map((step) => <li key={step.key} className={`${step.done ? "done" : ""} ${step.active ? "active" : ""} ${step.optional ? "optional" : ""}`} title={step.optional ? "선택 단계 — 건너뛰어도 콘텐츠를 만들 수 있습니다" : undefined}><Link href={step.href} aria-current={step.active ? "step" : undefined}>{step.done && <Check size={12}/>}{step.label}</Link></li>)}</ol>
+    <ol>{steps.map((step) => <li key={step.key} className={`${step.done ? "done" : ""} ${step.active ? "active" : ""} ${step.optional ? "optional" : ""}`} title={step.optional ? "선택 단계 — 건너뛰어도 콘텐츠를 만들 수 있습니다" : undefined}><Link href={step.href} aria-current={step.active ? "step" : undefined}>{step.done && <Check size={12}/>}{step.label}{step.optional && <small className="opt"> · 선택</small>}</Link></li>)}</ol>
     {next ? <div className="journey-next-wrap"><Link className="button primary" href={next.href} data-testid="journey-next">다음: {nextLabel[next.key]} <ArrowRight size={14}/></Link>{next.key === "studio" && !creativePath && !collided && <Link className="journey-alt" href="/collision" data-testid="journey-alt">또는 다른 트렌드와 섞어 보기(선택)</Link>}</div>
       : <span className="all-done" data-testid="journey-done">{creativePath ? "섞어 보기와 콘텐츠 제작을 마쳤습니다" : "이 트렌드로 콘텐츠를 만들었습니다"}</span>}
   </nav>;

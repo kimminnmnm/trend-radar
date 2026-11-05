@@ -11,6 +11,7 @@ import { WinButtons } from "@/components/ui";
 import { JourneyBar } from "@/components/journey-bar";
 import { AccountSyncBar } from "@/components/account-sync-bar";
 import { StorageWarning } from "@/components/storage-warning";
+import { EditorialBreadcrumb, EditorialNav } from "@/components/editorial-nav";
 
 const nav = [
   { href: "/", label: "Overview", desc: "지금 뜨는 해시태그·2030 순위", icon: Aperture },
@@ -34,6 +35,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isActive = (href: string, label: string) => pathname === href || (label === "Trend Why" && /^\/trends\/[^/]+\/why$/.test(pathname)) || (label === "Trend DNA" && /^\/trends\/[^/]+\/dna$/.test(pathname));
   return (
     <div className="app-shell">
+      {/* TREND RADAR 3.0: Editorial Web 상단 내비게이션. Classic Desktop에서는 CSS로 숨기고, 아래 기존 사이드바를 그대로 쓴다. */}
+      <EditorialNav />
       <header className="mobile-bar">
         <Link href="/" className="mobile-logo"><i /> TR</Link>
         <button className="icon-button" onClick={() => setOpen(!open)} aria-label="메뉴 열기">{open ? <X /> : <Menu />}</button>
@@ -65,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       {open && <button className="backdrop" aria-label="메뉴 닫기" onClick={() => setOpen(false)} />}
-      <main className="main-content"><StorageWarning /><AccountSyncBar /><JourneyBar />{children}</main>
+      <main className="main-content" id="main"><EditorialBreadcrumb /><StorageWarning /><AccountSyncBar /><JourneyBar />{children}</main>
     </div>
   );
 }

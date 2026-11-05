@@ -2,7 +2,7 @@
 
 import { MediaThumb } from "./media-thumb";
 import { cardImage } from "@/lib/visual-media";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-fetch";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import { getLiveAnalyses, getWatchlist, saveWatchlist } from "@/lib/storage";
 import { useStored } from "@/lib/use-stored";
 import { useInstagramAutofill } from "@/lib/instagram-autofill";
 import { liveTrendId, trendPath } from "@/lib/live-trend";
+import { readQueryParam } from "@/lib/insight-sources";
 import type { LiveAnalysisSnapshot, WatchCandidate } from "@/lib/types";
 import type { SeriesStats } from "@/lib/schemas";
 import { DataBadge, formatDateTime, PageHeader, SectionHeading } from "./ui";
@@ -47,6 +48,8 @@ export function Discover(){
   const storedWatchlist=useStored(getWatchlist);
   const watchlist=useMemo(()=>storedWatchlist??[],[storedWatchlist]);
   const [keyword,setKeyword]=useState("");
+  // 상단 검색(?q=)은 입력칸만 채운다. 분석(유료 호출)은 사용자가 버튼을 눌러야 시작한다.
+  useEffect(()=>{const frame=requestAnimationFrame(()=>{const q=readQueryParam("q");if(q)setKeyword(q.slice(0,60))});return()=>cancelAnimationFrame(frame)},[]);
   const [newCandidate,setNewCandidate]=useState("");
   const [picked,setPicked]=useState<string[]>([]);
   const [validating,setValidating]=useState(false);const [validateError,setValidateError]=useState("");const [methodology,setMethodology]=useState("");

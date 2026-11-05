@@ -49,13 +49,14 @@ export function FigmaConnect() {
       </>}
       {state === "done" && <p data-testid="figma-connect-done"><CheckCircle2 size={16}/> 연결했습니다. Figma로 돌아가면 플러그인이 자동으로 작업 목록을 불러옵니다. 이 창은 닫아도 됩니다.</p>}
       {state === "error" && <p className="error" data-testid="figma-connect-error">{message}</p>}
+      {state === "error" && !key && <p className="hint">이 페이지는 Figma 플러그인이 연결 키를 붙여 여는 페이지입니다. 보내는 방법은 <Link href="/figma">Figma로 보내기 안내</Link>를 보세요.</p>}
     </section>
     <style jsx>{`
       .connect-box{padding:18px;display:grid;gap:10px;max-width:640px}
       .connect-box p{margin:0;display:flex;gap:6px;align-items:center;flex-wrap:wrap;line-height:1.6}
       .connect-box ul{margin:0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.7}
       .connect-box .button{justify-self:start}
-      .error{color:#c0392b}
+      .error{color:#c0392b}.hint{font-size:13px;color:var(--muted)}.hint :global(a){color:var(--blue);text-decoration:underline;margin:0 4px}
     `}</style>
   </div>;
 }

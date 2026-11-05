@@ -86,7 +86,9 @@ function TrendWebView() {
   const [requestedSessionId] = useState(() => typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("trendWeb"));
   const [reportId, setReportId] = useState<string | null>(null);
   const requestedSession = [...sessions, ...cloudSessions].find((item) => item.id === requestedSessionId);
-  const graph = available.find((item) => item.reportId === reportId) ?? available.find((item) => item.reportId === requestedSession?.graph.reportId) ?? available[0] ?? null;
+  // 세션 ID는 trend-web-{보고서 ID}다. 아직 저장된 세션이 없는 분석도 주소만으로 다시 연다(새로고침 복원).
+  const requestedReportId = requestedSession?.graph.reportId ?? (requestedSessionId?.startsWith("trend-web-") ? requestedSessionId.slice("trend-web-".length) : null);
+  const graph = available.find((item) => item.reportId === reportId) ?? available.find((item) => item.reportId === requestedReportId) ?? available[0] ?? null;
   const restored = graph ? [...sessions, ...cloudSessions].find((item) => item.graph.reportId === graph.reportId) : undefined;
   const [mode, setMode] = useState<"explore" | "select">("explore");
   const [selected, setSelected] = useState<string[]>(restored?.selectedNodeIds ?? []);
@@ -122,12 +124,16 @@ function TrendWebView() {
     const frame = requestAnimationFrame(() => {
       setSelected(restored?.selectedNodeIds ?? []);
       setConnectionId(restored?.selectedConnectionId ?? null);
-      setRunId(null);
+      // 페이지 이동·새로고침 복원: 두 노드를 고른 세션이면 선택 모드로 열고, 그 두 노드의 저장된 연결 분석 결과를 다시 붙인다(새로 호출하지 않음).
+      const pair = (restored?.selectedNodeIds ?? []).map((id) => graph.nodes.find((node) => node.id === id)?.keyword).filter((keyword): keyword is string => Boolean(keyword));
+      const savedRun = pair.length === 2 ? runs.find((item) => pairMatches(item, pair[0], pair[1], graph.window.days)) : undefined;
+      if (pair.length === 2) setMode("select");
+      setRunId(savedRun?.id ?? null);
       setDetailId(restored?.selectedPhenomenonId ? graph.nodes.find((node) => node.sourceSignalId === restored.selectedPhenomenonId)?.id ?? null : null);
       setHydratedReportId(graph.reportId);
     });
     return () => cancelAnimationFrame(frame);
-  }, [graph, restored, hydratedReportId]);
+  }, [graph, restored, hydratedReportId, runs]);
 
   const persistSession = (nextSelected = selected, nextConnection = connectionId) => {
     if (!graph) return null;
@@ -173,7 +179,7 @@ function TrendWebView() {
     <header><div><small>● TREND WEB</small><h2>Explore Connected Signals</h2><p>저장된 Discovery 근거에서 확인된 키워드·현상·행동을 네트워크로 보여 줍니다. 노드 크기와 선 굵기는 <b>근거 신뢰도</b>이며 인기도 순위가 아닙니다.</p></div>{graph && <DataBadge status="SAVED" detail={`${graph.window.from}~${graph.window.to}`}/>}</header>
     {!graph ? <div className="empty"><Network/><h3>저장된 세부 현상 결과가 없습니다.</h3><p>위 WHAT&apos;S HAPPENING NOW?에서 키워드를 검색하면, 유료 호출 없이 그 저장 결과로 TREND WEB을 만듭니다.</p></div> : <>
       <div className="toolbar">
-        <select aria-label="Trend Web report" value={graph.reportId} onChange={(event) => { setReportId(event.target.value); setHydratedReportId(null); }}>{available.map((item) => <option value={item.reportId} key={item.reportId}>{item.mainKeyword} · {item.window.days}일 · {item.nodes.length} nodes</option>)}</select>
+        <select aria-label="Trend Web report" value={graph.reportId} onChange={(event) => { setReportId(event.target.value); setHydratedReportId(null); if (window.location.pathname === "/trend-web") window.history.replaceState(null, "", `/trend-web?trendWeb=${encodeURIComponent(trendWebSessionId(event.target.value))}`); }}>{available.map((item) => <option value={item.reportId} key={item.reportId}>{item.mainKeyword} · {item.window.days}일 · {item.nodes.length} nodes</option>)}</select>
         <div className="modes" role="radiogroup" aria-label="Trend Web mode"><button role="radio" aria-checked={mode === "explore"} onClick={() => setMode("explore")}>EXPLORE MODE</button><button role="radio" aria-checked={mode === "select"} onClick={() => setMode("select")}>SELECT TWO MODE</button></div>
         <label className="search"><Search size={13}/><input aria-label="Search nodes" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search nodes"/></label>
         <select aria-label="Category filter" value={category} onChange={(event) => setCategory(event.target.value as TrendWebCategory | "ALL")}><option value="ALL">ALL CATEGORIES</option>{trendWebCategories.map((item) => <option key={item}>{item}</option>)}</select>

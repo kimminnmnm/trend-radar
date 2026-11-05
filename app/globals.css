@@ -289,8 +289,9 @@ input[type=checkbox],input[type=radio] { accent-color:#3fae1c; width:16px; heigh
 @media(max-width:1050px){ .ob-body ol { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:760px){
   .journey { padding:10px 12px; gap:10px; }
-  .journey ol { overflow-x:auto; flex-wrap:nowrap; width:100%; padding-bottom:2px; }
-  .journey li a { white-space:nowrap; }
+  /* 다섯 단계가 모두 보이도록 줄바꿈(가로 스크롤로 ⑤가 가려지지 않게) */
+  .journey ol { flex-wrap:wrap; width:100%; gap:6px; }
+  .journey li a { white-space:nowrap; padding:4px 9px; font-size:12.5px; }
   .journey .button { width:100%; }
   .ob-body { padding:18px 16px; }
   .ob-body ol { grid-template-columns:1fr; }

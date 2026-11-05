@@ -10,7 +10,12 @@ import { saveItem } from "@/lib/storage";
 import { DataBadge, PageHeader, SectionHeading, StatusPill } from "./ui";
 import { LiveWhyPanel } from "./live-why-panel";
 import { usePhenomenonContext } from "@/lib/use-phenomenon";
-import { isPhenomenonTrendId } from "@/lib/discovery";
+import { isPhenomenonTrendId, phenomenonQuery } from "@/lib/discovery";
+import { getLiveAnalyses } from "@/lib/storage";
+import { useStored } from "@/lib/use-stored";
+import { trendPath } from "@/lib/live-trend";
+import { selectWhyOverview } from "@/lib/why-summary";
+import { EditorialPageBar } from "./editorial-page-bar";
 
 const hypotheses = [
   { no:"01", title:"불완전한 이미지의 감각", copy:"선명하고 자동 보정된 이미지에 익숙한 환경에서, 낮은 해상도와 우연한 노이즈가 ‘나만의 기록’이라는 감각을 만들 수 있습니다.", status:"Supported Hypothesis" as const, evidence:"E-02" },
@@ -18,12 +23,25 @@ const hypotheses = [
   { no:"03", title:"세대가 교차하는 향수", copy:"직접 경험한 사람에게는 회상으로, 경험하지 않은 사람에게는 새로운 시각 언어로 소비될 가능성을 탐색합니다.", status:"Creative Hypothesis" as const, evidence:"검증 필요" },
 ];
 
+/** Editorial Web: WHY 요약 막대(저장된 분석의 대표 요약 · 상태 · 다음 행동 · 섹션 바로가기). Classic에서는 그리지 않는다. */
+function WhyPageBar({ trend, phenomenonTitle, studioHref }: { trend: Trend; phenomenonTitle?: string; studioHref?: string }) {
+  const snapshot = useStored(getLiveAnalyses)?.find((item) => item.trendId === trend.id) ?? null;
+  const report = snapshot?.whyReport;
+  const overview = snapshot && report ? selectWhyOverview(snapshot) : null;
+  return <EditorialPageBar testId="why-bar" type={phenomenonTitle ? "TREND WHY · PHENOMENON" : "TREND WHY"} title={phenomenonTitle ?? snapshot?.trendName ?? trend.name}
+    status={report ? "SAVED" : "NOT ANALYZED"} analyzedAt={report ? snapshot?.analyzedAt : undefined}
+    summary={overview ? <><p>{overview.summary}</p><StatusPill status={overview.status}/></> : <p>아직 저장된 WHY 분석이 없습니다. 아래 Run live analysis를 누르면 근거를 모아 분석합니다(API 비용 발생).</p>}
+    actions={[{ href: trendPath(trend.id, "dna"), label: "ANALYZE DNA", testId: "why-bar-dna" }, { href: studioHref ?? `/studio?trend=${encodeURIComponent(trend.id)}`, label: "CREATE CONTENT", primary: true, testId: "why-bar-studio" }]}
+    sections={report ? [{ id: "why-summary", label: "핵심 요약" }, { id: "why-now", label: "WHY NOW" }, ...(report.context ? [{ id: "why-context", label: "문화적 맥락·사례" }] : []), { id: "why-evidence", label: "근거 원장" }, { id: "why-next", label: "다음 행동" }] : []}/>;
+}
+
 export function WhyView({ trend }: { trend: Trend }){
   const phen=usePhenomenonContext(trend.id);
   const [selected,setSelected]=useState(interestSeries[3]); const [expanded,setExpanded]=useState("01"); const [saved,setSaved]=useState(false);
   const save=()=>{saveItem({id:`why-${trend.id}`,type:"insight",mode:"demo",title:`${trend.name} — TREND WHY`,subtitle:"Origin, trigger, motivation & future scenarios",createdAt:new Date().toISOString()});setSaved(true)};
   if(trend.category==="Live")return <div className="page why-page">
     <PageHeader guide={{what:"이 트렌드(또는 현상)가 왜 뜨는지 근거 ID와 함께 봅니다.",first:"저장된 분석이 없으면 Run live analysis를 누르세요(API 비용 발생 · 다시 열 때는 무료).",next:"Content Studio에서 제작하기로 바로 콘텐츠를 만들거나, 필요하면 DNA 분해로 이어 갑니다."}} eyebrow={phen.context?"02 / TREND WHY · PHENOMENON":"02 / TREND WHY · LIVE"} title={phen.context?.title??(isPhenomenonTrendId(trend.id)?"선택한 현상":trend.name)} description={phen.context?`"${phen.context.keyword}" 안에서 선택한 현상 자체를 분석합니다. 검색어·웹 검색·분석 지시가 모두 이 현상 기준이며, 키워드 전체의 역사·기원은 다루지 않습니다.`:"NAVER DataLab 상대 관심도, Instagram 해시태그 게시물 표본, 뉴스·공개 자료를 근거 원장으로 만들고, OpenAI가 원인 가설을 근거 ID와 함께 제시합니다. 시간적 일치는 인과의 증명이 아닙니다."}/>
+    <WhyPageBar trend={trend} phenomenonTitle={phen.context?.title} studioHref={phen.context?`/studio?${phenomenonQuery(phen.context)}`:undefined}/>
     <div className="trend-meta"><span>{phen.context?"LIVE PHENOMENON":"LIVE KEYWORD"}</span><span>{phen.context?"SOURCES · 발견 단계 근거 재사용 · NAVER DataLab · YouTube·웹 출처(필요할 때만) · OpenAI · Instagram 미사용 · 데모 데이터 미사용":"SOURCES · NAVER DataLab · Instagram Graph API · 웹 출처(뉴스·공개 자료) · OpenAI · 데모 데이터 미사용"}</span></div>
     {isPhenomenonTrendId(trend.id)&&!phen.ready?null:isPhenomenonTrendId(trend.id)&&!phen.context?<p className="phen-missing" role="status">이 현상 분석의 맥락을 이 브라우저와 주소에서 찾지 못했습니다. Overview의 WHAT&apos;S HAPPENING NOW?에서 현상을 다시 선택하세요.</p>:<LiveWhyPanel key={phen.context?.phenomenonId??"keyword"} trend={trend} lockKeyword phenomenon={phen.context} phenomenonEvidence={phen.evidence}/>}
     <style jsx>{`.demo-divider{display:flex;gap:14px;align-items:center;margin:40px 0 18px;padding:12px 15px;border-left:2px solid #b2b2b2;background:#f4f5f9}.demo-divider p{margin:0;font-size:11px;color:#808080}.trend-meta{display:flex;gap:10px;align-items:center;margin-top:-18px;margin-bottom:25px;color:#24407a;font-weight:600;font-size:11px;letter-spacing:.1em}.trend-meta>span:first-child{padding-right:10px;border-right:1px solid var(--border)}.phen-missing{padding:14px;border:2px solid #c98a00;background:#fff6d6;font-size:13px}`}</style>

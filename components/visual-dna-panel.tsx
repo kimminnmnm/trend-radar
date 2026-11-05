@@ -42,7 +42,7 @@ export function VisualDnaPanel({ snapshot }: { snapshot: LiveAnalysisSnapshot })
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Visual DNA 분석에 실패했습니다."); setState("error"); }
   };
 
-  return <section className="section visual-dna" data-testid="visual-dna">
+  return <section className="section visual-dna" id="visual-dna" data-testid="visual-dna">
     <SectionHeading index="V" title="Visual DNA" description="실제 영상 썸네일에서 보이는 시각 특징(관찰)과 그 의미에 대한 AI 해석을 나눠 보여 줍니다. 썸네일 표본은 트렌드 전체를 대표하지 않습니다."/>
     {!eligible.length && !record ? <div className="state-box panel" data-testid="visual-dna-unavailable"><DataBadge status="NOT AVAILABLE"/><h3>Visual DNA를 만들 실제 이미지가 없습니다.</h3><p>YouTube 수집을 켜고 WHY를 재분석하면 공개 영상 썸네일로 Visual DNA를 만들 수 있습니다. 이미지 없이 키워드만으로는 만들지 않습니다.</p></div> : <div className="panel body">
       <div className="head">

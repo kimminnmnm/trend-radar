@@ -5,8 +5,15 @@ export class OpenAIAnalysisError extends Error {
   constructor(message: string, public readonly status = 502, public readonly code = "OPENAI_ANALYSIS_ERROR") { super(message); }
 }
 
+/** 429는 두 경우다: 계정 크레딧·월 한도 소진(insufficient_quota — 기다려도 안 풀림)과 짧은 시간 요청 몰림(rate limit — 잠시 뒤 재시도). */
+export function rateLimitMessage(error?: { code?: string; type?: string }) {
+  return error?.code === "insufficient_quota" || error?.type === "insufficient_quota"
+    ? "OpenAI 계정의 크레딧 또는 월 사용 한도가 소진됐습니다. platform.openai.com → Billing에서 잔액과 한도를 확인하세요(기다려도 풀리지 않습니다)."
+    : "OpenAI 요청이 잠시 한도를 넘었습니다. 1분쯤 뒤 다시 시도하세요.";
+}
+
 type ResponsesSource = { url?: string; title?: string };
-type ResponsesBody = { output?: Array<{ type?: string; action?: { sources?: ResponsesSource[] }; content?: Array<{ type?: string; text?: string; refusal?: string; annotations?: ResponsesSource[] }> }> } & { error?: { message?: string; code?: string }; output_text?: string; output?: Array<{ content?: Array<{ type?: string; text?: string; refusal?: string }> }> };
+type ResponsesBody = { output?: Array<{ type?: string; action?: { sources?: ResponsesSource[] }; content?: Array<{ type?: string; text?: string; refusal?: string; annotations?: ResponsesSource[] }> }> } & { error?: { message?: string; code?: string; type?: string }; output_text?: string; output?: Array<{ content?: Array<{ type?: string; text?: string; refusal?: string }> }> };
 
 function getApiKey() {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -53,7 +60,7 @@ async function postOpenAI(path: string, payload: unknown, timeoutMs: number) {
   const body = await response.json().catch(() => ({})) as ResponsesBody & Record<string, unknown>;
   if (!response.ok) {
     const status = response.status === 401 ? 401 : response.status === 429 ? 429 : 502;
-    const message = response.status === 401 ? "OpenAI API 키가 유효하지 않습니다." : response.status === 429 ? "OpenAI 사용량 한도 또는 요청 한도를 확인하세요." : body.error?.message || "OpenAI 분석 요청에 실패했습니다.";
+    const message = response.status === 401 ? "OpenAI API 키가 유효하지 않습니다." : response.status === 429 ? rateLimitMessage(body.error) : body.error?.message || "OpenAI 분석 요청에 실패했습니다.";
     throw new OpenAIAnalysisError(message, status, body.error?.code || "OPENAI_REQUEST_FAILED");
   }
   return body;

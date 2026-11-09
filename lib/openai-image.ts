@@ -1,5 +1,5 @@
 import "server-only";
-import { getModel, OpenAIAnalysisError } from "./openai-client";
+import { getModel, OpenAIAnalysisError, rateLimitMessage } from "./openai-client";
 import { composeImagePrompt, IMAGE_SIZES, validImageSize, type ImageRequest } from "./image-assets";
 
 /*
@@ -7,7 +7,7 @@ import { composeImagePrompt, IMAGE_SIZES, validImageSize, type ImageRequest } fr
  * Responses API의 image_generation 도구를 쓴다(공식 문서 2026-10). 이미지 모델 이름은 추측해 넣지 않는다:
  * OPENAI_IMAGE_MODEL이 있을 때만 도구의 model로 지정하고, 없으면 API 기본값을 쓴다.
  */
-type ImageOutput = { output?: Array<{ type?: string; result?: string; revised_prompt?: string }>; error?: { message?: string } };
+type ImageOutput = { output?: Array<{ type?: string; result?: string; revised_prompt?: string }>; error?: { message?: string; code?: string; type?: string } };
 
 async function requestOnce(prompt: string, size: string, timeoutMs: number) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -31,7 +31,7 @@ async function requestOnce(prompt: string, size: string, timeoutMs: number) {
     throw new OpenAIAnalysisError(timedOut ? "이미지 생성 시간이 초과됐습니다." : "OpenAI API에 연결할 수 없습니다.", 504, timedOut ? "OPENAI_TIMEOUT" : "OPENAI_NETWORK_ERROR");
   }
   const body = await response.json().catch(() => ({})) as ImageOutput;
-  if (!response.ok) throw new OpenAIAnalysisError(response.status === 429 ? "OpenAI 사용량 한도 또는 요청 한도를 확인하세요." : body.error?.message || "이미지 생성 요청에 실패했습니다.", response.status === 429 ? 429 : response.status >= 500 ? 502 : 400, "OPENAI_IMAGE_FAILED");
+  if (!response.ok) throw new OpenAIAnalysisError(response.status === 429 ? rateLimitMessage(body.error) : body.error?.message || "이미지 생성 요청에 실패했습니다.", response.status === 429 ? 429 : response.status >= 500 ? 502 : 400, "OPENAI_IMAGE_FAILED");
   const call = body.output?.find((item) => item.type === "image_generation_call" && item.result);
   if (!call?.result) throw new OpenAIAnalysisError("OpenAI 응답에 이미지가 없습니다.", 502, "OPENAI_IMAGE_EMPTY");
   return { base64: call.result, model: `${getModel()} · image_generation${imageModel ? ` (${imageModel})` : ""}`, revisedPrompt: call.revised_prompt };
